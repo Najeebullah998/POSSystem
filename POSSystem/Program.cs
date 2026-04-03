@@ -10,6 +10,7 @@ builder.Services.AddScoped<DapperContext>();
 builder.Services.AddScoped<ICustomer, CustomerRepository>();
 builder.Services.AddScoped<ICategory, CategoryRepository>();
 builder.Services.AddScoped<IWarehouse, WarehouseRepository>();
+builder.Services.AddScoped<Iitems, ItemsRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
