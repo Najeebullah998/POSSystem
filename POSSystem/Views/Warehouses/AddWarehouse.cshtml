@@ -1,0 +1,207 @@
+﻿@{
+    ViewData["Title"] = "WarehouseList";
+}
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<div class="page-inner">
+    <!-- start page title -->
+    <div class="row mb-1">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <div class="input-group ms-1">
+                        <input type="text" class="form-control form-control-light" id="dash-daterange">
+                        <span class="input-group-text bg-primary border-primary text-white">
+                            <i class="mdi mdi-calendar-range font-13"></i>
+                        </span>
+                    </div>
+                </div>
+                @* <div class="page-title">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Finance">warehouse</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">warehouse List</li>
+                        </ol>
+                    </nav>
+                </div> *@
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center flex-wrap p-1 pb-0 gap-2">
+                    <!-- Left-aligned filter buttons -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">Go Back</a>
+                        @* <a href="javascript:void(0);" class="btn btn-primary listbuttons">Yesterday</a>
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">This Month</a>
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">Date Range</a>
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">All</a> *@
+                    </div>
+                    <!-- Right-aligned Create New button -->
+                    <div>
+                        <a onclick="openAddModal()" class="btn btn-primary listbuttons">Create</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @* <h4 class="header-title mb-3">Grid View</h4> *@
+                    <div class="dataTables_wrapper">
+                        <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                            <thead>
+                                <tr>
+                                    <th>Warehouse Name</th>
+                                    <th>Branch</th>
+                                    <th>Locations</th>
+                                </tr>
+                            </thead>
+
+
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div> <!-- end preview-->
+                </div> <!-- end card body-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div> <!-- end row-->
+</div>
+<div class="modal fade" id="warehouseModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Warehouse</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="warehouseId" value="0" />
+                <div class="mb-3">
+                    <label for="warehouseName" class="form-label">Warehouse Name</label>
+                    <input type="text" class="form-control" id="warehouseName" placeholder="Enter name" />
+                </div>
+                <div class="mb-3">
+                    <label for="branchid" class="form-label">Branch Name</label>
+                    <input type="text" class="form-control" id="branchid" placeholder="Enter Branch" />
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" class="form-control" id="location" placeholder="Enter location" />
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="IsActive" checked>
+                    <label class="form-check-label" for="IsActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="savewarehouse()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+        function loadwarehouses() {
+        $.ajax({
+            url: '/Warehouses/GetAllWarehouse',
+            type: 'GET',
+            success: function (data) {
+
+                var tbody = $('#datatable-buttons tbody');
+                tbody.empty(); 
+
+                $.each(data, function (i, warehouse) {
+                    var status = warehouse.isActive ? 'Active' : 'Inactive';
+
+                    var row = `<tr>
+                        <td>${warehouse.warehouseName}</td>
+                        <td>${warehouse.branchId}</td>
+                        <td>${warehouse.locations}</td>
+                        <td>${status}</td>
+                    </tr>`;
+
+                    tbody.append(row);
+                });
+            },
+            error: function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load warehouses'
+                });
+            }
+        });
+    }
+
+    function openAddModal() {
+
+        $('#modalTitle').text('Add warehouse');
+        $('#warehouseId').val(0);
+        $('#warehouseName').val('');
+        $('#branchid').val('');
+        $('#location').val('');
+        $('#IsActive').prop('checked', true);
+
+        var modal = new bootstrap.Modal(document.getElementById('warehouseModal'));
+        modal.show();
+    }
+    // 🔹 Add Modal
+    var warehouseModal = new bootstrap.Modal(document.getElementById('warehouseModal'));
+
+    function openAddModal() {
+        $('#modalTitle').text('Add warehouse');
+        $('#warehouseId').val(0);
+        $('#warehouseName').val('');
+        $('#branchid').val('');
+        $('#location').val('');
+        $('#IsActive').prop('checked', true);
+        warehouseModal.show();
+    }
+        $(document).ready(function () {
+        loadwarehouses(); // page load par data show ho
+    });
+
+    function savewarehouse() {
+        var warehouse = {
+            warehouseName: $('#warehouseName').val(),
+            branchid: $('#branchid').val(),
+            locations:$('#location').val(),
+            IsActive: $('#IsActive').is(':checked')
+        };
+        console.log('warehouse',warehouse);
+        $.ajax({
+            url: '/Warehouses/AddWarehouse',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(warehouse),
+            success: function (response) {
+                if (response.success) {
+                    warehouseModal.hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        loadwarehouses(); // table update without page reload
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: "Something went wrong!"
+                });
+            }
+        });
+    }
+</script>

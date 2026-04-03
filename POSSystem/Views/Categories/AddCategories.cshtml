@@ -1,0 +1,190 @@
+﻿@{
+    ViewData["Title"] = "CategoryList";
+}
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<div class="page-inner">
+    <!-- start page title -->
+    <div class="row mb-1">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <div class="input-group ms-1">
+                        <input type="text" class="form-control form-control-light" id="dash-daterange">
+                        <span class="input-group-text bg-primary border-primary text-white">
+                            <i class="mdi mdi-calendar-range font-13"></i>
+                        </span>
+                    </div>
+                </div>
+                @* <div class="page-title">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Finance">category</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">category List</li>
+                        </ol>
+                    </nav>
+                </div> *@
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center flex-wrap p-1 pb-0 gap-2">
+                    <!-- Left-aligned filter buttons -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">Go Back</a>
+                        @* <a href="javascript:void(0);" class="btn btn-primary listbuttons">Yesterday</a>
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">This Month</a>
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">Date Range</a>
+                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">All</a> *@
+                    </div>
+                    <!-- Right-aligned Create New button -->
+                    <div>
+                        <a onclick="openAddModal()" class="btn btn-primary listbuttons">Create</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @* <h4 class="header-title mb-3">Grid View</h4> *@
+                    <div class="dataTables_wrapper">
+                        <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div> <!-- end preview-->
+                </div> <!-- end card body-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div> <!-- end row-->
+</div>
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="categoryId" value="0" />
+                <div class="mb-3">
+                    <label for="categoryName" class="form-label">Category Name</label>
+                    <input type="text" class="form-control" id="categoryName" placeholder="Enter name" />
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="IsActive" checked>
+                    <label class="form-check-label" for="IsActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="savecategory()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+        function loadcategories() {
+        $.ajax({
+            url: '/Categories/GetAllCategories',
+            type: 'GET',
+            success: function (data) {
+
+                var tbody = $('#datatable-buttons tbody');
+                tbody.empty(); // purana data clear kar do
+
+                $.each(data, function (i, category) {
+                    var status = category.isActive ? 'Active' : 'Inactive';
+
+                    var row = `<tr>
+                        <td>${category.categoryName}</td>
+                        <td>${status}</td>
+                    </tr>`;
+
+                    tbody.append(row);
+                });
+            },
+            error: function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load categorys'
+                });
+            }
+        });
+    }
+
+    function openAddModal() {
+
+        $('#modalTitle').text('Add category');
+        $('#categoryId').val(0);
+        $('#categoryName').val('');
+        $('#IsActive').prop('checked', true);
+
+        var modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+        modal.show();
+    }
+    // 🔹 Add Modal
+    var categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+
+    function openAddModal() {
+        $('#modalTitle').text('Add category');
+        $('#categoryId').val(0);
+        $('#categoryName').val('');
+        $('#IsActive').prop('checked', true);
+        categoryModal.show();
+    }
+        $(document).ready(function () {
+        loadcategories(); // page load par data show ho
+    });
+
+    function savecategory() {
+        var category = {
+            categoryName: $('#categoryName').val(),
+            IsActive: $('#IsActive').is(':checked')
+        };
+
+        $.ajax({
+            url: '/Categories/AddCategories',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(category),
+            success: function (response) {
+                if (response.success) {
+                    categoryModal.hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        loadcategories(); // table update without page reload
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: "Something went wrong!"
+                });
+            }
+        });
+    }
+</script>

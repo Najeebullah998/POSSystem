@@ -1,0 +1,14 @@
+﻿namespace POSSystem.Entities
+{
+    public class ItemCategory
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? CreatedOn { get; set; }
+        public int? CreatedBy { get; set; }
+        public DateTime? ModifiedOn { get; set; }
+        public int? ModifiedBy { get; set; }
+    }
+}
