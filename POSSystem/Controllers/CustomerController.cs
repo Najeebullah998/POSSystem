@@ -45,5 +45,31 @@ namespace POSSystem.Controllers
 
             return Json(new { success = false, message = "Error saving customer" });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerById(int id)
+        {
+            var customer = await _repo.GetByIdAsync(id);
+            return Json(customer);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateCustomer([FromBody] Customers customers)
+        {
+            if (customers == null || customers.CustomerId == 0)
+                return Json(new { success = false, message = "Invalid data" });
+
+            customers.ModifiedBy = 1;
+
+            await _repo.UpdateAsync(customers);
+
+            return Json(new { success = true, message = "Customer updated successfully" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCustomer(int id)
+        {
+            await _repo.DeleteAsync(id);
+            return Json(new { success = true, message = "Customer deleted successfully" });
+        }
     }
 }

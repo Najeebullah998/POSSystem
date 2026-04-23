@@ -52,10 +52,9 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Status</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-
-
                             <tbody>
                             </tbody>
                         </table>
@@ -91,100 +90,190 @@
     </div>
 </div>
 <script>
+function loadcategories() {
+    $.ajax({
+        url: '/Categories/GetAllCategories',
+        type: 'GET',
+        success: function (data) {
 
-        function loadcategories() {
-        $.ajax({
-            url: '/Categories/GetAllCategories',
-            type: 'GET',
-            success: function (data) {
+            var tbody = $('#datatable-buttons tbody');
+            tbody.empty(); // purana data clear kar do
 
-                var tbody = $('#datatable-buttons tbody');
-                tbody.empty(); // purana data clear kar do
+            $.each(data, function (i, category) {
+                var status = category.isActive ? 'Active' : 'Inactive';
 
-                $.each(data, function (i, category) {
-                    var status = category.isActive ? 'Active' : 'Inactive';
+                var row = `<tr>
+                    <td>${category.categoryName}</td>
+                    <td>${status}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-success" onclick="editCategory(${category.categoryId})">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCategory(${category.categoryId})">Delete</button>
+                    </td>
+                </tr>`;
 
-                    var row = `<tr>
-                        <td>${category.categoryName}</td>
-                        <td>${status}</td>
-                    </tr>`;
-
-                    tbody.append(row);
-                });
-            },
-            error: function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to load categorys'
-                });
-            }
-        });
-    }
-
-    function openAddModal() {
-
-        $('#modalTitle').text('Add category');
-        $('#categoryId').val(0);
-        $('#categoryName').val('');
-        $('#IsActive').prop('checked', true);
-
-        var modal = new bootstrap.Modal(document.getElementById('categoryModal'));
-        modal.show();
-    }
-    // 🔹 Add Modal
-    var categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
-
-    function openAddModal() {
-        $('#modalTitle').text('Add category');
-        $('#categoryId').val(0);
-        $('#categoryName').val('');
-        $('#IsActive').prop('checked', true);
-        categoryModal.show();
-    }
-        $(document).ready(function () {
-        loadcategories(); // page load par data show ho
+                tbody.append(row);
+            });
+        },
+        error: function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load categorys'
+            });
+        }
     });
+}
 
-    function savecategory() {
-        var category = {
-            categoryName: $('#categoryName').val(),
-            IsActive: $('#IsActive').is(':checked')
-        };
+// function openAddModal() {
 
-        $.ajax({
-            url: '/Categories/AddCategories',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(category),
-            success: function (response) {
-                if (response.success) {
-                    categoryModal.hide();
+//     $('#modalTitle').text('Add category');
+//     $('#categoryId').val(0);
+//     $('#categoryName').val('');
+//     $('#IsActive').prop('checked', true);
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        loadcategories(); // table update without page reload
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message
-                    });
-                }
-            },
-            error: function () {
+//     var modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+//     modal.show();
+// }
+// 🔹 Add Modal
+var categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+function openAddModal() {
+    $('#modalTitle').text('Add category');
+    $('#categoryId').val(0);
+    $('#categoryName').val('');
+    $('#IsActive').prop('checked', true);
+    categoryModal.show();
+}
+    $(document).ready(function () {
+    loadcategories(); // page load par data show ho
+});
+
+function savecategory() {
+    var category = {
+        categoryName: $('#categoryName').val(),
+        IsActive: $('#IsActive').is(':checked')
+    };
+
+    $.ajax({
+        url: '/Categories/AddCategories',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(category),
+        success: function (response) {
+            if (response.success) {
+                categoryModal.hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    loadcategories(); // table update without page reload
+                });
+            } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: "Something went wrong!"
+                    text: response.message
                 });
             }
-        });
-    }
+        },
+        error: function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: "Something went wrong!"
+            });
+        }
+    });
+}
+
+function editCategory(id) {
+    $.ajax({
+        url: '/Categories/GetCategoryById?id=' + id,
+        type: 'GET',
+        success: function (data) {
+
+            $('#modalTitle').text('Edit Category');
+            $('#categoryId').val(data.categoryId);
+            $('#categoryName').val(data.categoryName);
+            $('#IsActive').prop('checked', data.isActive);
+
+            categoryModal.show();
+        }
+    });
+}
+function savecategory() {
+    var category = {
+        CategoryId: $('#categoryId').val(),
+        CategoryName: $('#categoryName').val(),
+        IsActive: $('#IsActive').is(':checked')
+    };
+
+    var url = category.CategoryId == 0
+        ? '/Categories/AddCategories'
+        : '/Categories/UpdateCategory';
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(category),
+        success: function (response) {
+
+            if (response.success) {
+
+                categoryModal.hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    loadcategories();
+                });
+
+            } else {
+                Swal.fire('Error', response.message, 'error');
+            }
+        }
+    });
+}
+function deleteCategory(id) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This category will be deleted!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: '/Categories/DeleteCategory?id=' + id,
+                type: 'POST',
+                success: function (response) {
+
+                    if (response.success) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        loadcategories();
+                    }
+                }
+            });
+
+        }
+    });
+}
 </script>

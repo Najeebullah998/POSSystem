@@ -53,10 +53,10 @@
                                     <th>Warehouse Name</th>
                                     <th>Branch</th>
                                     <th>Locations</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-
-
                             <tbody>
                             </tbody>
                         </table>
@@ -118,6 +118,10 @@
                         <td>${warehouse.branchId}</td>
                         <td>${warehouse.locations}</td>
                         <td>${status}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success" onclick="editWarehouse(${warehouse.warehouseId})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteWarehouse(${warehouse.warehouseId})">Delete</button>
+                        </td>
                     </tr>`;
 
                     tbody.append(row);
@@ -133,18 +137,18 @@
         });
     }
 
-    function openAddModal() {
+    // function openAddModal() {
 
-        $('#modalTitle').text('Add warehouse');
-        $('#warehouseId').val(0);
-        $('#warehouseName').val('');
-        $('#branchid').val('');
-        $('#location').val('');
-        $('#IsActive').prop('checked', true);
+    //     $('#modalTitle').text('Add warehouse');
+    //     $('#warehouseId').val(0);
+    //     $('#warehouseName').val('');
+    //     $('#branchid').val('');
+    //     $('#location').val('');
+    //     $('#IsActive').prop('checked', true);
 
-        var modal = new bootstrap.Modal(document.getElementById('warehouseModal'));
-        modal.show();
-    }
+    //     var modal = new bootstrap.Modal(document.getElementById('warehouseModal'));
+    //     modal.show();
+    // }
     // 🔹 Add Modal
     var warehouseModal = new bootstrap.Modal(document.getElementById('warehouseModal'));
 
@@ -161,21 +165,72 @@
         loadwarehouses(); // page load par data show ho
     });
 
-    function savewarehouse() {
+    // function savewarehouse() {
+    //     var warehouse = {
+    //         warehouseName: $('#warehouseName').val(),
+    //         branchid: $('#branchid').val(),
+    //         locations:$('#location').val(),
+    //         IsActive: $('#IsActive').is(':checked')
+    //     };
+    //     console.log('warehouse',warehouse);
+    //     $.ajax({
+    //         url: '/Warehouses/AddWarehouse',
+    //         type: 'POST',
+    //         contentType: 'application/json',
+    //         data: JSON.stringify(warehouse),
+    //         success: function (response) {
+    //             if (response.success) {
+    //                 warehouseModal.hide();
+
+    //                 Swal.fire({
+    //                     icon: 'success',
+    //                     title: 'Success',
+    //                     text: response.message,
+    //                     timer: 1500,
+    //                     showConfirmButton: false
+    //                 }).then(() => {
+    //                     loadwarehouses(); // table update without page reload
+    //                 });
+    //             } else {
+    //                 Swal.fire({
+    //                     icon: 'error',
+    //                     title: 'Error',
+    //                     text: response.message
+    //                 });
+    //             }
+    //         },
+    //         error: function () {
+    //             Swal.fire({
+    //                 icon: 'error',
+    //                 title: 'Error',
+    //                 text: "Something went wrong!"
+    //             });
+    //         }
+    //     });
+    // }
+        function savewarehouse() {
+
         var warehouse = {
-            warehouseName: $('#warehouseName').val(),
-            branchid: $('#branchid').val(),
-            locations:$('#location').val(),
+            WarehouseId: $('#warehouseId').val(),
+            WarehouseName: $('#warehouseName').val(),
+            BranchId: $('#branchid').val(),
+            Locations: $('#location').val(),
             IsActive: $('#IsActive').is(':checked')
         };
-        console.log('warehouse',warehouse);
+
+        var url = warehouse.WarehouseId == 0
+            ? '/Warehouses/AddWarehouse'
+            : '/Warehouses/UpdateWarehouse';
+
         $.ajax({
-            url: '/Warehouses/AddWarehouse',
+            url: url,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(warehouse),
             success: function (response) {
+
                 if (response.success) {
+
                     warehouseModal.hide();
 
                     Swal.fire({
@@ -185,22 +240,64 @@
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        loadwarehouses(); // table update without page reload
+                        loadwarehouses();
                     });
+
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message
-                    });
+                    Swal.fire('Error', response.message, 'error');
                 }
-            },
-            error: function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: "Something went wrong!"
+            }
+        });
+    }
+    function editWarehouse(id) {
+        $.ajax({
+            url: '/Warehouses/GetWarehouseById?id=' + id,
+            type: 'GET',
+            success: function (data) {
+
+                $('#modalTitle').text('Edit Warehouse');
+                $('#warehouseId').val(data.warehouseId);
+                $('#warehouseName').val(data.warehouseName);
+                $('#branchid').val(data.branchId);
+                $('#location').val(data.locations);
+                $('#IsActive').prop('checked', data.isActive);
+
+                warehouseModal.show();
+            }
+        });
+    }
+        function deleteWarehouse(id) {
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This warehouse will be deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    url: '/Warehouses/DeleteWarehouse?id=' + id,
+                    type: 'POST',
+                    success: function (response) {
+
+                        if (response.success) {
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            loadwarehouses();
+                        }
+                    }
                 });
+
             }
         });
     }

@@ -45,5 +45,31 @@ namespace POSSystem.Controllers
 
             return Json(new { success = false, message = "Error saving Category" });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCategoryById(int id)
+        {
+            var category = await _repo.GetByIdAsync(id);
+            return Json(category);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateCategory([FromBody] ItemCategory category)
+        {
+            if (category == null || category.CategoryId == 0)
+                return Json(new { success = false, message = "Invalid data" });
+
+            category.ModifiedBy = 1;
+
+            await _repo.UpdateAsync(category);
+
+            return Json(new { success = true, message = "Category updated successfully" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            await _repo.DeleteAsync(id);
+            return Json(new { success = true, message = "Category deleted successfully" });
+        }
     }
 }

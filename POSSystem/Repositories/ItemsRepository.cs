@@ -42,9 +42,31 @@ namespace POSSystem.Repositories
         }
 
 
+        //public async Task<IEnumerable<Item>> GetAllAsync()
+        //{
+        //    var query = @"Select * from Items WHERE IsActive=1 AND IsDeleted=0";
+        //    var con = _context.CreateConnection();
+        //    return await con.QueryAsync<Item>(query);
+        //}
         public async Task<IEnumerable<Item>> GetAllAsync()
         {
-            var query = @"Select * from Items WHERE IsActive=1 AND IsDeleted=0";
+            var query = @"
+        SELECT 
+            i.ItemId,
+            i.ItemName,
+            i.Barcode,
+            i.CategoryId,
+            i.UnitId,
+            i.SalePrice,
+            i.CostPrice,
+            i.IsActive,
+            c.CategoryName,
+            u.UnitName
+        FROM Items i
+        LEFT JOIN ItemCategories c ON i.CategoryId = c.CategoryId
+        LEFT JOIN Units u ON i.UnitId = u.UnitId
+        WHERE i.IsDeleted = 0";
+
             var con = _context.CreateConnection();
             return await con.QueryAsync<Item>(query);
         }

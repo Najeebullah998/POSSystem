@@ -53,12 +53,10 @@
                                     <th>Name</th>
                                     <th>Phone</th>
                                     <th>Status</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-
-
                             <tbody>
-
                             </tbody>
                         </table>
                     </div> <!-- end preview-->
@@ -114,6 +112,10 @@
                         <td>${customer.customerName}</td>
                         <td>${customer.phone}</td>
                         <td>${status}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success" onclick="editCustomer(${customer.customerId})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${customer.customerId})">Delete</button>
+                        </td>
                     </tr>`;
 
                     tbody.append(row);
@@ -130,8 +132,8 @@
     }
       
     function openAddModal() {
-
-        $('#modalTitle').text('Add customer');
+        $('#modalTitle').text(customer.CustomerId == 0 ? 'Add Customer' : 'Edit Customer');
+        // $('#modalTitle').text('Add customer');
         $('#customerId').val(0);
         $('#customerName').val('');
         $('#phone').val('');
@@ -194,6 +196,95 @@
                     title: 'Error',
                     text: "Something went wrong!"
                 });
+            }
+        });
+    }
+
+    function editCustomer(id) {
+        $.ajax({
+            url: '/Customer/GetCustomerById?id=' + id,
+            type: 'GET',
+            success: function (data) {
+
+                $('#modalTitle').text('Edit Customer');
+                $('#customerId').val(data.customerId);
+                $('#customerName').val(data.customerName);
+                $('#phone').val(data.phone);
+                $('#IsActive').prop('checked', data.isActive);
+
+                customerModal.show();
+            }
+        });
+    }
+    function savecustomer() {
+        var customer = {
+            CustomerId: $('#customerId').val(),
+            CustomerName: $('#customerName').val(),
+            Phone: $('#phone').val(),
+            IsActive: $('#IsActive').is(':checked')
+        };
+
+        var url = customer.CustomerId == 0
+            ? '/Customer/AddCustomers'
+            : '/Customer/UpdateCustomer';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(customer),
+            success: function (response) {
+
+                if (response.success) {
+
+                    customerModal.hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        loadCustomers();
+                    });
+
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            }
+        });
+    }
+    function deleteCustomer(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This customer will be deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    url: '/Customer/DeleteCustomer?id=' + id,
+                    type: 'POST',
+                    success: function (response) {
+
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            loadCustomers();
+                        }
+                    }
+                });
+
             }
         });
     }

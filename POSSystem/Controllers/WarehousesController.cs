@@ -45,5 +45,31 @@ namespace POSSystem.Controllers
 
             return Json(new { success = false, message = "Error saving Warehouse" });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWarehouseById(int id)
+        {
+            var warehouse = await _repo.GetByIdAsync(id);
+            return Json(warehouse);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateWarehouse([FromBody] Warehouse warehouse)
+        {
+            if (warehouse == null || warehouse.WarehouseId == 0)
+                return Json(new { success = false, message = "Invalid data" });
+
+            warehouse.ModifiedBy = 1;
+
+            await _repo.UpdateAsync(warehouse);
+
+            return Json(new { success = true, message = "Warehouse updated successfully" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteWarehouse(int id)
+        {
+            await _repo.DeleteAsync(id);
+            return Json(new { success = true, message = "Warehouse deleted successfully" });
+        }
     }
 }
