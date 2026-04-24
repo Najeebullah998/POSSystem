@@ -1,0 +1,370 @@
+﻿
+<style>
+    #logoPreview {
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    #logoPreview:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold">Companies</h4>
+    <button class="btn btn-primary" onclick="openAddModal()">
+        <i class="bi bi-plus-circle"></i> Add Company
+    </button>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="bi bi-building me-2"></i>Companies
+        </h5>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="companyTable" class="table table-striped dt-responsive nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Company Name</th>
+                        <th>Owner</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>City</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="companyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="CompanyId" value="0" />
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="CompanyName" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Owner Name</label>
+                        <input type="text" class="form-control" id="OwnerName" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="Phone" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="Email" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Website</label>
+                        <input type="text" class="form-control" id="Website" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-control" id="City" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Country</label>
+                        <input type="text" class="form-control" id="Country" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tax Number</label>
+                        <input type="text" class="form-control" id="TaxNumber" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Registration Number</label>
+                        <input type="text" class="form-control" id="RegistrationNumber" />
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea class="form-control" id="Address" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center">
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" id="IsActive" checked>
+                            <label class="form-check-label">Active</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3 text-center">
+
+                        <!-- Avatar Preview -->
+                     @*    <img id="logoPreview"
+                             src="/images/default-avatar.png"
+                             class="rounded-circle border"
+                             width="120"
+                             height="120"
+                             style="object-fit: cover;" /> *@
+
+                        <img id="logoPreview"
+                             src="/images/default-avatar.png"
+                             class="rounded-circle border"
+                             width="120"
+                             height="120"
+                             style="object-fit: cover;" />
+                        <br /><br />
+
+                        <!-- Hidden File Input -->
+                        <input type="file" id="LogoPath" accept="image/*" hidden />
+
+                        <!-- Button -->
+                        <button type="button" class="btn btn-primary btn-sm"
+                                onclick="document.getElementById('LogoPath').click();">
+                            Change Avatar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCompany()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+        
+    var companyModal;
+    $(document).ready(function () {
+        companyModal = new bootstrap.Modal(document.getElementById('companyModal'));
+        loadCompanies();
+    });
+
+        $('#LogoPath').on('change', function () {
+        var file = this.files[0];
+
+        if (file) {
+            $('#logoPreview').attr('src', URL.createObjectURL(file));
+        }
+    });
+
+    // 🔹 Load Companies
+    function loadCompanies() {
+        $.ajax({
+            url: '/Company/GetAllCompany',
+            type: 'GET',
+            success: function (data) {
+
+                var tbody = $('#companyTable tbody');
+                tbody.empty();
+
+                $.each(data, function (i, item) {
+
+                    var status = item.isActive ? 'Active' : 'Inactive';
+
+                    var row = `<tr>
+                        <td>${i + 1}</td>
+                        <td>${item.companyName}</td>
+                        <td>${item.ownerName}</td>
+                        <td>${item.phone}</td>
+                        <td>${item.email}</td>
+                        <td>${item.city}</td>
+                        <td>${status}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success" onclick="editCompany(${item.companyId})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCompany(${item.companyId})">Delete</button>
+                        </td>
+                    </tr>`;
+
+                    tbody.append(row);
+                });
+            }
+        });
+    }
+
+    // 🔹 Open Add Modal
+    function openAddModal() {
+        $('#modalTitle').text('Add Company');
+
+        $('#CompanyId').val(0);
+        $('#CompanyName').val('');
+        $('#OwnerName').val('');
+        $('#Phone').val('');
+        $('#Email').val('');
+        $('#Website').val('');
+        $('#Address').val('');
+        $('#City').val('');
+        $('#Country').val('');
+        $('#TaxNumber').val('');
+        $('#RegistrationNumber').val('');
+        $('#LogoPath').val('');
+        $('#IsActive').prop('checked', true);
+
+        companyModal.show();
+    }
+
+    // 🔹 Save Company
+       function saveCompany() {
+
+        var formData = new FormData();
+
+        formData.append("CompanyId", $('#CompanyId').val() || 0);
+        formData.append("CompanyName", $('#CompanyName').val());
+        formData.append("OwnerName", $('#OwnerName').val());
+        formData.append("Phone", $('#Phone').val());
+        formData.append("Email", $('#Email').val());
+        formData.append("Website", $('#Website').val());
+        formData.append("Address", $('#Address').val());
+        formData.append("City", $('#City').val());
+        formData.append("Country", $('#Country').val());
+        formData.append("TaxNumber", $('#TaxNumber').val());
+        formData.append("RegistrationNumber", $('#RegistrationNumber').val());
+        formData.append("IsActive", $('#IsActive').is(':checked'));
+
+        // 🔥 file add karo
+        var file = $('#LogoPath')[0].files[0];
+        if (file) {
+            formData.append("LogoFile", file);
+        }
+
+        var url = $('#CompanyId').val() == 0
+            ? '/Company/AddCompany'
+            : '/Company/UpdateCompany';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+
+                if (response.success) {
+
+                    companyModal.hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        loadCompanies();
+                    });
+
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            }
+        });
+    }
+
+    // 🔹 Edit Company
+        function editCompany(id) {
+
+        $.ajax({
+            url: '/Company/GetCompanyById?id=' + id,
+            type: 'GET',
+            success: function (data) {
+
+                $('#modalTitle').text('Edit Company');
+
+                $('#CompanyId').val(data.companyId);
+                $('#CompanyName').val(data.companyName);
+                $('#OwnerName').val(data.ownerName);
+                $('#Phone').val(data.phone);
+                $('#Email').val(data.email);
+                $('#Website').val(data.website);
+                $('#Address').val(data.address);
+                $('#City').val(data.city);
+                $('#Country').val(data.country);
+                $('#TaxNumber').val(data.taxNumber);
+                $('#RegistrationNumber').val(data.registrationNumber);
+
+                // ❌ remove this
+                // $('#LogoPath').val(data.logoPath);
+
+                // ✅ file input reset
+                 $('#LogoPath').val('');
+                var img = data.logoPath ? data.logoPath : '/images/default-avatar.png';
+
+    $('#logoPreview')
+        .attr('src', img)
+        .show();
+
+                $('#IsActive').prop('checked', data.isActive);
+                console.log(data.logoPath);
+                companyModal.show();
+            }
+        });
+    }
+
+    // 🔹 Delete Company
+    function deleteCompany(id) {
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This company will be deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    url: '/Company/DeleteCompany?id=' + id,
+                    type: 'POST',
+                    success: function (response) {
+
+                        if (response.success) {
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            loadCompanies();
+                        }
+                    }
+                });
+
+            }
+        });
+    }
+</script>
+
+
+
+
+
+

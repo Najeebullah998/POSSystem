@@ -11,6 +11,7 @@ builder.Services.AddScoped<ICustomer, CustomerRepository>();
 builder.Services.AddScoped<ICategory, CategoryRepository>();
 builder.Services.AddScoped<IWarehouse, WarehouseRepository>();
 builder.Services.AddScoped<Iitems, ItemsRepository>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -27,7 +28,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapStaticAssets();
-
+app.UseStaticFiles();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
