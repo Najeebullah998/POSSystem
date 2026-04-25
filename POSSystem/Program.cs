@@ -4,7 +4,7 @@ using POSSystem.Interfaces;
 using POSSystem.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddSession();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<DapperContext>();
@@ -14,6 +14,7 @@ builder.Services.AddScoped<ICategory, CategoryRepository>();
 builder.Services.AddScoped<IWarehouse, WarehouseRepository>();
 builder.Services.AddScoped<Iitems, ItemsRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<AccountRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,14 +27,14 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 app.UseStaticFiles();
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+    pattern: "{controller=Account}/{action=SignIn}/{id?}")
     .WithStaticAssets();
 
 

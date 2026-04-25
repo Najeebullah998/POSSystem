@@ -182,7 +182,7 @@
             BranchId: parseInt($('#branchId').val()),
             IsActive: $('#IsActive').is(':checked')
         };
-
+        console.log(user);
         let url = user.UserId == 0
             ? '/Users/AddUser'
             : '/Users/UpdateUser';
