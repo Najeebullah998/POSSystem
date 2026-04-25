@@ -1,4 +1,5 @@
 using POSSystem.DATA;
+using POSSystem.Entities;
 using POSSystem.Interfaces;
 using POSSystem.Repositories;
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<DapperContext>();
+builder.Services.AddScoped<IUsers, UserRepository>();
 builder.Services.AddScoped<ICustomer, CustomerRepository>();
 builder.Services.AddScoped<ICategory, CategoryRepository>();
 builder.Services.AddScoped<IWarehouse, WarehouseRepository>();
