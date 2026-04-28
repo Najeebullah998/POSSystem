@@ -1,0 +1,256 @@
+﻿<div class="container-fluid mt-3">
+    <input type="hidden" class="itemId" />
+    <!-- Header -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <input type="text" id="barcodeInput" class="form-control" placeholder="Scan Barcode / Enter Code">
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="itemName" class="form-control" placeholder="Item Name" readonly>
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" id="qty" class="form-control" placeholder="Qty" value="1">
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" id="price" class="form-control" placeholder="Price" readonly>
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" id="amount" class="form-control" placeholder="Amount" readonly>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <table class="table table-bordered" id="posTable">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Total -->
+
+    <div class="row mt-3">
+
+        <div class="col-md-2">
+            <label>Total</label>
+            <input type="text" id="total" class="form-control fw-bold" placeholder="Total" readonly>
+        </div>
+
+        <div class="col-md-2">
+            <label>Discount</label>
+            <input type="number" id="discount" class="form-control" value="0">
+        </div>
+
+        <div class="col-md-2">
+            <label>Net Amount</label>
+            <input type="text" id="netAmount" class="form-control" readonly>
+        </div>
+
+        <div class="col-md-2">
+            <label>Paid</label>
+            <input type="number" id="paid" class="form-control">
+        </div>
+
+        <div class="col-md-2">
+            <label>Change</label>
+            <input type="text" id="change" class="form-control" readonly>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+        let rowIndex = 0;
+    let selectedItem = null;
+
+    // 🔍 Barcode / Search
+    $('#barcodeInput').on('change', function () {
+
+        let code = $(this).val().trim();
+
+        if (!code) return;
+
+        $.ajax({
+            url: '/POS/GetItemByBarcode',
+            type: 'GET',
+            data: { barcode: code },
+            success: function (res) {
+
+                if (!res) return;
+
+                // 🔥 Store full object
+                selectedItem = res;
+
+                $('#itemName').val(res.itemName);
+                $('#price').val(res.salePrice);
+                $('#qty').val(1);
+
+                // ❌ no alert
+                if (res.stockQty <= 0) {
+                    $('#itemName').val('Out of Stock');
+                    return;
+                }
+
+                calculateAmount();
+                $('#qty').focus();
+            }
+        });
+    });
+
+
+    // ➕ Qty Change → Amount
+    $('#qty').on('keyup change', function () {
+        calculateAmount();
+    });
+
+    function calculateAmount() {
+        let qty = parseFloat($('#qty').val()) || 0;
+        let price = parseFloat($('#price').val()) || 0;
+        $('#amount').val((qty * price).toFixed(2));
+    }
+
+
+    // ⌨ ENTER → Add Row
+      $('#qty').on('keypress', function (e) {
+
+        if (e.which === 13) {
+
+            if (!selectedItem) return;
+
+            let itemId = selectedItem.itemId;
+            let itemName = selectedItem.itemName;
+            let qty = parseFloat($('#qty').val()) || 0;
+            let rate = parseFloat($('#price').val()) || 0;
+            let stockQty = parseFloat(selectedItem.stockQty) || 0;
+
+            if (qty <= 0) return;
+
+            // 🔴 MAIN FIX → NEW ROW ke liye bhi stock check
+            if (qty > stockQty) {
+                $('#qty').val(stockQty); // optional: auto correct
+                return;
+            }
+
+            let found = false;
+
+            $('#posTable tbody tr').each(function () {
+
+                let rowItemId = $(this).data('id');
+
+                if (rowItemId == itemId) {
+
+                    let oldQty = parseFloat($(this).find('.qty').text());
+                    let newQty = oldQty + qty;
+
+                    // 🔴 Duplicate case stock check
+                    if (newQty > stockQty) {
+                        return;
+                    }
+
+                    $(this).find('.qty').text(newQty);
+                    $(this).find('.amount').text((newQty * rate).toFixed(2));
+
+                    found = true;
+                }
+            });
+
+            if (!found) {
+
+                rowIndex++;
+
+                let row = `
+                    <tr data-id="${itemId}">
+                        <td>${rowIndex}</td>
+                        <td>${itemName}</td>
+                        <td class="qty">${qty}</td>
+                        <td>${rate}</td>
+                        <td class="amount">${(qty * rate).toFixed(2)}</td>
+                        <td><button class="btn btn-danger btn-sm deleteRow">X</button></td>
+                    </tr>
+                `;
+
+                $('#posTable tbody').append(row);
+            }
+
+            calculateTotal();
+            resetFields();
+        }
+    });
+
+
+    // ❌ Delete Row
+    $(document).on('click', '.deleteRow', function () {
+        $(this).closest('tr').remove();
+        calculateTotal();
+    });
+
+
+    // 🧮 Total
+    function calculateTotal() {
+
+        let total = 0;
+
+    $('#posTable tbody tr').each(function () {
+        total += parseFloat($(this).find('.amount').text()) || 0;
+    });
+
+    $('#total').val(total.toFixed(2));
+
+    calculateNet();
+    }
+
+        $('#discount').on('keyup change', function () {
+        calculateNet();
+    });
+
+    function calculateNet() {
+
+        let total = parseFloat($('#total').val()) || 0;
+        let discount = parseFloat($('#discount').val()) || 0;
+
+        if (discount > total) discount = total;
+
+        let net = total - discount;
+
+        $('#netAmount').val(net.toFixed(2));
+
+        calculateChange();
+    }
+
+        $('#paid').on('keyup change', function () {
+        calculateChange();
+    });
+
+    function calculateChange() {
+
+        let net = parseFloat($('#netAmount').val()) || 0;
+        let paid = parseFloat($('#paid').val()) || 0;
+
+        let change = paid - net;
+
+        if (change < 0) change = 0;
+
+        $('#change').val(change.toFixed(2));
+    }
+    // 🔄 Reset
+    function resetFields() {
+        selectedItem = null;
+        $('#barcodeInput').val('').focus();
+        $('#itemName').val('');
+        $('#qty').val(1);
+        $('#price').val('');
+        $('#amount').val('');
+    }
+</script>
