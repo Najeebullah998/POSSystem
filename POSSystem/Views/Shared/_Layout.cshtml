@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -1097,8 +1099,8 @@
                                     <img src="~/assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
                                 </span>
                                 <span>
-                                    <span class="account-user-name">Muhammad Siqaf</span>
-                                    <span class="account-position">Founder</span>
+                                    <span class="account-user-name">@HttpContextAccessor.HttpContext.Session.GetString("UserName")</span>
+                                    <span class="account-position"></span>
                                 </span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown">

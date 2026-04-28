@@ -15,6 +15,7 @@ builder.Services.AddScoped<IWarehouse, WarehouseRepository>();
 builder.Services.AddScoped<Iitems, ItemsRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<AccountRepository>();
+builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
