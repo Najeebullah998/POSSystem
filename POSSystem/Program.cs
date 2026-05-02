@@ -14,6 +14,7 @@ builder.Services.AddScoped<ICategory, CategoryRepository>();
 builder.Services.AddScoped<IWarehouse, WarehouseRepository>();
 builder.Services.AddScoped<Iitems, ItemsRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IPosRepository, PosRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddHttpContextAccessor();
 var app = builder.Build();

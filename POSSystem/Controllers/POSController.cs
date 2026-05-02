@@ -2,16 +2,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using POSSystem.DATA;
+using POSSystem.Entities;
+using POSSystem.Interfaces;
 
 namespace POSSystem.Controllers
 {
     public class POSController : Controller
     {
         private readonly DapperContext _context;
-
-        public POSController(DapperContext context)
+        private readonly IPosRepository _repo;
+        public POSController(DapperContext context,IPosRepository repo)
         {
             _context = context;
+            _repo = repo;
         }
 
         public IActionResult Index()
@@ -44,6 +47,19 @@ namespace POSSystem.Controllers
 
                 return Json(item);
             }
+        }
+
+        [HttpPost]
+        public IActionResult SaveInvoice([FromBody] PosInvoiceVm model)
+        {
+            if (model == null || model.Items == null || model.Items.Count == 0)
+            {
+                return Json(new { success = false, message = "No items found!" });
+            }
+
+            var invoiceId = _repo.SaveInvoice(model);
+
+            return Json(new { success = true, invoiceId });
         }
     }
 }

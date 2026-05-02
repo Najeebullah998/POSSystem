@@ -24,6 +24,59 @@
             font-size: 12px;
         }
     } */
+
+    .thermal-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+        .thermal-table th,
+        .thermal-table td {
+            border: 1px dashed black; /* 🔥 light border for thermal */
+            padding: 3px;
+        }
+
+    .center {
+        text-align: center;
+    }
+
+    .title {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .mt-1 {
+        margin-top: 5px;
+    }
+
+    /* 🔥 THERMAL PRINT SIZE */
+    @@media print {
+
+        #printArea {
+            width: 80mm; /* change to 58mm if needed */
+        }
+
+        body * {
+            visibility: hidden;
+        }
+
+        #printArea, #printArea * {
+            visibility: visible;
+        }
+
+        #printArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    }
+
+    .thermal-table td {
+        word-break: break-word;
+        font-size: 11px;
+    }
+
 </style>
 
 <div class="container-fluid mt-2">
@@ -31,6 +84,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-dark text-white py-2">
             <strong>Invoice Header</strong>
+            <th style="display:none;">ItemId</th>
         </div>
 
         <div class="card-body bg-light">
@@ -39,7 +93,7 @@
 
                 <div class="col-md-2">
                     <label class="form-label small">Invoice No</label>
-                    <input type="text" id="invoiceNo" class="form-control form-control-sm" readonly>
+                    <input type="text" id="invoiceNo" class="form-control form-control-sm">
                 </div>
 
                 <div class="col-md-2">
@@ -50,18 +104,18 @@
                 <div class="col-md-3">
                     <label class="form-label small">Customer</label>
                     <select id="customerId" class="form-select form-select-sm">
-                        <option value="0">Walk-in Customer</option>
+                        <option value="1">Walk-in Customer</option>
                     </select>
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label small">Branch</label>
-                    <input type="text" id="branchId" class="form-control form-control-sm" readonly>
+                    <input type="text" id="branchId" class="form-control form-control-sm">
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label small">User</label>
-                    <input type="text" id="userId" class="form-control form-control-sm" readonly>
+                    <input type="text" id="userId" class="form-control form-control-sm">
                 </div>
 
             </div>
@@ -173,7 +227,7 @@
                 </div>
 
                 <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-dark w-100">
+                    <button id="btnSave" class="btn btn-dark w-100">
                         SAVE
                     </button>
                 </div>
@@ -186,15 +240,70 @@
 
 </div>
 
+<div id="printArea" style="display:none; width:300px;">
+
+    <table class="thermal-table">
+
+        <tr>
+            <td colspan="3" class="center title">MY STORE</td>
+        </tr>
+
+        <tr>
+            <td colspan="3" class="center">Invoice</td>
+        </tr>
+
+        <tr>
+            <td colspan="2">Inv#:</td>
+            <td id="pInvoiceNo"></td>
+        </tr>
+
+        <tr>
+            <td colspan="2">Date:</td>
+            <td id="pDate"></td>
+        </tr>
+
+    </table>
+
+    <table class="thermal-table mt-1">
+
+        <thead>
+            <tr>
+                <th>Sr#</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Rt</th>
+                <th>Amt</th>
+            </tr>
+        </thead>
+
+        <tbody id="printItems"></tbody>
+
+        <tfoot>
+            <tr>
+                <td colspan="4">Total</td>
+                <td id="pTotal"></td>
+            </tr>
+            <tr>
+                <td colspan="4">Disc</td>
+                <td id="pDiscount"></td>
+            </tr>
+            <tr>
+                <td colspan="4"><b>Net</b></td>
+                <td><b id="pNet"></b></td>
+            </tr>
+        </tfoot>
+
+    </table>
+
+</div>
 <script>
-        let rowIndex = 0;
+    let rowIndex = 0;
     let selectedItem = null;
 
     // 🔍 Barcode / Search
     $('#barcodeInput').on('change', function () {
 
         let code = $(this).val().trim();
-
         if (!code) return;
 
         $.ajax({
@@ -205,14 +314,12 @@
 
                 if (!res) return;
 
-                // 🔥 Store full object
                 selectedItem = res;
 
                 $('#itemName').val(res.itemName);
                 $('#price').val(res.salePrice);
                 $('#qty').val(1);
 
-                // ❌ no alert
                 if (res.stockQty <= 0) {
                     $('#itemName').val('Out of Stock');
                     return;
@@ -223,7 +330,6 @@
             }
         });
     });
-
 
     // ➕ Qty Change → Amount
     $('#qty').on('keyup change', function () {
@@ -236,9 +342,8 @@
         $('#amount').val((qty * price).toFixed(2));
     }
 
-
     // ⌨ ENTER → Add Row
-      $('#qty').on('keypress', function (e) {
+    $('#qty').on('keypress', function (e) {
 
         if (e.which === 13) {
 
@@ -252,9 +357,8 @@
 
             if (qty <= 0) return;
 
-            // 🔴 MAIN FIX → NEW ROW ke liye bhi stock check
             if (qty > stockQty) {
-                $('#qty').val(stockQty); // optional: auto correct
+                $('#qty').val(stockQty);
                 return;
             }
 
@@ -269,13 +373,14 @@
                     let oldQty = parseFloat($(this).find('.qty').text());
                     let newQty = oldQty + qty;
 
-                    // 🔴 Duplicate case stock check
+                    let rowRate = parseFloat($(this).find('.rate').text()); // 🔥 FIX
+
                     if (newQty > stockQty) {
                         return;
                     }
 
                     $(this).find('.qty').text(newQty);
-                    $(this).find('.amount').text((newQty * rate).toFixed(2));
+                    $(this).find('.amount').text((newQty * rowRate).toFixed(2)); // 🔥 FIX
 
                     found = true;
                 }
@@ -289,8 +394,9 @@
                     <tr data-id="${itemId}">
                         <td>${rowIndex}</td>
                         <td>${itemName}</td>
+                        <td class="itemId" style="display:none;">${itemId}</td>
                         <td class="qty">${qty}</td>
-                        <td>${rate}</td>
+                        <td class="rate">${rate}</td> <!-- 🔥 FIX -->
                         <td class="amount">${(qty * rate).toFixed(2)}</td>
                         <td><button class="btn btn-danger btn-sm deleteRow">X</button></td>
                     </tr>
@@ -304,29 +410,27 @@
         }
     });
 
-
     // ❌ Delete Row
     $(document).on('click', '.deleteRow', function () {
         $(this).closest('tr').remove();
         calculateTotal();
     });
 
-
     // 🧮 Total
     function calculateTotal() {
 
         let total = 0;
 
-    $('#posTable tbody tr').each(function () {
-        total += parseFloat($(this).find('.amount').text()) || 0;
-    });
+        $('#posTable tbody tr').each(function () {
+            total += parseFloat($(this).find('.amount').text()) || 0;
+        });
 
-    $('#total').val(total.toFixed(2));
+        $('#total').val(total.toFixed(2));
 
-    calculateNet();
+        calculateNet();
     }
 
-        $('#discount').on('keyup change', function () {
+    $('#discount').on('keyup change', function () {
         calculateNet();
     });
 
@@ -344,7 +448,7 @@
         calculateChange();
     }
 
-        $('#paid').on('keyup change', function () {
+    $('#paid').on('keyup change', function () {
         calculateChange();
     });
 
@@ -359,6 +463,7 @@
 
         $('#change').val(change.toFixed(2));
     }
+
     // 🔄 Reset
     function resetFields() {
         selectedItem = null;
@@ -368,4 +473,93 @@
         $('#price').val('');
         $('#amount').val('');
     }
+
+    $('#barcodeInput').focus();
+
+    $('#paid').on('keypress', function (e) {
+        if (e.which === 13) {
+            $('#btnSave').click();
+        }
+    });
+
+    // 💾 SAVE
+    $('#btnSave').click(function () {
+
+        let items = [];
+
+        $('#posTable tbody tr').each(function () {
+
+            items.push({
+                itemId: $(this).data('id'),
+                quantity: parseFloat($(this).find('.qty').text()),
+                rate: parseFloat($(this).find('.rate').text()), // 🔥 FIX
+                amount: parseFloat($(this).find('.amount').text())
+            });
+
+        });
+
+        if (items.length === 0) return;
+
+        let model = {
+            InvoiceNo: $('#invoiceNo').val(),
+            InvoiceDate: $('#invoiceDate').val(),
+            CustomerId: $('#customerId').val(),
+            BranchId: $('#branchId').val(),
+            UserId: $('#userId').val(),
+            TotalAmount: parseFloat($('#total').val()),
+            Discount: parseFloat($('#discount').val()),
+            NetAmount: parseFloat($('#netAmount').val()),
+            Items: items
+        };
+
+        $.ajax({
+            url: '/POS/SaveInvoice',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function (res) {
+
+                if (res.success) {
+
+                    $('#pInvoiceNo').text($('#invoiceNo').val());
+                    $('#pDate').text($('#invoiceDate').val());
+                    $('#pTotal').text($('#total').val());
+                    $('#pDiscount').text($('#discount').val());
+                    $('#pNet').text($('#netAmount').val());
+
+                    let rows = '';
+                    let index = 1;
+
+                    $('#posTable tbody tr').each(function () {
+
+                        let item = $(this).find('td:eq(1)').text();
+                        let qty = $(this).find('.qty').text();
+                        let rate = $(this).find('.rate').text(); // 🔥 FIX
+                        let amount = $(this).find('.amount').text();
+
+                        rows += `
+                            <tr>
+                                <td>${index++}</td>
+                                <td>${item}</td>
+                                <td style="text-align:center;">${qty}</td>
+                                <td style="text-align:right;">${rate}</td>
+                                <td style="text-align:right;">${amount}</td>
+                            </tr>
+                        `;
+                    });
+
+                    $('#printItems').html(rows);
+
+                    $('#printArea').show();
+                    window.print();
+                    $('#printArea').hide();
+
+                } else {
+                    console.log('Save failed');
+                }
+            }
+        });
+
+    });
+
 </script>
