@@ -24,7 +24,9 @@ namespace POSSystem.Controllers
                 HttpContext.Session.SetInt32("UserId", user.UserId);
                 HttpContext.Session.SetString("UserName", user.UserName);
                 HttpContext.Session.SetInt32("BranchId", user.BranchId);
+                HttpContext.Session.SetString("BranchName", user.BranchName);
                 HttpContext.Session.SetInt32("CompanyId", user.CompanyId);
+                HttpContext.Session.SetString("CompanyName", user.CompanyName);
                 HttpContext.Session.SetString("RoleName", user.RoleName);
 
                 return Json(new { success = true });
