@@ -21,6 +21,21 @@
         margin-top: 20px;
         border-top: 2px solid #ddd;
     }
+
+    /* TABLE SCROLL */
+    .table-scroll {
+        max-height: calc(100vh - 340px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* TABLE HEADER FIX */
+    #posTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
     /* @@media (max-width: 768px) {
         .payment-footer {
             font-size: 12px;
@@ -164,7 +179,7 @@
             </div>
 
             <!-- TABLE -->
-            <div class="table-responsive">
+            <div class="table-responsive table-scroll">
 
                 <table class="table table-sm table-striped table-hover" id="posTable">
 
@@ -191,6 +206,7 @@
 
    
 </div>
+
 <div class="payment-section mt-3">
 
     <div class="card shadow border-0">
@@ -304,6 +320,8 @@
     </table>
 
 </div>
+
+
 <script>
     let rowIndex = 0;
     let selectedItem = null;
@@ -399,19 +417,24 @@
 
                 rowIndex++;
 
-                let row = `
-                    <tr data-id="${itemId}">
-                        <td>${rowIndex}</td>
-                        <td>${itemName}</td>
-                        <td class="itemId" style="display:none;">${itemId}</td>
-                        <td class="rate">${rate}</td> <!-- 🔥 FIX -->
-                        <td class="qty">${qty}</td>                        
-                        <td class="amount">${(qty * rate).toFixed(2)}</td>
-                        <td><button class="btn btn-danger btn-sm deleteRow">X</button></td>
-                    </tr>
-                `;
-
-                $('#posTable tbody').append(row);
+                    let row = `
+        <tr data-id="${itemId}">
+            <td>${rowIndex}</td>
+            <td class="item">${itemName}</td>
+            <td class="itemId" style="display:none;">${itemId}</td>
+            <td class="rate">${rate}</td>
+            <td>
+            <button class="btn btn-warning btn-sm minusQty">-</button>
+            <span class="qty mx-2">${qty}</span>
+            <button class="btn btn-success btn-sm plusQty">+</button>
+            </td>
+            <td class="amount">${(qty * rate).toFixed(2)}</td>
+            <td>
+                <button class="btn btn-danger btn-sm deleteRow">X</button>
+            </td>
+        </tr>
+    `;
+            $('#posTable tbody').append(row);
             }
 
             calculateTotal();
@@ -419,12 +442,49 @@
         }
     });
 
+        // ➕ Plus Qty
+    $(document).on('click', '.plusQty', function () {
+
+        let row = $(this).closest('tr');
+
+        let qty = parseFloat(row.find('.qty').text()) || 0;
+        let rate = parseFloat(row.find('.rate').text()) || 0;
+
+        qty++;
+
+        row.find('.qty').text(qty);
+        row.find('.amount').text((qty * rate).toFixed(2));
+
+        calculateTotal();
+    });
+
+
+    // ➖ Minus Qty
+    $(document).on('click', '.minusQty', function () {
+
+        let row = $(this).closest('tr');
+
+        let qty = parseFloat(row.find('.qty').text()) || 0;
+        let rate = parseFloat(row.find('.rate').text()) || 0;
+
+        qty--;
+
+        if (qty <= 0) {
+            row.remove();
+        }
+        else {
+            row.find('.qty').text(qty);
+            row.find('.amount').text((qty * rate).toFixed(2));
+        }
+
+        calculateTotal();
+    });
+
     // ❌ Delete Row
     $(document).on('click', '.deleteRow', function () {
         $(this).closest('tr').remove();
         calculateTotal();
     });
-
     // 🧮 Total
     function calculateTotal() {
 
