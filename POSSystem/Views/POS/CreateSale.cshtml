@@ -1,79 +1,282 @@
 ﻿@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
+
 <style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding-bottom: 200px;
+        min-height: 100vh;
+    }
+
+    /* Main Container */
+    .pos-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Cards */
+    .pos-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .pos-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 15px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+    }
+
+    .card-header-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        padding: 15px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* Form Elements */
+    .form-label-modern {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        font-size: 14px;
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+    /* Search Section */
+    .search-section {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    /* Table Styles */
+    .table-wrapper {
+        max-height: calc(100vh - 500px);
+        overflow-y: auto;
+        border-radius: 12px;
+        background: white;
+    }
+
+    .pos-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .pos-table thead th {
+            background: var(--dark-color);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: none;
+        }
+
+        .pos-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+            .pos-table tbody tr:hover {
+                background: #f8f9ff;
+                transform: scale(1.01);
+            }
+
+        .pos-table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+    /* Quantity Controls */
+    .qty-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .qty-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .qty-minus {
+        background: var(--warning-color);
+        color: white;
+    }
+
+        .qty-minus:hover {
+            background: #d97706;
+            transform: scale(1.05);
+        }
+
+    .qty-plus {
+        background: var(--success-color);
+        color: white;
+    }
+
+        .qty-plus:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+    .qty-value {
+        font-weight: 600;
+        min-width: 40px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .delete-btn {
+        background: var(--danger-color);
+        border: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+        color: white;
+        transition: all 0.2s;
+    }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+    /* Payment Footer */
     .payment-footer {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        z-index: 1050;
-        background: #fff;
-        padding: 10px;
-        border-top: 2px solid #198754;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        background: white;
+        border-top: 3px solid var(--primary-color);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+        z-index: 1000;
+        padding: 20px 30px;
     }
 
-    body {
-        padding-bottom: 160px;
+    .payment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
     }
 
-    .payment-section {
-        margin-top: 20px;
-        border-top: 2px solid #ddd;
+    .payment-card {
+        background: var(--light-bg);
+        padding: 15px;
+        border-radius: 12px;
+        transition: all 0.3s;
     }
 
-    /* TABLE SCROLL */
-    .table-scroll {
-        max-height: calc(100vh - 340px);
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    /* TABLE HEADER FIX */
-    #posTable thead th {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    /* @@media (max-width: 768px) {
-        .payment-footer {
-            font-size: 12px;
+        .payment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-    } */
 
-    .thermal-table {
-        width: 100%;
-        border-collapse: collapse;
+    .payment-label {
         font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 5px;
     }
 
-        .thermal-table th,
-        .thermal-table td {
-            border: 1px dashed black; /* 🔥 light border for thermal */
-            padding: 3px;
+    .payment-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    .payment-input {
+        font-size: 20px;
+        font-weight: 600;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 8px 12px;
+    }
+
+    .save-btn {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
         }
 
-    .center {
-        text-align: center;
-    }
-
-    .title {
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .mt-1 {
-        margin-top: 5px;
-    }
-
-    /* 🔥 THERMAL PRINT SIZE */
+    /* Print Styles */
     @@media print {
-
-        #printArea {
-            width: 80mm; /* change to 58mm if needed */
-        }
-
         body * {
             visibility: hidden;
         }
@@ -86,279 +289,320 @@
             position: absolute;
             left: 0;
             top: 0;
+            width: 80mm;
+            background: white;
+            padding: 10px;
+        }
+
+        .thermal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+            .thermal-table td, .thermal-table th {
+                border: 1px dashed #000;
+                padding: 4px;
+            }
+    }
+
+    /* Animations */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
         }
     }
 
-    .thermal-table td {
-        word-break: break-word;
-        font-size: 11px;
+    .pos-table tbody tr {
+        animation: slideIn 0.3s ease-out;
     }
 
+    /* Badge */
+    .stock-badge {
+        background: #e5e7eb;
+        color: var(--dark-color);
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pos-container {
+            padding: 10px;
+        }
+
+        .payment-footer {
+            padding: 15px;
+        }
+    }
 </style>
 
-<div class="container-fluid mt-2">
-
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-dark text-white py-2">
-            <strong>Invoice Header</strong>
-            <th style="display:none;">ItemId</th>
+<div class="pos-container">
+    <!-- Header Card -->
+    <div class="pos-card">
+        <div class="card-header-custom">
+            <i class="fas fa-receipt"></i> Invoice Information
         </div>
-
-        <div class="card-body bg-light">
-
-            <div class="row g-2">
-
+        <div class="card-body-custom">
+            <div class="row g-3">
                 <div class="col-md-2">
-                    <label class="form-label small">Invoice No</label>
-                    <input type="text" id="invoiceNo" class="form-control form-control-sm">
+                    <label class="form-label-modern">
+                        <i class="fas fa-hashtag"></i> Invoice No
+                    </label>
+                    <input type="text" id="invoiceNo" class="form-control-modern" style="width: 100%;" placeholder="Auto-generated">
                 </div>
-
                 <div class="col-md-2">
-                    <label class="form-label small">Date</label>
-                    <input type="date" id="invoiceDate" class="form-control form-control-sm">
+                    <label class="form-label-modern">
+                        <i class="far fa-calendar-alt"></i> Date
+                    </label>
+                    <input type="date" id="invoiceDate" class="form-control-modern" style="width: 100%;" value="@DateTime.Now.ToString("yyyy-MM-dd")">
                 </div>
-
                 <div class="col-md-3">
-                    <label class="form-label small">Customer</label>
-                    <select id="customerId" class="form-select form-select-sm">
-                        <option value="1">Walk-in Customer</option>
+                    <label class="form-label-modern">
+                        <i class="fas fa-user"></i> Customer
+                    </label>
+                    <select id="customerId" class="form-control-modern" style="width: 100%;">
+                        <option value="1">👤 Walk-in Customer</option>
                     </select>
                 </div>
-
                 <div class="col-md-2">
-                    <label class="form-label small">Branch</label>
-                    <input type="text" id="branchId" class="form-control form-control-sm">
+                    <label class="form-label-modern">
+                        <i class="fas fa-store"></i> Branch
+                    </label>
+                    <input type="text" id="branchId" class="form-control-modern" style="width: 100%;" placeholder="Main Branch">
                 </div>
-
                 <div class="col-md-3">
-                    <label class="form-label small">User</label>
-                    <input type="text" id="userId" class="form-control form-control-sm">
+                    <label class="form-label-modern">
+                        <i class="fas fa-user-circle"></i> Cashier
+                    </label>
+                    <input type="text" id="userId" class="form-control-modern" style="width: 100%;" value="@HttpContextAccessor.HttpContext.Session.GetString("UserName")">
                 </div>
-
             </div>
-
         </div>
     </div>
 
-</div>
-<div class="container-fluid mt-2">
-
-    <div class="card shadow border-0">
-        <div class="card-header bg-dark text-white py-2">
-            <strong>POS Invoice</strong>
+    <!-- POS Items Card -->
+    <div class="pos-card">
+        <div class="card-header-custom">
+            <i class="fas fa-shopping-cart"></i> Point of Sale
         </div>
-
-        <div class="card-body">
-            <div class="row g-2 align-items-end mb-3">
-
-                <div class="col-md-3">
-                    <label class="form-label">Search Item/Barcode</label>
-                    <input type="text" id="barcodeInput" class="form-control form-control-sm" placeholder="Barcode / Search">
+        <div class="card-body-custom">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label-modern" style="color: #92400e;">
+                            <i class="fas fa-qrcode"></i> Scan Barcode
+                        </label>
+                        <input type="text" id="barcodeInput" class="form-control-modern" style="border-color: var(--warning-color);" placeholder="📱 Scan or type barcode...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label-modern">Item Name</label>
+                        <input type="text" id="itemName" class="form-control-modern" placeholder="Item will appear here" readonly style="background: #f3f4f6;">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label-modern">Quantity</label>
+                        <input type="number" id="qty" class="form-control-modern" value="1" min="1">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label-modern">Price (Rs)</label>
+                        <input type="text" id="price" class="form-control-modern" placeholder="0.00" readonly style="background: #f3f4f6;">
+                    </div>
                 </div>
-
-                <div class="col-md-3">
-                    <label class="form-label">Item Name</label>
-                    <input type="text" id="itemName" class="form-control form-control-sm" placeholder="Item Name" readonly>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label">Quantity</label>
-                    <input type="number" id="qty" class="form-control form-control-sm" value="1">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label">Price</label>
-                    <input type="text" id="price" class="form-control form-control-sm" placeholder="Price" readonly>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label">Amount</label>
-                    <input type="text" id="amount" class="form-control form-control-sm" placeholder="Amount" readonly>
-                </div>
-
             </div>
 
-            <!-- TABLE -->
-            <div class="table-responsive table-scroll">
-
-                <table class="table table-sm table-striped table-hover" id="posTable">
-
-                    <thead class="table-dark">
+            <!-- Items Table -->
+            <div class="table-wrapper">
+                <table class="pos-table" id="posTable">
+                    <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Item</th>                            
-                            <th>Rate</th>
-                            <th>Qty</th>
-                            <th>Amount</th>
-                            <th>Action</th>
+                            <th width="5%">#</th>
+                            <th width="35%">Item Name</th>
+                            <th width="15%">Rate (Rs)</th>
+                            <th width="20%">Quantity</th>
+                            <th width="15%">Amount (Rs)</th>
+                            <th width="10%">Action</th>
                         </tr>
                     </thead>
-
-                    <tbody></tbody>
-
+                    <tbody>
+                        <tr class="text-center">
+                            <td colspan="6" style="padding: 60px 20px;">
+                                <i class="fas fa-shopping-basket" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p style="color: #94a3b8; margin-top: 15px;">No items added. Scan a product to begin!</p>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
-
-            </div>           
-
-        </div>
-
-    </div>
-
-   
-</div>
-
-<div class="payment-section mt-3">
-
-    <div class="card shadow border-0">
-
-        <div class="card-header bg-success text-white py-2">
-            <strong>Payment Details</strong>
-        </div>
-
-        <div class="card-body">
-
-            <div class="row g-2">
-
-                <div class="col-md-2">
-                    <label class="form-label small">Total</label>
-                    <input type="text" id="total" class="form-control form-control-sm fw-bold" readonly>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label small">Discount</label>
-                    <input type="number" id="discount" class="form-control form-control-sm" value="0">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label small">Net</label>
-                    <input type="text" id="netAmount" class="form-control form-control-sm fw-bold" readonly>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label small">Paid</label>
-                    <input type="number" id="paid" class="form-control form-control-sm">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label small">Change</label>
-                    <input type="text" id="change" class="form-control form-control-sm fw-bold" readonly>
-                </div>
-
-                <div class="col-md-2 d-flex align-items-end">
-                    <button id="btnSave" class="btn btn-dark w-100">
-                        SAVE
-                    </button>
-                </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-<div id="printArea" style="display:none; width:300px;">
+<!-- Payment Footer -->
+<div class="payment-footer">
+    <div class="payment-grid">
+        <div class="payment-card">
+            <div class="payment-label">Total Amount</div>
+            <div class="payment-value">Rs <span id="totalDisplay">0.00</span></div>
+            <input type="hidden" id="total" value="0">
+        </div>
 
+        <div class="payment-card">
+            <div class="payment-label">Discount (Rs)</div>
+            <input type="number" id="discount" class="payment-input" style="width: 100%;" value="0" step="1">
+        </div>
+
+        <div class="payment-card" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); color: white;">
+            <div class="payment-label" style="color: rgba(255,255,255,0.9);">Net Amount</div>
+            <div class="payment-value" style="color: white;">Rs <span id="netAmount">0.00</span></div>
+        </div>
+
+        <div class="payment-card">
+            <div class="payment-label">Amount Paid</div>
+            <input type="number" id="paid" class="payment-input" style="width: 100%;" value="0" step="1">
+        </div>
+
+        <div class="payment-card">
+            <div class="payment-label">Change Return</div>
+            <div class="payment-value" style="color: var(--success-color);">Rs <span id="change">0.00</span></div>
+        </div>
+
+        <div>
+            <button id="btnSave" class="save-btn">
+                <i class="fas fa-save"></i> SAVE INVOICE
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Print Template -->
+<div id="printArea" style="display:none;">
     <table class="thermal-table">
-
         <tr>
-            <td colspan="3" class="center title">@HttpContextAccessor.HttpContext.Session.GetString("CompanyName")</td>
+            <td colspan="4" style="text-align: center; font-size: 16px; font-weight: bold;">@HttpContextAccessor.HttpContext.Session.GetString("CompanyName")</td>
         </tr>
-
         <tr>
-            <td colspan="3" class="center">Invoice</td>
+            <td colspan="4" style="text-align: center;">SALES INVOICE</td>
         </tr>
-        
-
         <tr>
-            <td colspan="2">Operator:</td>
-            <td>@HttpContextAccessor.HttpContext.Session.GetString("UserName")</td>
+            <td colspan="2">Cashier:</td>
+            <td colspan="2">@HttpContextAccessor.HttpContext.Session.GetString("UserName")</td>
         </tr>
-
         <tr>
-            <td colspan="2">Inv#:</td>
-            <td id="pInvoiceNo"></td>
+            <td colspan="2">Invoice #:</td>
+            <td colspan="2" id="pInvoiceNo"></td>
         </tr>
-
         <tr>
             <td colspan="2">Date:</td>
-            <td id="pDate"></td>
+            <td colspan="2" id="pDate"></td>
         </tr>
-
+        <tr>
+            <td colspan="4" style="height: 5px;"></td>
+        </tr>
     </table>
 
-    <table class="thermal-table mt-1">
-
+    <table class="thermal-table">
         <thead>
             <tr>
-                <th>Sr#</th>
-                <th>Items</th>
+                <th>#</th>
+                <th>Item</th>
                 <th>Rate</th>
-                <th>Qty</th>                
+                <th>Qty</th>
                 <th>Amount</th>
             </tr>
         </thead>
-
         <tbody id="printItems"></tbody>
-
         <tfoot>
             <tr>
-                <td colspan="4">Total</td>
+                <td colspan="4"><strong>Total</strong></td>
                 <td id="pTotal"></td>
             </tr>
             <tr>
-                <td colspan="4">Disc</td>
+                <td colspan="4"><strong>Discount</strong></td>
                 <td id="pDiscount"></td>
             </tr>
             <tr>
-                <td colspan="4"><b>Net</b></td>
-                <td><b id="pNet"></b></td>
+                <td colspan="4"><strong>NET TOTAL</strong></td>
+                <td><strong id="pNet"></strong></td>
             </tr>
         </tfoot>
-
     </table>
-
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
 
 <script>
     let rowIndex = 0;
     let selectedItem = null;
 
-    // 🔍 Barcode / Search
-    $('#barcodeInput').on('change', function () {
+    $(document).ready(function() {
+        // Set default date
+        if (!$('#invoiceDate').val()) {
+            $('#invoiceDate').val(new Date().toISOString().split('T')[0]);
+        }
 
-        let code = $(this).val().trim();
-        if (!code) return;
+        // Generate invoice number
+        let invoiceNo = 'INV-' + new Date().getTime().toString().slice(-8);
+        $('#invoiceNo').val(invoiceNo);
 
-        $.ajax({
-            url: '/POS/GetItemByBarcode',
-            type: 'GET',
-            data: { barcode: code },
-            success: function (res) {
-
-                if (!res) return;
-
-                selectedItem = res;
-
-                $('#itemName').val(res.itemName);
-                $('#price').val(res.salePrice);
-                $('#qty').val(1).focus().select();
-
-                if (res.stockQty <= 0) {
-                    $('#itemName').val('Out of Stock');
-                    return;
-                }
-
-                calculateAmount();
-                $('#qty').focus();
-            }
-        });
+        // Focus on barcode input
+        $('#barcodeInput').focus();
     });
 
-    // ➕ Qty Change → Amount
-    $('#qty').on('keyup change', function () {
+    // Search/Scan barcode
+    $('#barcodeInput').on('keypress', function(e) {
+        if (e.which === 13) {
+            let code = $(this).val().trim();
+            if (!code) return;
+
+            $.ajax({
+                url: '/POS/GetItemByBarcode',
+                type: 'GET',
+                data: { barcode: code },
+                success: function(res) {
+                    if (!res) {
+                        Swal.fire('Not Found', 'Item not found!', 'error');
+                        $('#barcodeInput').val('').focus();
+                        return;
+                    }
+
+                    selectedItem = res;
+                    $('#itemName').val(res.itemName);
+                    $('#price').val(res.salePrice);
+                    $('#qty').val(1).focus().select();
+
+                    if (res.stockQty <= 0) {
+                        Swal.fire('Out of Stock', 'This item is out of stock!', 'warning');
+                        $('#itemName').val('');
+                        return;
+                    }
+
+                    calculateAmount();
+                },
+                error: function() {
+                    Swal.fire('Error', 'Failed to fetch item', 'error');
+                }
+            });
+        }
+    });
+
+    // Calculate amount
+    $('#qty').on('keyup change', function() {
         calculateAmount();
     });
 
@@ -368,267 +612,299 @@
         $('#amount').val((qty * price).toFixed(2));
     }
 
-    // ⌨ ENTER → Add Row
-    $('#qty').on('keypress', function (e) {
-
+    // Add item on Enter
+    $('#qty').on('keypress', function(e) {
         if (e.which === 13) {
-
-            if (!selectedItem) return;
-
-            let itemId = selectedItem.itemId;
-            let itemName = selectedItem.itemName;
-            let qty = parseFloat($('#qty').val()) || 0;
-            let rate = parseFloat($('#price').val()) || 0;
-            let stockQty = parseFloat(selectedItem.stockQty) || 0;
-
-            if (qty <= 0) return;
-
-            if (qty > stockQty) {
-                $('#qty').val(stockQty);
-                return;
-            }
-
-            let found = false;
-
-            $('#posTable tbody tr').each(function () {
-
-                let rowItemId = $(this).data('id');
-
-                if (rowItemId == itemId) {
-
-                    let rowRate = parseFloat($(this).find('.rate').text()); // 🔥 FIX
-                    let oldQty = parseFloat($(this).find('.qty').text());
-                    let newQty = oldQty + qty;
-
-                    
-
-                    if (newQty > stockQty) {
-                        return;
-                    }
-
-                    $(this).find('.qty').text(newQty);
-                    $(this).find('.amount').text((newQty * rowRate).toFixed(2)); // 🔥 FIX
-
-                    found = true;
-                }
-            });
-
-            if (!found) {
-
-                rowIndex++;
-
-                    let row = `
-        <tr data-id="${itemId}">
-            <td>${rowIndex}</td>
-            <td class="item">${itemName}</td>
-            <td class="itemId" style="display:none;">${itemId}</td>
-            <td class="rate">${rate}</td>
-            <td>
-            <button class="btn btn-warning btn-sm minusQty">-</button>
-            <span class="qty mx-2">${qty}</span>
-            <button class="btn btn-success btn-sm plusQty">+</button>
-            </td>
-            <td class="amount">${(qty * rate).toFixed(2)}</td>
-            <td>
-                <button class="btn btn-danger btn-sm deleteRow">X</button>
-            </td>
-        </tr>
-    `;
-            $('#posTable tbody').append(row);
-            }
-
-            calculateTotal();
-            resetFields();
+            addItemToTable();
         }
     });
 
-        // ➕ Plus Qty
-    $(document).on('click', '.plusQty', function () {
+    function addItemToTable() {
+        if (!selectedItem) return;
 
-        let row = $(this).closest('tr');
-
-        let qty = parseFloat(row.find('.qty').text()) || 0;
-        let rate = parseFloat(row.find('.rate').text()) || 0;
-
-        qty++;
-
-        row.find('.qty').text(qty);
-        row.find('.amount').text((qty * rate).toFixed(2));
-
-        calculateTotal();
-    });
-
-
-    // ➖ Minus Qty
-    $(document).on('click', '.minusQty', function () {
-
-        let row = $(this).closest('tr');
-
-        let qty = parseFloat(row.find('.qty').text()) || 0;
-        let rate = parseFloat(row.find('.rate').text()) || 0;
-
-        qty--;
+        let itemId = selectedItem.itemId;
+        let itemName = selectedItem.itemName;
+        let qty = parseFloat($('#qty').val()) || 0;
+        let rate = parseFloat($('#price').val()) || 0;
+        let stockQty = parseFloat(selectedItem.stockQty) || 0;
 
         if (qty <= 0) {
-            row.remove();
+            Swal.fire('Invalid', 'Quantity must be greater than 0', 'warning');
+            return;
         }
-        else {
-            row.find('.qty').text(qty);
-            row.find('.amount').text((qty * rate).toFixed(2));
+
+        if (qty > stockQty) {
+            Swal.fire('Stock Limit', `Only ${stockQty} items available!`, 'warning');
+            $('#qty').val(stockQty);
+            return;
+        }
+
+        let found = false;
+
+        $('#posTable tbody tr').each(function() {
+            let rowItemId = $(this).data('id');
+            if (rowItemId == itemId) {
+                let rowRate = parseFloat($(this).find('.rate').text());
+                let oldQty = parseFloat($(this).find('.qty-value').text());
+                let newQty = oldQty + qty;
+
+                if (newQty > stockQty) {
+                    Swal.fire('Stock Limit', `Cannot add more than ${stockQty} items!`, 'warning');
+                    return;
+                }
+
+                $(this).find('.qty-value').text(newQty);
+                $(this).find('.amount').text((newQty * rowRate).toFixed(2));
+                found = true;
+            }
+        });
+
+        if (!found) {
+            // Remove empty message
+            if ($('#posTable tbody tr').length === 1 && $('#posTable tbody tr td').attr('colspan')) {
+                $('#posTable tbody').empty();
+            }
+
+            rowIndex++;
+            let row = `
+                <tr data-id="${itemId}">
+                    <td>${rowIndex}</td>
+                    <td class="item-name">${itemName}</td>
+                    <td class="rate">${rate.toFixed(2)}</td>
+                    <td>
+                        <div class="qty-controls">
+                            <button class="qty-btn qty-minus" onclick="updateQuantity(this, -1)">-</button>
+                            <span class="qty-value">${qty}</span>
+                            <button class="qty-btn qty-plus" onclick="updateQuantity(this, 1)">+</button>
+                        </div>
+                    </td>
+                    <td class="amount">${(qty * rate).toFixed(2)}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteRow(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            $('#posTable tbody').append(row);
         }
 
         calculateTotal();
-    });
+        resetFields();
+    }
 
-    // ❌ Delete Row
-    $(document).on('click', '.deleteRow', function () {
-        $(this).closest('tr').remove();
+    // Update quantity
+    window.updateQuantity = function(btn, delta) {
+        let row = $(btn).closest('tr');
+        let qtySpan = row.find('.qty-value');
+        let currentQty = parseFloat(qtySpan.text());
+        let newQty = currentQty + delta;
+        let rate = parseFloat(row.find('.rate').text());
+
+        if (newQty <= 0) {
+            deleteRow(btn);
+            return;
+        }
+
+        qtySpan.text(newQty);
+        row.find('.amount').text((newQty * rate).toFixed(2));
         calculateTotal();
-    });
-    // 🧮 Total
+    };
+
+    // Delete row
+    window.deleteRow = function(btn) {
+        Swal.fire({
+            title: 'Remove Item?',
+            text: "This item will be removed from cart",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, remove!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $(btn).closest('tr').remove();
+
+                // Renumber rows
+                $('#posTable tbody tr').each(function(index) {
+                    $(this).find('td:first').text(index + 1);
+                });
+
+                calculateTotal();
+
+                // Show empty message if no rows
+                if ($('#posTable tbody tr').length === 0) {
+                    $('#posTable tbody').html(`
+                        <tr class="text-center">
+                            <td colspan="6" style="padding: 60px 20px;">
+                                <i class="fas fa-shopping-basket" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p style="color: #94a3b8; margin-top: 15px;">No items added. Scan a product to begin!</p>
+                            </td>
+                        </tr>
+                    `);
+                }
+
+                Swal.fire('Removed!', 'Item has been removed.', 'success');
+            }
+        });
+    };
+
+    // Calculate totals
     function calculateTotal() {
-
         let total = 0;
 
-        $('#posTable tbody tr').each(function () {
-            total += parseFloat($(this).find('.amount').text()) || 0;
+        $('#posTable tbody tr').each(function() {
+            let amount = parseFloat($(this).find('.amount').text()) || 0;
+            total += amount;
         });
 
         $('#total').val(total.toFixed(2));
-
+        $('#totalDisplay').text(total.toFixed(2));
         calculateNet();
     }
 
-    $('#discount').on('keyup change', function () {
+    $('#discount').on('keyup change', function() {
         calculateNet();
     });
 
     function calculateNet() {
-
         let total = parseFloat($('#total').val()) || 0;
         let discount = parseFloat($('#discount').val()) || 0;
 
-        if (discount > total) discount = total;
+        if (discount > total) {
+            discount = total;
+            $('#discount').val(discount);
+        }
 
         let net = total - discount;
-
-        $('#netAmount').val(net.toFixed(2));
-
+        $('#netAmount').text(net.toFixed(2));
         calculateChange();
     }
 
-    $('#paid').on('keyup change', function () {
+    $('#paid').on('keyup change', function() {
         calculateChange();
     });
 
     function calculateChange() {
-
-        let net = parseFloat($('#netAmount').val()) || 0;
+        let net = parseFloat($('#netAmount').text()) || 0;
         let paid = parseFloat($('#paid').val()) || 0;
-
         let change = paid - net;
 
         if (change < 0) change = 0;
-
-        $('#change').val(change.toFixed(2));
+        $('#change').text(change.toFixed(2));
     }
 
-    // 🔄 Reset
     function resetFields() {
         selectedItem = null;
         $('#barcodeInput').val('').focus();
         $('#itemName').val('');
         $('#qty').val(1);
         $('#price').val('');
-        $('#amount').val('');
     }
 
-    $('#barcodeInput').focus();
-
-    $('#paid').on('keypress', function (e) {
-        if (e.which === 13) {
-            $('#btnSave').click();
-        }
-    });
-
-    // 💾 SAVE
-    $('#btnSave').click(function () {
-
+    // Save invoice
+    $('#btnSave').click(function() {
         let items = [];
 
-        $('#posTable tbody tr').each(function () {
-
+        $('#posTable tbody tr').each(function() {
             items.push({
                 itemId: $(this).data('id'),
-                rate: parseFloat($(this).find('.rate').text()), // 🔥 FIX
-                quantity: parseFloat($(this).find('.qty').text()),                
+                rate: parseFloat($(this).find('.rate').text()),
+                quantity: parseFloat($(this).find('.qty-value').text()),
                 amount: parseFloat($(this).find('.amount').text())
             });
-
         });
 
-        if (items.length === 0) return;
+        if (items.length === 0) {
+            Swal.fire('Empty Cart', 'Please add items before saving!', 'warning');
+            return;
+        }
+
+        let netAmount = parseFloat($('#netAmount').text());
+        let paid = parseFloat($('#paid').val()) || 0;
+
+        if (paid < netAmount) {
+            Swal.fire('Insufficient Payment', `Please collect Rs${(netAmount - paid).toFixed(2)} more`, 'error');
+            return;
+        }
 
         let model = {
             InvoiceNo: $('#invoiceNo').val(),
             InvoiceDate: $('#invoiceDate').val(),
             CustomerId: $('#customerId').val(),
-            BranchId: $('#branchId').val(),
+            BranchId: $('#branchId').val() || 'Main Branch',
             UserId: $('#userId').val(),
             TotalAmount: parseFloat($('#total').val()),
             Discount: parseFloat($('#discount').val()),
-            NetAmount: parseFloat($('#netAmount').val()),
+            NetAmount: netAmount,
             Items: items
         };
+
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Saving invoice',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
         $.ajax({
             url: '/POS/SaveInvoice',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(model),
-            success: function (res) {
-
+            success: function(res) {
                 if (res.success) {
-
-                    $('#pInvoiceNo').text($('#invoiceNo').val());
-                    $('#pDate').text($('#invoiceDate').val());
-                    $('#pTotal').text($('#total').val());
-                    $('#pDiscount').text($('#discount').val());
-                    $('#pNet').text($('#netAmount').val());
-
-                    let rows = '';
-                    let index = 1;
-
-                    $('#posTable tbody tr').each(function () {
-
-                        let item = $(this).find('td:eq(1)').text();
-                        let rate = $(this).find('.rate').text(); // 🔥 FIX
-                        let qty = $(this).find('.qty').text();                        
-                        let amount = $(this).find('.amount').text();
-
-                        rows += `
-                            <tr>
-                                <td>${index++}</td>
-                                <td>${item}</td>
-                                <td style="text-align:right;">${rate}</td>
-                                <td style="text-align:center;">${qty}</td>                                
-                                <td style="text-align:right;">${amount}</td>
-                            </tr>
-                        `;
+                    preparePrint();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Invoice saved successfully',
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        window.print();
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
                     });
-
-                    $('#printItems').html(rows);
-
-                    $('#printArea').show();
-                    window.print();
-                    $('#printArea').hide();
-
                 } else {
-                    console.log('Save failed');
+                    Swal.fire('Error', 'Failed to save invoice', 'error');
                 }
+            },
+            error: function() {
+                Swal.fire('Error', 'An error occurred while saving', 'error');
             }
         });
-
     });
 
+    function preparePrint() {
+        $('#pInvoiceNo').text($('#invoiceNo').val());
+        $('#pDate').text($('#invoiceDate').val());
+        $('#pTotal').text(parseFloat($('#total').val()).toFixed(2));
+        $('#pDiscount').text(parseFloat($('#discount').val()).toFixed(2));
+        $('#pNet').text($('#netAmount').text());
+
+        let rows = '';
+        let index = 1;
+
+        $('#posTable tbody tr').each(function() {
+            let item = $(this).find('.item-name').text();
+            let rate = parseFloat($(this).find('.rate').text()).toFixed(2);
+            let qty = $(this).find('.qty-value').text();
+            let amount = $(this).find('.amount').text();
+
+            rows += `
+                <tr>
+                    <td>${index++}</td>
+                    <td>${item}</td>
+                    <td style="text-align:right;">${rate}</td>
+                    <td style="text-align:center;">${qty}</td>
+                    <td style="text-align:right;">${amount}</td>
+                </tr>
+            `;
+        });
+
+        $('#printItems').html(rows);
+    }
 </script>

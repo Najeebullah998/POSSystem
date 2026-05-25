@@ -1,0 +1,649 @@
+﻿@model POSSystem.Entities.PurchaseOrderHeaderVm
+
+@{
+    ViewBag.Title = "Purchase Order";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .po-container {
+        background: white;
+        border-radius: 20px;
+        margin: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .po-header-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 25px 30px;
+        color: white;
+    }
+
+    .po-title {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .po-subtitle {
+        margin: 5px 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .po-content {
+        padding: 30px;
+    }
+
+    .form-card {
+        background: var(--light-bg);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid var(--border-color);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control, .select2-container .select2-selection {
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        transition: all 0.3s;
+    }
+
+        .form-control:focus, .select2-container--focus .select2-selection {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+    .scan-section {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 2px solid var(--warning-color);
+    }
+
+    .scan-input {
+        border: 2px solid var(--warning-color);
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .table-container {
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 100px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: var(--dark-color);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+            border: none;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+            .table tbody tr:hover {
+                background: #f8f9ff;
+                transform: scale(1.01);
+            }
+
+        .table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+    .qty-input, .rate-input {
+        width: 100px;
+        text-align: center;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        padding: 6px;
+    }
+
+    .delete-btn {
+        background: var(--danger-color);
+        border: none;
+        padding: 5px 12px;
+        border-radius: 6px;
+        color: white;
+        transition: all 0.2s;
+    }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+    .footer-card {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        background: white;
+        border-top: 3px solid var(--primary-color);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        padding: 15px 30px;
+        z-index: 1000;
+    }
+
+    .summary-box {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin: 0 5px;
+    }
+
+    .summary-label {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        margin: 0 5px;
+        color: white;
+        transition: all 0.3s;
+    }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s;
+    }
+
+        .btn-secondary-custom:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .badge-stock {
+        background: #e5e7eb;
+        color: var(--dark-color);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table tbody tr {
+        animation: slideIn 0.3s ease-out;
+    }
+</style>
+
+<div class="po-container">
+    <!-- Header Section -->
+    <div class="po-header-section">
+        <h1 class="po-title">
+            <i class="fas fa-file-invoice-dollar"></i> Purchase Order
+        </h1>
+        <p class="po-subtitle">Create and manage purchase orders efficiently</p>
+    </div>
+
+    <div class="po-content">
+        <!-- Order Information Card -->
+        <div class="form-card">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-hashtag"></i> PO Number
+                    </label>
+                    <input type="text" class="form-control" id="PONumber" value="@Model.PONumber" readonly style="background: #f3f4f6;" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="far fa-calendar-alt"></i> PO Date
+                    </label>
+                    <input type="date" class="form-control" id="PODate" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-truck"></i> Supplier
+                    </label>
+                    <select id="SupplierId" class="form-control select2">
+                        <option value="">Select Supplier</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-warehouse"></i> Warehouse
+                    </label>
+                    <select id="WarehouseId" class="form-control select2">
+                        <option value="">Select Warehouse</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Section -->
+        <div class="scan-section">
+            <div class="row align-items-center">
+                <div class="col-md-10">
+                    <label class="form-label" style="color: #92400e;">
+                        <i class="fas fa-qrcode"></i> Scan Barcode / Search Item
+                    </label>
+                    <input type="text" id="barcode" class="form-control scan-input"
+                           placeholder="📱 Scan barcode or type item name and press Enter..." />
+                </div>
+                <div class="col-md-2 text-center">
+                    <i class="fas fa-barcode" style="font-size: 48px; color: #d97706;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="table-container">
+            <table class="table" id="tblItems">
+                <thead class="bg-dark">
+                    <tr>
+                        <th width="15%">Barcode</th>
+                        <th width="25%">Item Name</th>
+                        <th width="10%">Stock</th>
+                        <th width="15%">Rate (Rs)</th>
+                        <th width="10%">Quantity</th>
+                        <th width="15%">Amount (Rs)</th>
+                        <th width="10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="text-center">
+                        <td colspan="7" style="padding: 40px;">
+                            <i class="fas fa-box-open" style="font-size: 48px; color: #cbd5e1;"></i>
+                            <p style="color: #94a3b8; margin-top: 10px;">No items added yet. Scan a barcode to start!</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Summary -->
+<div class="footer-card">
+    <div class="row align-items-center">
+        <div class="col-md-2">
+            <div class="summary-box">
+                <div class="summary-label">Total Quantity</div>
+                <div class="summary-value" id="totalQty">0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="summary-box">
+                <div class="summary-label">Sub Total</div>
+                <div class="summary-value">Rs <span id="totalAmount">0</span></div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" style="margin-bottom: 5px;">Discount (Rs)</label>
+            <input type="number" id="discount" class="form-control" placeholder="Enter discount" style="border: 2px solid var(--primary-color);" />
+        </div>
+        <div class="col-md-3">
+            <div class="summary-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="summary-label">Net Amount</div>
+                <div class="summary-value">Rs <span id="netAmount">0</span></div>
+            </div>
+        </div>
+        <div class="col-md-2 text-end">
+            <button class="btn btn-primary-custom" onclick="savePO()">
+                <i class="fas fa-save"></i> Save PO
+            </button>
+            <button class="btn btn-secondary-custom" onclick="clearAll()">
+                <i class="fas fa-trash-alt"></i> Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+
+<script>
+    let items = [];
+
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            placeholder: 'Select option',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Load suppliers and warehouses
+        loadSuppliers();
+        loadWarehouses();
+    });
+
+    function loadSuppliers() {
+        $.get("/PurchaseOrder/GetSuppliers", function(data) {
+            let supplierSelect = $('#SupplierId');
+            supplierSelect.empty().append('<option value="">Select Supplier</option>');
+            $.each(data, function(i, item) {
+                supplierSelect.append(`<option value="${item.Value}">${item.Text}</option>`);
+            });
+        });
+    }
+
+    function loadWarehouses() {
+        $.get("/PurchaseOrder/GetWarehouses", function(data) {
+            let warehouseSelect = $('#WarehouseId');
+            warehouseSelect.empty().append('<option value="">Select Warehouse</option>');
+            $.each(data, function(i, item) {
+                warehouseSelect.append(`<option value="${item.Value}">${item.Text}</option>`);
+            });
+        });
+    }
+
+    // Enter barcode
+    $("#barcode").on("keypress", function(e) {
+        if (e.which === 13) {
+            let barcode = $(this).val().trim();
+            if (barcode === "") {
+                Swal.fire('Warning', 'Please enter a barcode or item name', 'warning');
+                return;
+            }
+
+            // Show loading
+            $(this).prop('disabled', true);
+
+            $.get("/PurchaseOrder/GetItemByBarcode", { barcode: barcode }, function(res) {
+                $("#barcode").prop('disabled', false);
+
+                if (!res || res.error) {
+                    Swal.fire('Not Found', 'Item not found! Please check the barcode.', 'error');
+                    $("#barcode").val('');
+                    return;
+                }
+
+                addRow(res);
+                $("#barcode").val('').focus();
+            }).fail(function() {
+                $("#barcode").prop('disabled', false);
+                Swal.fire('Error', 'Failed to fetch item details', 'error');
+            });
+        }
+    });
+
+    // Add Row
+    function addRow(item) {
+        // Check if item already exists
+        let existing = false;
+        $("#tblItems tbody tr").each(function() {
+            if ($(this).find("td:eq(0)").text() === item.barcode) {
+                let qtyInput = $(this).find(".qty");
+                qtyInput.val(parseFloat(qtyInput.val()) + 1);
+                calculate();
+                existing = true;
+                return false;
+            }
+        });
+
+        if (existing) return;
+
+        // Remove empty row message if exists
+        if ($("#tblItems tbody tr").length === 1 && $("#tblItems tbody tr td").attr('colspan')) {
+            $("#tblItems tbody").empty();
+        }
+
+        let row = $(`
+            <tr>
+                <td><strong>${item.barcode}</strong></td>
+                <td>${item.itemName}</td>
+                <td><span class="badge-stock"><i class="fas fa-boxes"></i> ${item.currentStock || 0}</span></td>
+                <td><input type="number" class="rate-input rate" value="${item.lastPurchaseRate || 0}" step="0.01" /></td>
+                <td><input type="number" class="qty-input qty" value="1" min="1" /></td>
+                <td class="amount" style="font-weight: 600; color: var(--primary-color);">Rs 0.00</td>
+                <td><button class="delete-btn" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `);
+
+        $("#tblItems tbody").append(row);
+        calculate();
+
+        // Animate scroll to new row
+        $('html, body').animate({
+            scrollTop: $(document).height()
+        }, 500);
+    }
+
+    // Remove Row
+    function removeRow(btn) {
+        Swal.fire({
+            title: 'Remove Item?',
+            text: "This item will be removed from the order",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, remove it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $(btn).closest("tr").remove();
+
+                // Show empty message if no rows
+                if ($("#tblItems tbody tr").length === 0) {
+                    $("#tblItems tbody").html(`
+                        <tr class="text-center">
+                            <td colspan="7" style="padding: 40px;">
+                                <i class="fas fa-box-open" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p style="color: #94a3b8; margin-top: 10px;">No items added yet. Scan a barcode to start!</p>
+                            </td>
+                        </tr>
+                    `);
+                }
+
+                calculate();
+                Swal.fire('Removed!', 'Item has been removed.', 'success');
+            }
+        });
+    }
+
+    // Calculate totals
+    $(document).on("input", ".qty, .rate", function() {
+        calculate();
+    });
+
+    $("#discount").on("input", function() {
+        calculate();
+    });
+
+    function calculate() {
+        let totalQty = 0;
+        let total = 0;
+
+        $("#tblItems tbody tr").each(function() {
+            let qty = parseFloat($(this).find(".qty").val()) || 0;
+            let rate = parseFloat($(this).find(".rate").val()) || 0;
+            let amount = qty * rate;
+
+            $(this).find(".amount").text(`Rs ${amount.toFixed(2)}`);
+
+            totalQty += qty;
+            total += amount;
+        });
+
+        let discount = parseFloat($("#discount").val()) || 0;
+        let net = total - discount;
+
+        $("#totalQty").text(totalQty);
+        $("#totalAmount").text(total.toFixed(2));
+        $("#netAmount").text(net.toFixed(2));
+    }
+
+    // Clear all
+    function clearAll() {
+        Swal.fire({
+            title: 'Clear All Items?',
+            text: "This will remove all items from the order",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, clear all!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $("#tblItems tbody").html(`
+                    <tr class="text-center">
+                        <td colspan="7" style="padding: 40px;">
+                            <i class="fas fa-box-open" style="font-size: 48px; color: #cbd5e1;"></i>
+                            <p style="color: #94a3b8; margin-top: 10px;">No items added yet. Scan a barcode to start!</p>
+                        </td>
+                    </tr>
+                `);
+                $("#discount").val('');
+                calculate();
+                Swal.fire('Cleared!', 'All items have been cleared.', 'success');
+            }
+        });
+    }
+
+    // Save PO
+    function savePO() {
+        // Validation
+        if (!$("#SupplierId").val()) {
+            Swal.fire('Validation Error', 'Please select a supplier', 'error');
+            return;
+        }
+
+        if (!$("#WarehouseId").val()) {
+            Swal.fire('Validation Error', 'Please select a warehouse', 'error');
+            return;
+        }
+
+        if ($("#tblItems tbody tr").length === 0 || $("#tblItems tbody tr td").attr('colspan')) {
+            Swal.fire('Validation Error', 'Please add at least one item', 'error');
+            return;
+        }
+
+        let details = [];
+        $("#tblItems tbody tr").each(function() {
+            details.push({
+                ItemId: 0,
+                Barcode: $(this).find("td:eq(0)").text().trim(),
+                ItemName: $(this).find("td:eq(1)").text().trim(),
+                Quantity: $(this).find(".qty").val(),
+                Rate: $(this).find(".rate").val(),
+                Amount: parseFloat($(this).find(".amount").text().replace('Rs ', ''))
+            });
+        });
+
+        let model = {
+            PONumber: $("#PONumber").val(),
+            PODate: $("#PODate").val(),
+            SupplierId: $("#SupplierId").val(),
+            WarehouseId: $("#WarehouseId").val(),
+            TotalAmount: $("#totalAmount").text(),
+            Discount: $("#discount").val() || 0,
+            NetAmount: $("#netAmount").text(),
+            Details: details
+        };
+
+        // Show loading
+        Swal.fire({
+            title: 'Saving...',
+            text: 'Please wait while we save your purchase order',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: "/PurchaseOrder/Save",
+            type: "POST",
+            data: model,
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Purchase Order saved successfully',
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', res.message || 'Failed to save purchase order', 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error', 'An error occurred while saving', 'error');
+            }
+        });
+    }
+</script>
