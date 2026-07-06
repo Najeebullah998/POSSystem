@@ -276,9 +276,17 @@
         }
 
     /* Print Styles */
+    /* Print Styles */
+    .print-area-hidden {
+        display: none;
+    }
+
     @@media print {
         body * {
             visibility: hidden;
+        }
+        .print-area-hidden {
+            display: block !important;
         }
 
         #printArea, #printArea * {
@@ -292,6 +300,7 @@
             width: 80mm;
             background: white;
             padding: 10px;
+            display: block !important; /* Override the display:none */
         }
 
         .thermal-table {
@@ -304,6 +313,14 @@
                 border: 1px dashed #000;
                 padding: 4px;
             }
+        /* Hide payment footer and other elements during print */
+        .payment-footer {
+            display: none !important;
+        }
+
+        .pos-container {
+            display: none !important;
+        }
     }
 
     /* Animations */
@@ -489,7 +506,7 @@
 </div>
 
 <!-- Print Template -->
-<div id="printArea" style="display:none;">
+<div id="printArea" class="print-area-hidden">
     <table class="thermal-table">
         <tr>
             <td colspan="4" style="text-align: center; font-size: 16px; font-weight: bold;">@HttpContextAccessor.HttpContext.Session.GetString("CompanyName")</td>
@@ -803,7 +820,7 @@
     }
 
     // Save invoice
-    $('#btnSave').click(function() {
+        $('#btnSave').click(function() {
         let items = [];
 
         $('#posTable tbody tr').each(function() {
@@ -863,10 +880,10 @@
                         text: 'Invoice saved successfully',
                         confirmButtonColor: '#10b981'
                     }).then(() => {
-                        window.print();
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
+                        // Show print dialog
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
                     });
                 } else {
                     Swal.fire('Error', 'Failed to save invoice', 'error');
@@ -878,7 +895,7 @@
         });
     });
 
-    function preparePrint() {
+        function preparePrint() {
         $('#pInvoiceNo').text($('#invoiceNo').val());
         $('#pDate').text($('#invoiceDate').val());
         $('#pTotal').text(parseFloat($('#total').val()).toFixed(2));
@@ -906,5 +923,19 @@
         });
 
         $('#printItems').html(rows);
+
+        // Make print area visible for printing
+        $('#printArea').show();
     }
+
+        // After printing, hide the print area again
+       // Hide print area after printing
+    window.onafterprint = function() {
+        $('#printArea').hide();
+    };
+
+    // Also hide on window focus after print dialog closes
+    $(window).on('focus', function() {
+        $('#printArea').hide();
+    });
 </script>
