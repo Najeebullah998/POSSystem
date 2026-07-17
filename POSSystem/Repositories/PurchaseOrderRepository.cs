@@ -42,7 +42,6 @@ namespace POSSystem.Repositories
                 param.Add("@TotalAmount", model.TotalAmount);
                 param.Add("@Discount", model.Discount);
                 param.Add("@NetAmount", model.NetAmount);
-                param.Add("@Remarks", model.Remarks);
                 param.Add("@CreatedBy", model.CreatedBy);
 
                 param.Add("@Details", dt.AsTableValuedParameter("PurchaseOrderDetailType"));

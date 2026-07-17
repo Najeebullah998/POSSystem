@@ -1,4 +1,6 @@
-﻿namespace POSSystem.Entities
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace POSSystem.Entities
 {
     public class PurchaseOrderHeaderVm
     {
@@ -22,11 +24,11 @@
 
         public string Status { get; set; }
 
-        public string Remarks { get; set; }
-
         public int CreatedBy { get; set; }
 
         public List<PurchaseOrderDetailVm> Details { get; set; }
+        public List<SelectListItem> SupplierList { get; set; }
+        public List<SelectListItem> WarehouseList { get; set; }
 
         public PurchaseOrderHeaderVm()
         {

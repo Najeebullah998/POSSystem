@@ -30,8 +30,8 @@ public class PurchaseOrderController : Controller
 
         model.PONumber = await _repo.GeneratePONumberAsync();
 
-        //model.SupplierList = await _repo.GetSupplierDDAsync();
-        //model.WarehouseList = await _repo.GetWarehouseDDAsync();
+        model.SupplierList = await _repo.GetSupplierDDAsync();
+        model.WarehouseList = await _repo.GetWarehouseDDAsync();
 
         return View(model);
     }

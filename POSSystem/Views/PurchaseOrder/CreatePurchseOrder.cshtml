@@ -274,15 +274,20 @@
                     <label class="form-label">
                         <i class="fas fa-truck"></i> Supplier
                     </label>
-                    <select id="SupplierId" class="form-control select2">
+                    <select asp-for="SupplierId"
+                            asp-items="Model.SupplierList"
+                            class="form-control select2">
                         <option value="">Select Supplier</option>
                     </select>
                 </div>
+
                 <div class="col-md-3">
                     <label class="form-label">
                         <i class="fas fa-warehouse"></i> Warehouse
                     </label>
-                    <select id="WarehouseId" class="form-control select2">
+                    <select asp-for="WarehouseId"
+                            asp-items="Model.WarehouseList"
+                            class="form-control select2">
                         <option value="">Select Warehouse</option>
                     </select>
                 </div>
@@ -460,17 +465,17 @@
             $("#tblItems tbody").empty();
         }
 
-        let row = $(`
-            <tr>
-                <td><strong>${item.barcode}</strong></td>
-                <td>${item.itemName}</td>
-                <td><span class="badge-stock"><i class="fas fa-boxes"></i> ${item.currentStock || 0}</span></td>
-                <td><input type="number" class="rate-input rate" value="${item.lastPurchaseRate || 0}" step="0.01" /></td>
-                <td><input type="number" class="qty-input qty" value="1" min="1" /></td>
-                <td class="amount" style="font-weight: 600; color: var(--primary-color);">Rs 0.00</td>
-                <td><button class="delete-btn" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
-            </tr>
-        `);
+            let row = $(`
+        <tr data-itemid="${item.itemId}">
+            <td><strong>${item.barcode}</strong></td>
+            <td>${item.itemName}</td>
+            <td><span class="badge-stock"><i class="fas fa-boxes"></i> ${item.currentStock || 0}</span></td>
+            <td><input type="number" class="rate-input rate" value="${item.lastPurchaseRate || 0}" step="0.01" /></td>
+            <td><input type="number" class="qty-input qty" value="1" min="1" /></td>
+            <td class="amount" style="font-weight: 600; color: var(--primary-color);">Rs 0.00</td>
+            <td><button class="delete-btn" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
+        </tr>
+    `);
 
         $("#tblItems tbody").append(row);
         calculate();
@@ -590,17 +595,20 @@
             return;
         }
 
-        let details = [];
-        $("#tblItems tbody tr").each(function() {
-            details.push({
-                ItemId: 0,
-                Barcode: $(this).find("td:eq(0)").text().trim(),
-                ItemName: $(this).find("td:eq(1)").text().trim(),
-                Quantity: $(this).find(".qty").val(),
-                Rate: $(this).find(".rate").val(),
-                Amount: parseFloat($(this).find(".amount").text().replace('Rs ', ''))
-            });
+          let details = [];
+
+    $("#tblItems tbody tr").each(function () {
+
+        details.push({
+            ItemId: $(this).data("itemid"),
+            Barcode: $(this).find("td:eq(0)").text().trim(),
+            ItemName: $(this).find("td:eq(1)").text().trim(),
+            Quantity: $(this).find(".qty").val(),
+            Rate: $(this).find(".rate").val(),
+            Amount: parseFloat($(this).find(".amount").text().replace("Rs ", ""))
         });
+
+    });
 
         let model = {
             PONumber: $("#PONumber").val(),
