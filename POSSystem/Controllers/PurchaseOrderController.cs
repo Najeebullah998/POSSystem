@@ -17,10 +17,13 @@ public class PurchaseOrderController : Controller
     // =========================
     public async Task<IActionResult> Index()
     {
-        var list = await _repo.GetAllAsync();
-        return View(list);
+        return View();
     }
-
+    public async Task<IActionResult> GetPurchaseList()
+    {
+        var list = await _repo.GetAllAsync();
+        return Json(list);
+    }
     // =========================
     // ADD / CREATE SCREEN
     // =========================
@@ -69,8 +72,8 @@ public class PurchaseOrderController : Controller
     {
         var model = await _repo.GetByIdAsync(id);
 
-        //model.SupplierList = await _repo.GetSupplierDDAsync();
-        //model.WarehouseList = await _repo.GetWarehouseDDAsync();
+        model.SupplierList = await _repo.GetSupplierDDAsync();
+        model.WarehouseList = await _repo.GetWarehouseDDAsync();
 
         return View("Create", model);
     }

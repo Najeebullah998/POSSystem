@@ -64,7 +64,8 @@ namespace POSSystem.Repositories
             using (var con = _context.CreateConnection())
             {
                 var result = await con.QueryAsync<PurchaseOrderHeaderVm>(
-                    "SELECT * FROM PurchaseOrderHeader WHERE IsDeleted = 0"
+                    "sp_GetPurchaseOrderList",
+                    commandType: CommandType.StoredProcedure
                 );
 
                 return result.ToList();

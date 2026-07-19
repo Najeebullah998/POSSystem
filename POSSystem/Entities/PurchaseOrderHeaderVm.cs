@@ -23,6 +23,7 @@ namespace POSSystem.Entities
         public decimal NetAmount { get; set; }
 
         public string Status { get; set; }
+        public string supplierName { get; set; }
 
         public int CreatedBy { get; set; }
 
