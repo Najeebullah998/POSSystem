@@ -1,0 +1,783 @@
+﻿@model POSSystem.Entities.GRNHeaderVM
+
+@* @{
+    ViewBag.Title = "Create GRN";
+} *@
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding-bottom: 120px;
+        min-height: 100vh;
+    }
+
+    .grn-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Cards */
+    .grn-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .grn-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+    .card-header-grn {
+        background: linear-gradient(135deg, var(--info-color) 0%, #2563eb 100%);
+        padding: 15px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+    }
+
+    .card-header-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        padding: 15px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* Form Elements */
+    .form-label-modern {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        font-size: 14px;
+        width: 100%;
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+        .form-control-modern:disabled, .form-control-modern[readonly] {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+    /* Select2 Custom */
+    .select2-container .select2-selection--single {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        height: 44px;
+        padding: 5px;
+    }
+
+    .select2-container--focus .select2-selection--single {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 32px;
+        padding-left: 8px;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 40px;
+    }
+
+    /* PO Selection Section */
+    .po-selection-section {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 2px solid var(--info-color);
+    }
+
+    /* Table Styles */
+    .table-wrapper {
+        max-height: calc(100vh - 500px);
+        overflow-y: auto;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid var(--border-color);
+    }
+
+    .grn-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+        .grn-table thead th {
+            background: var(--dark-color);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: none;
+        }
+
+        .grn-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+            .grn-table tbody tr:hover {
+                background: #f8f9ff;
+                transform: scale(1.01);
+            }
+
+        .grn-table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .grn-table .qty-input {
+            width: 100px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            padding: 6px 10px;
+            transition: all 0.3s;
+        }
+
+            .grn-table .qty-input:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+                outline: none;
+            }
+
+            .grn-table .qty-input:disabled {
+                background: #f3f4f6;
+                cursor: not-allowed;
+            }
+
+    /* Status Badges */
+    .badge-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-received {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-partial {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    /* Footer Section */
+    .grn-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 3px solid var(--info-color);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+        z-index: 1000;
+        padding: 20px 30px;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: center;
+    }
+
+    .footer-card {
+        background: var(--light-bg);
+        padding: 12px 18px;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+        .footer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+    .footer-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 3px;
+    }
+
+    .footer-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    .footer-value-success {
+        color: var(--success-color);
+    }
+
+    .btn-save-grn {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+        .btn-save-grn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .grn-table th,
+.grn-table td {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.receivedQty {
+    text-align: center;
+    width: 90px;
+    margin: auto;
+}
+
+    .btn-clear-grn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+        .btn-clear-grn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    /* Animations */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .grn-table tbody tr {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .footer-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .grn-container {
+            padding: 10px;
+        }
+
+        .grn-footer {
+            padding: 15px;
+        }
+    }
+
+    /* Print Styles */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #printArea, #printArea * {
+            visibility: visible;
+        }
+
+        #printArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="grn-container">
+    <!-- GRN Header Card -->
+    <div class="grn-card">
+        <div class="card-header-grn">
+            <i class="fas fa-clipboard-check"></i> Goods Receipt Note
+        </div>
+        <div class="card-body-custom">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label-modern">
+                        <i class="fas fa-hashtag"></i> GRN Number
+                    </label>
+                    <input type="text" id="GRNNumber" class="form-control-modern" value="@Model.GRNNumber" readonly />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label-modern">
+                        <i class="far fa-calendar-alt"></i> GRN Date
+                    </label>
+                    <input type="date" id="GRNDate" class="form-control-modern" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label-modern">
+                        <i class="fas fa-file-invoice"></i> Purchase Order
+                    </label>
+                    <select asp-for="PurchaseOrderId"
+                            asp-items="Model.PurchaseOrderList"
+                            class="form-control select2">
+                        <option value="">Select Purchase Order</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label-modern">
+                        <i class="fas fa-truck"></i> Supplier
+                    </label>
+                    <select asp-for="SupplierId"
+                            asp-items="Model.SupplierList"
+                            class="form-control select2">
+                        <option value="">Select Supplier</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label-modern">
+                        <i class="fas fa-warehouse"></i> Warehouse
+                    </label>
+                    <select asp-for="WarehouseId"
+                            asp-items="Model.WarehouseList"
+                            class="form-control select2">
+                        <option value="">Select Warehouse</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PO Items Card -->
+    <div class="grn-card">
+        <div class="card-header-grn">
+            <i class="fas fa-boxes"></i> Items Receiving
+        </div>
+        <div class="card-body-custom">
+            <!-- PO Selection Info -->
+            <div class="po-selection-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <i class="fas fa-info-circle" style="color: var(--info-color);"></i>
+                        <span style="font-weight: 600; color: #1e40af;">Select a Purchase Order to load items</span>
+                        <span id="poInfo" style="margin-left: 15px; color: #6b7280;"></span>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary" onclick="loadPOItems()" style="border-radius: 10px;">
+                            <i class="fas fa-sync-alt"></i> Load PO Items
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="table-wrapper">
+                <table class="grn-table" id="grnTable">
+                   <thead>
+                       <tr>
+                           <th style="width:5%;text-align:center">#</th>
+                           <th style="width:30%">Item Name</th>
+                           <th style="width:10%;text-align:center">Order Qty</th>
+                           <th style="width:10%;text-align:center">Pending Qty</th>
+                           <th style="width:15%;text-align:center">Received Qty</th>
+                           <th style="width:10%;text-align:right">Rate</th>
+                           <th style="width:12%;text-align:right">Amount</th>
+                           <th style="width:8%;text-align:center">Status</th>
+                       </tr>
+                   </thead>
+                    <tbody id="tblBody">
+                        <tr class="text-center">
+                            <td colspan="8" style="padding: 60px 20px;">
+                                <i class="fas fa-inbox" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p style="color: #94a3b8; margin-top: 15px;">Select a PO and click "Load PO Items" to begin</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remarks Card -->
+    <div class="grn-card">
+        <div class="card-body-custom">
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label-modern">
+                        <i class="fas fa-comment"></i> Remarks
+                    </label>
+                    <textarea id="Remarks" class="form-control-modern" rows="2" placeholder="Enter any remarks here..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Section -->
+<div class="grn-footer">
+    <div class="footer-grid">
+        <div class="footer-card">
+            <div class="footer-label">Total Items</div>
+            <div class="footer-value" id="TotalItems">0</div>
+        </div>
+
+        <div class="footer-card">
+            <div class="footer-label">Total Order Qty</div>
+            <div class="footer-value" id="TotalOrderQty">0</div>
+        </div>
+
+        <div class="footer-card">
+            <div class="footer-label">Total Received Qty</div>
+            <div class="footer-value footer-value-success" id="TotalReceivedQty">0</div>
+        </div>
+
+        <div class="footer-card">
+            <div class="footer-label">Total Amount (Rs)</div>
+            <div class="footer-value" id="TotalAmount">0.00</div>
+        </div>
+
+        <div>
+            <button class="btn-save-grn" onclick="saveGRN()">
+                <i class="fas fa-save"></i> Save GRN
+            </button>
+        </div>
+
+        <div>
+            <button class="btn-clear-grn" onclick="clearAll()">
+                <i class="fas fa-trash-alt"></i> Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Print Template -->
+<div id="printArea" style="display:none;">
+    <div style="padding: 20px;">
+        <h2 style="text-align: center;">Goods Receipt Note</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tr>
+                <td><strong>GRN #:</strong> <span id="pGRNNumber"></span></td>
+                <td><strong>Date:</strong> <span id="pGRNDate"></span></td>
+            </tr>
+            <tr>
+                <td><strong>Supplier:</strong> <span id="pSupplier"></span></td>
+                <td><strong>PO #:</strong> <span id="pPONumber"></span></td>
+            </tr>
+        </table>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000;">
+            <thead>
+                <tr style="background: #1f2937; color: white;">
+                    <th style="padding: 8px; border: 1px solid #000;">#</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Item</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Order Qty</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Received Qty</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Rate</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Amount</th>
+                </tr>
+            </thead>
+            <tbody id="printItems"></tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="padding: 8px; border: 1px solid #000; text-align: right;"><strong>Total:</strong></td>
+                    <td colspan="2" style="padding: 8px; border: 1px solid #000;" id="pTotalAmount"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <p style="margin-top: 20px;"><strong>Remarks:</strong> <span id="pRemarks"></span></p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+
+<script>
+    let grnItems = [];
+    let rowIndex = 0;
+
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            placeholder: 'Select option',
+            allowClear: true,
+            width: '100%'
+        });
+        $("#PurchaseOrderId").change(function() {
+
+            let id = $(this).val();
+
+            if (id == "")
+                return;
+
+            $.ajax({
+
+                url: '/CreateGRN/GetPurchaseOrder',
+
+                type: 'GET',
+
+                data: { id: id },
+
+                success: function(res) {
+
+                    if (!res.success)
+                        return;
+
+                    let h = res.data;
+
+                    $("#SupplierId")
+                        .val(h.supplierId)
+                        .trigger("change");
+
+                    $("#WarehouseId")
+                        .val(h.warehouseId)
+                        .trigger("change");
+
+                    loadGrid(h.details);
+
+                }
+
+            });
+
+        });
+    });
+
+  
+
+function loadGrid(items) {
+
+    $("#tblBody").empty();
+
+    $.each(items, function (i, item) {
+
+        let orderQty = parseFloat(item.orderQty) || 0;
+        let pendingQty = parseFloat(item.pendingQty) || 0;
+        let rate = parseFloat(item.rate) || 0;
+
+        // First GRN => Pending = Order Qty
+        if (pendingQty <= 0 && orderQty > 0) {
+            pendingQty = orderQty;
+        }
+
+        let status = "";
+
+        if (pendingQty == 0) {
+            status = '<span class="badge bg-success">Completed</span>';
+        }
+        else if (pendingQty < orderQty) {
+            status = '<span class="badge bg-warning">Partial</span>';
+        }
+        else {
+            status = '<span class="badge bg-secondary">Pending</span>';
+        }
+
+        let row = `
+        <tr>
+
+            <td class="text-center">${i + 1}</td>
+
+            <td>
+                <input type="hidden" class="itemId" value="${item.itemId}" />
+                ${item.itemName}
+            </td>
+
+            <td class="text-center orderQty">
+                ${orderQty.toFixed(2)}
+            </td>
+
+            <td class="text-center pendingQty"
+    data-original="${pendingQty}">
+    ${pendingQty.toFixed(2)}
+</td>
+
+            <td style="width:120px;">
+                <input type="number"
+                       class="form-control text-center receivedQty"
+                       min="0"
+                       max="${pendingQty}"
+                       step="0.01"
+                       value="0">
+            </td>
+
+            <td class="text-end rate">
+                ${rate.toFixed(2)}
+            </td>
+
+            <td class="text-end amount">
+                0.00
+            </td>
+
+            <td class="text-center status">
+                ${status}
+            </td>
+
+        </tr>`;
+
+        $("#tblBody").append(row);
+
+    });
+    calculateFooter();
+}
+
+$(document).on("input", ".receivedQty", function () {
+
+    let row = $(this).closest("tr");
+
+    let originalPending = parseFloat(row.find(".pendingQty").attr("data-original")) || 0;
+    let rate = parseFloat(row.find(".rate").text()) || 0;
+    let receivedQty = parseFloat($(this).val()) || 0;
+
+    if (receivedQty < 0) {
+        receivedQty = 0;
+        $(this).val(0);
+    }
+
+    if (receivedQty > originalPending) {
+
+        Swal.fire({
+            icon: "warning",
+            title: "Invalid Quantity",
+            text: "Received Quantity cannot be greater than Pending Quantity."
+        });
+
+        receivedQty = originalPending;
+        $(this).val(originalPending);
+    }
+
+    // Remaining Pending
+    let remaining = originalPending - receivedQty;
+
+    row.find(".pendingQty").text(remaining.toFixed(2));
+
+    // Amount
+    let amount = receivedQty * rate;
+
+    row.find(".amount").text(amount.toFixed(2));
+
+    // Status
+    let status = "";
+
+    if (remaining == 0)
+        status = '<span class="badge bg-success">Completed</span>';
+    else if (remaining < originalPending)
+        status = '<span class="badge bg-warning">Partial</span>';
+    else
+        status = '<span class="badge bg-secondary">Pending</span>';
+
+    row.find(".status").html(status);
+
+    calculateFooter();
+});
+
+function calculateFooter() {
+
+    let totalItems = 0;
+    let totalOrderQty = 0;
+    let totalReceivedQty = 0;
+    let totalAmount = 0;
+
+    $("#tblBody tr").each(function () {
+
+        // Empty row ignore karo
+        if ($(this).find(".itemId").length == 0)
+            return;
+
+        totalItems++;
+
+        totalOrderQty += parseFloat($(this).find(".orderQty").text()) || 0;
+
+        totalReceivedQty += parseFloat($(this).find(".receivedQty").val()) || 0;
+
+        totalAmount += parseFloat($(this).find(".amount").text()) || 0;
+
+    });
+
+    $("#TotalItems").text(totalItems);
+    $("#TotalOrderQty").text(totalOrderQty.toFixed(2));
+    $("#TotalReceivedQty").text(totalReceivedQty.toFixed(2));
+    $("#TotalAmount").text(totalAmount.toFixed(2));
+}
+</script>
