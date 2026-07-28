@@ -518,7 +518,7 @@
         </div>
 
         <div>
-            <button class="btn-save-grn" onclick="saveGRN()">
+            <button class="btn-save-grn" id="btnSaveGRN">
                 <i class="fas fa-save"></i> Save GRN
             </button>
         </div>
@@ -567,6 +567,9 @@
         </table>
 
         <p style="margin-top: 20px;"><strong>Remarks:</strong> <span id="pRemarks"></span></p>
+        <input type="hidden" id="BranchId" value="1" />
+        <input type="hidden" id="CreatedBy" value="1" />
+     @*    <input type="hidden" id="WarehouseId" value="2" /> *@
     </div>
 </div>
 
@@ -780,4 +783,107 @@ function calculateFooter() {
     $("#TotalReceivedQty").text(totalReceivedQty.toFixed(2));
     $("#TotalAmount").text(totalAmount.toFixed(2));
 }
+
+    $("#btnSaveGRN").click(function() {
+
+        var details = [];
+
+        $("#tblBody tr").each(function() {
+
+            if ($(this).find(".itemId").length == 0)
+                return;
+
+            details.push({
+
+                ItemId: parseInt($(this).find(".itemId").val()),
+                ReceivedQty: parseFloat($(this).find(".receivedQty").val()) || 0,
+                Rate: parseFloat($(this).find(".rate").text()) || 0,
+                Amount: parseFloat($(this).find(".amount").text()) || 0
+
+            });
+
+        });
+
+        var model = {
+
+            GRNNumber: $("#GRNNumber").val(),
+            GRNDate: $("#GRNDate").val(),
+            PurchaseOrderId: parseInt($("#PurchaseOrderId").val()),
+            SupplierId: parseInt($("#SupplierId").val()),
+            BranchId: parseInt($("#BranchId").val()),
+            WarehouseId: parseInt($("#WarehouseId").val()),
+            TotalAmount: parseFloat($("#TotalAmount").text()) || 0,
+            Remarks: $("#Remarks").val(),
+            CreatedBy: parseInt($("#CreatedBy").val()),
+
+            Details: details
+
+        };
+        console.log(model);
+        console.log(JSON.stringify(model));
+        $.ajax({
+
+            url: "/CreateGRN/SaveGRN",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(model),
+
+            beforeSend: function() {
+
+                $("#btnSaveGRN")
+                    .prop("disabled", true)
+                    .text("Saving...");
+
+            },
+
+            success: function(res) {
+
+                if (res.success) {
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: res.message
+                    }).then(function() {
+
+                        location.reload();
+                        // ya
+                        // window.location.href="/CreateGRN/Index";
+
+                    });
+
+                }
+                else {
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: res.message
+                    });
+
+                }
+
+            },
+
+            error: function(xhr) {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: xhr.responseText
+                });
+
+            },
+
+            complete: function() {
+
+                $("#btnSaveGRN")
+                    .prop("disabled", false)
+                    .text("Save");
+
+            }
+
+        });
+
+    });
 </script>

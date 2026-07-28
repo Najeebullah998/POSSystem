@@ -5,6 +5,7 @@ namespace POSSystem.Interfaces
 {
     public interface IGRNRepository
     {
+        Task<string> GenerateGRNNumberAsync();
         Task<GRNHeaderVM> GetPurchaseOrderByIdAsync(int purchaseOrderId);
         Task<List<SelectListItem>> GetPurchaseOrderList();
 

@@ -21,7 +21,17 @@ namespace POSSystem.Repositories
             _context = context;
         }
 
+        public async Task<string> GenerateGRNNumberAsync()
+        {
+            using (var con = _context.CreateConnection())
+            {
+                var count = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM GRNHeader"
+                );
 
+                return $"GRN-{DateTime.Now:yyyyMMdd}-{count + 1}";
+            }
+        }
 
         public async Task<int> SaveGRNAsync(GRNHeaderVM model)
         {

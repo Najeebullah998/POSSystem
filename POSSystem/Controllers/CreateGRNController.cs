@@ -39,7 +39,7 @@ namespace POSSystem.Controllers
         public async Task<IActionResult> CreateAndEditGRN()
         {
             var model = new GRNHeaderVM();
-
+            model.GRNNumber = await _repo.GenerateGRNNumberAsync();
             model.SupplierList = await _repo.GetSupplierDDAsync();
             model.WarehouseList = await _repo.GetWarehouseDDAsync();
             model.PurchaseOrderList = await _repo.GetPurchaseOrderList();
@@ -48,7 +48,7 @@ namespace POSSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Save(GRNHeaderVM model)
+        public async Task<IActionResult> SaveGRN([FromBody] GRNHeaderVM model)
         {
             try
             {
@@ -61,21 +61,17 @@ namespace POSSystem.Controllers
                     });
                 }
 
-                if (model.Details == null || !model.Details.Any())
-                {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Please add at least one item."
-                    });
-                }
+                // Sirf received items rakho
+                model.Details = model.Details
+                                     .Where(x => x.ReceivedQty > 0)
+                                     .ToList();
 
-                if (model.Details.Any(x => x.ReceivedQty <= 0))
+                if (!model.Details.Any())
                 {
                     return Json(new
                     {
                         success = false,
-                        message = "Received Quantity must be greater than zero."
+                        message = "Please enter received quantity."
                     });
                 }
 

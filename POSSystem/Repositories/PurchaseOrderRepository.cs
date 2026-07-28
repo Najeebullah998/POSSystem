@@ -186,7 +186,7 @@ namespace POSSystem.Repositories
                     s.Quantity AS CurrentStock,
                     CostPrice AS LastPurchaseRate
                 FROM Items i
-                inner join Stock s on i.ItemId = s.ItemId
+                left join Stock s on i.ItemId = s.ItemId
                 WHERE Barcode = @Barcode
             ";
 
