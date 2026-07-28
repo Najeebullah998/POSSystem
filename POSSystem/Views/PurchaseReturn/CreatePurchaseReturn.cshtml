@@ -1,0 +1,1009 @@
+﻿@model POSSystem.Entities.PurchaseReturnHeaderVM
+
+@* @{
+    ViewBag.Title = "Purchase Return";
+} *@
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+        --return-color: #dc2626;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding-bottom: 120px;
+        min-height: 100vh;
+    }
+
+    .return-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Cards */
+    .return-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .return-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+    .card-header-return {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #b91c1c 100%);
+        padding: 15px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+    }
+
+    .card-header-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        padding: 15px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* Form Elements */
+    .form-label-modern {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        font-size: 14px;
+        width: 100%;
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+        .form-control-modern:disabled, .form-control-modern[readonly] {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+    textarea.form-control-modern {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    /* Select2 Custom */
+    .select2-container .select2-selection--single {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        height: 44px;
+        padding: 5px;
+    }
+
+    .select2-container--focus .select2-selection--single {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 32px;
+        padding-left: 8px;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 40px;
+    }
+
+    /* GRN Selection Section */
+    .grn-selection-section {
+        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 2px solid var(--danger-color);
+    }
+
+    /* Table Styles */
+    .table-wrapper {
+        max-height: calc(100vh - 500px);
+        overflow-y: auto;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid var(--border-color);
+    }
+
+    .return-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .return-table thead th {
+            background: var(--dark-color);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: none;
+        }
+
+        .return-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+            .return-table tbody tr:hover {
+                background: #fef2f2;
+                transform: scale(1.01);
+            }
+
+        .return-table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .return-table .qty-input {
+            width: 100px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            padding: 6px 10px;
+            transition: all 0.3s;
+        }
+
+            .return-table .qty-input:focus {
+                border-color: var(--danger-color);
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+                outline: none;
+            }
+
+            .return-table .qty-input:disabled {
+                background: #f3f4f6;
+                cursor: not-allowed;
+            }
+
+    /* Status Badges */
+    .badge-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-rejected {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    .badge-partial {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    /* Footer Section */
+    .return-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 3px solid var(--danger-color);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+        z-index: 1000;
+        padding: 20px 30px;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: center;
+    }
+
+    .footer-card {
+        background: var(--light-bg);
+        padding: 12px 18px;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+        .footer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+    .footer-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 3px;
+    }
+
+    .footer-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    .footer-value-danger {
+        color: var(--danger-color);
+    }
+
+    .btn-save-return {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #b91c1c 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+        .btn-save-return:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+        }
+
+    .btn-clear-return {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+        .btn-clear-return:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    /* Animations */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .return-table tbody tr {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .footer-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .return-container {
+            padding: 10px;
+        }
+
+        .return-footer {
+            padding: 15px;
+        }
+    }
+
+    /* Print Styles */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #printArea, #printArea * {
+            visibility: visible;
+        }
+
+        #printArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+        }
+    }
+
+    /* Return Reason Input */
+    .return-reason-input {
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 100%;
+        font-size: 13px;
+        transition: all 0.3s;
+    }
+
+        .return-reason-input:focus {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            outline: none;
+        }
+</style>
+
+<div class="return-container">
+    <!-- Return Header Card -->
+    <div class="return-card">
+        <div class="card-header-return">
+            <i class="fas fa-undo-alt"></i> Purchase Return Note
+        </div>
+        <div class="card-body-custom">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label-modern">
+                        <i class="fas fa-hashtag"></i> Return Number
+                    </label>
+                    <input type="text" id="ReturnNumber" class="form-control-modern" value="@Model.ReturnNumber" readonly />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label-modern">
+                        <i class="far fa-calendar-alt"></i> Return Date
+                    </label>
+                    <input type="date" id="ReturnDate" class="form-control-modern" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label-modern">
+                        <i class="fas fa-file-invoice"></i> GRN Reference
+                    </label>
+                    <select id="GRNId" class="form-control-modern select2">
+                        <option value="">Select GRN</option>
+                        @if (Model.GRNList != null)
+                        {
+                            foreach (var item in Model.GRNList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label-modern">
+                        <i class="fas fa-truck"></i> Supplier
+                    </label>
+                    <select id="SupplierId" class="form-control-modern select2">
+                        <option value="">Select Supplier</option>
+                        @if (Model.SupplierList != null)
+                        {
+                            foreach (var item in Model.SupplierList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label-modern">
+                        <i class="fas fa-warehouse"></i> Warehouse
+                    </label>
+                    <select id="WarehouseId" class="form-control-modern select2">
+                        <option value="">Select Warehouse</option>
+                        @if (Model.WarehouseList != null)
+                        {
+                            foreach (var item in Model.WarehouseList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Items Card -->
+    <div class="return-card">
+        <div class="card-header-return">
+            <i class="fas fa-boxes"></i> Items to Return
+        </div>
+        <div class="card-body-custom">
+            <!-- GRN Selection Info -->
+            <div class="grn-selection-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <i class="fas fa-info-circle" style="color: var(--danger-color);"></i>
+                        <span style="font-weight: 600; color: #991b1b;">Select a GRN to load items for return</span>
+                        <span id="grnInfo" style="margin-left: 15px; color: #6b7280;"></span>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-danger" onclick="loadGRNItems()" style="border-radius: 10px;">
+                            <i class="fas fa-sync-alt"></i> Load GRN Items
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="table-wrapper">
+                <table class="return-table" id="returnTable">
+                    <thead>
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="20%">Item Name</th>
+                            <th width="10%">Received Qty</th>
+                            <th width="10%">Already Returned</th>
+                            <th width="10%">Available Qty</th>
+                            <th width="10%">Return Qty</th>
+                            <th width="10%">Rate (Rs)</th>
+                            <th width="10%">Amount (Rs)</th>
+                            <th width="15%">Return Reason</th>
+                            <th width="10%">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-center">
+                            <td colspan="10" style="padding: 60px 20px;">
+                                <i class="fas fa-undo-alt" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p style="color: #94a3b8; margin-top: 15px;">Select a GRN and click "Load GRN Items" to begin</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remarks Card -->
+    <div class="return-card">
+        <div class="card-body-custom">
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label-modern">
+                        <i class="fas fa-comment"></i> Remarks / Notes
+                    </label>
+                    <textarea id="Remarks" class="form-control-modern" rows="2" placeholder="Enter any remarks about this return..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Section -->
+<div class="return-footer">
+    <div class="footer-grid">
+        <div class="footer-card">
+            <div class="footer-label">Total Items</div>
+            <div class="footer-value" id="totalItems">0</div>
+        </div>
+
+        <div class="footer-card">
+            <div class="footer-label">Original Qty</div>
+            <div class="footer-value" id="totalOriginalQty">0</div>
+        </div>
+
+        <div class="footer-card">
+            <div class="footer-label">Return Qty</div>
+            <div class="footer-value footer-value-danger" id="totalReturnQty">0</div>
+        </div>
+
+        <div class="footer-card">
+            <div class="footer-label">Return Amount (Rs)</div>
+            <div class="footer-value footer-value-danger" id="totalAmount">0.00</div>
+        </div>
+
+        <div>
+            <button class="btn-save-return" onclick="saveReturn()">
+                <i class="fas fa-save"></i> Save Return
+            </button>
+        </div>
+
+        <div>
+            <button class="btn-clear-return" onclick="clearAll()">
+                <i class="fas fa-trash-alt"></i> Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Print Template -->
+<div id="printArea" style="display:none;">
+    <div style="padding: 20px;">
+        <h2 style="text-align: center; color: #dc2626;">Purchase Return Note</h2>
+        <hr style="border: 2px solid #dc2626;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tr>
+                <td><strong>Return #:</strong> <span id="pReturnNumber"></span></td>
+                <td><strong>Date:</strong> <span id="pReturnDate"></span></td>
+            </tr>
+            <tr>
+                <td><strong>Supplier:</strong> <span id="pSupplier"></span></td>
+                <td><strong>GRN #:</strong> <span id="pGRNNumber"></span></td>
+            </tr>
+            <tr>
+                <td><strong>Warehouse:</strong> <span id="pWarehouse"></span></td>
+                <td><strong>Status:</strong> <span id="pStatus">Pending</span></td>
+            </tr>
+        </table>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000;">
+            <thead>
+                <tr style="background: #dc2626; color: white;">
+                    <th style="padding: 8px; border: 1px solid #000;">#</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Item</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Original Qty</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Return Qty</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Rate</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Amount</th>
+                    <th style="padding: 8px; border: 1px solid #000;">Reason</th>
+                </tr>
+            </thead>
+            <tbody id="printItems"></tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" style="padding: 8px; border: 1px solid #000; text-align: right;"><strong>Total Return Amount:</strong></td>
+                    <td colspan="2" style="padding: 8px; border: 1px solid #000;" id="pTotalAmount"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <p style="margin-top: 20px;"><strong>Remarks:</strong> <span id="pRemarks"></span></p>
+        <hr style="border: 1px solid #ddd; margin-top: 30px;">
+        <p style="text-align: center; color: #6b7280; font-size: 12px;">This is a computer generated document</p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+
+<script>
+    let returnItems = [];
+    let rowIndex = 0;
+
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            placeholder: 'Select option',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Load GRN details when selected
+        $('#GRNId').on('change', function() {
+            let grnId = $(this).val();
+            if (grnId) {
+                loadGRNDetails(grnId);
+            } else {
+                $('#grnInfo').text('');
+            }
+        });
+    });
+
+    function loadGRNDetails(grnId) {
+        $.ajax({
+            url: '/PurchaseReturn/GetGRNDetails',
+            type: 'GET',
+            data: { grnId: grnId },
+            success: function(res) {
+                if (res) {
+                    $('#grnInfo').text(`GRN #: ${res.grnNumber} | Supplier: ${res.supplierName}`);
+
+                    // Auto-select supplier
+                    if (res.supplierId) {
+                        $('#SupplierId').val(res.supplierId).trigger('change');
+                    }
+
+                    // Auto-select warehouse
+                    if (res.warehouseId) {
+                        $('#WarehouseId').val(res.warehouseId).trigger('change');
+                    }
+                }
+            }
+        });
+    }
+
+    function loadGRNItems() {
+        let grnId = $('#GRNId').val();
+
+        if (!grnId) {
+            Swal.fire('Warning', 'Please select a GRN first!', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Loading...',
+            text: 'Please wait while loading GRN items',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: '/PurchaseReturn/GetGRNItems', // ✅ Correct endpoint
+            type: 'GET',
+            data: { grnId: grnId },
+            success: function(res) {
+                Swal.close();
+
+                if (res.success) {
+                    let data = res.data;
+
+                    // Auto Supplier
+                    if (data.supplierId) {
+                        $('#SupplierId')
+                            .val(data.supplierId)
+                            .trigger('change');
+                    }
+
+                    // Auto Warehouse
+                    if (data.warehouseId) {
+                        $('#WarehouseId')
+                            .val(data.warehouseId)
+                            .trigger('change');
+                    }
+
+                    returnItems = data.details;
+                    renderTable(data.details);
+                    calculateTotals();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Loaded!',
+                        text: `${data.details.length} items loaded`,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire('Info', res.message || 'No items found', 'info');
+                }
+            },
+            error: function() {
+                Swal.close();
+                Swal.fire('Error', 'Failed to load GRN items', 'error');
+            }
+        });
+    }
+
+    function renderTable(items) {
+        let tbody = $('#returnTable tbody');
+        tbody.empty();
+        rowIndex = 0;
+
+        if (!items || items.length === 0) {
+            tbody.html(`
+                <tr class="text-center">
+                    <td colspan="10" style="padding: 60px 20px;">
+                        <i class="fas fa-undo-alt" style="font-size: 48px; color: #cbd5e1;"></i>
+                        <p style="color: #94a3b8; margin-top: 15px;">No items available for return</p>
+                    </td>
+                </tr>
+            `);
+            return;
+        }
+
+        items.forEach(function(item) {
+            rowIndex++;
+
+            let row = `
+                <tr data-itemid="${item.itemId}" data-grndetailid="${item.grNDetailId}">
+                    <td>${rowIndex}</td>
+                    <td class="item-name">${item.itemName}</td>
+                    <td class="received-qty">${item.receivedQty}</td>
+                    <td class="already-returned">${item.returnedQty}</td>
+                    <td class="available-qty">${item.availableQty}</td>
+                    <td>
+                        <input type="number"
+                               class="qty-input return-qty"
+                               value="0"
+                               min="0"
+                               max="${item.availableQty}"
+                               onchange="updateRow(this)" />
+                    </td>
+                    <td class="rate">₹ ${parseFloat(item.rate).toFixed(2)}</td>
+                    <td class="amount">₹ 0.00</td>
+                    <td>
+                        <input type="text"
+                               class="return-reason form-control-modern"
+                               placeholder="Enter reason..." />
+                    </td>
+                    <td class="status-cell">
+                        <span class="badge-status" style="background:#e5e7eb;color:#6b7280;">
+                            No Return
+                        </span>
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+
+    function updateRow(input) {
+        let row = $(input).closest('tr');
+        let availableQty = parseFloat(row.find('.available-qty').text()) || 0;
+        let returnQty = parseFloat($(input).val()) || 0;
+        let rate = parseFloat(row.find('.rate').text().replace('₹ ', '')) || 0;
+
+        // Validate return quantity
+        if (returnQty > availableQty) {
+            $(input).val(availableQty);
+            returnQty = availableQty;
+            Swal.fire('Warning', 'Return quantity cannot exceed available quantity', 'warning');
+        }
+
+        // Calculate amount
+        let amount = returnQty * rate;
+        row.find('.amount').text(`₹ ${amount.toFixed(2)}`);
+
+        // Update status
+        if (returnQty > 0) {
+            if (returnQty == availableQty) {
+                row.find('.status-cell').html(`
+                    <span class="badge-status badge-approved">Full Return</span>
+                `);
+            } else {
+                row.find('.status-cell').html(`
+                    <span class="badge-status badge-partial">Partial Return</span>
+                `);
+            }
+        } else {
+            row.find('.status-cell').html(`
+                <span class="badge-status" style="background:#e5e7eb;color:#6b7280;">
+                    No Return
+                </span>
+            `);
+        }
+
+        calculateTotals();
+    }
+
+    // Update on reason change
+    $(document).on('change', '.return-reason', function() {
+        // Just track the reason - no calculation needed
+    });
+
+    function calculateTotals() {
+        let totalItems = 0;
+        let totalReceivedQty = 0;
+        let totalReturnQty = 0;
+        let totalAmount = 0;
+
+        $('#returnTable tbody tr').each(function() {
+            let receivedQty = parseFloat($(this).find('.received-qty').text()) || 0;
+            let returnQty = parseFloat($(this).find('.return-qty').val()) || 0;
+            let amount = parseFloat($(this).find('.amount').text().replace('₹ ', '')) || 0;
+
+            if (receivedQty > 0) {
+                totalItems++;
+                totalReceivedQty += receivedQty;
+                totalReturnQty += returnQty;
+                totalAmount += amount;
+            }
+        });
+
+        $('#totalItems').text(totalItems);
+        $('#totalOriginalQty').text(totalReceivedQty);
+        $('#totalReturnQty').text(totalReturnQty);
+        $('#totalAmount').text(totalAmount.toFixed(2));
+    }
+
+    function saveReturn() {
+        // Validations
+        if (!$('#GRNId').val()) {
+            Swal.fire('Validation Error', 'Please select a GRN', 'error');
+            return;
+        }
+
+        if (!$('#SupplierId').val()) {
+            Swal.fire('Validation Error', 'Please select a Supplier', 'error');
+            return;
+        }
+
+        if (!$('#WarehouseId').val()) {
+            Swal.fire('Validation Error', 'Please select a Warehouse', 'error');
+            return;
+        }
+
+        let details = [];
+        let hasItems = false;
+
+        $('#returnTable tbody tr').each(function() {
+            let grnDetailId = $(this).data('grndetailid');
+            let itemId = $(this).data('itemid');
+            let returnQty = parseFloat($(this).find('.return-qty').val()) || 0;
+            let rate = parseFloat($(this).find('.rate').text()) || 0;
+            let reason = $(this).find('.return-reason').val() || '';
+
+            if (returnQty > 0) {
+                hasItems = true;
+                details.push({
+                    GRNDetailId: grnDetailId, // ✅ Added GRNDetailId
+                    ItemId: itemId,
+                    ReturnQty: returnQty,
+                    Rate: rate,
+                    Amount: returnQty * rate,
+                    Reason: reason
+                });
+            }
+        });
+
+        if (!hasItems) {
+            Swal.fire('Validation Error', 'Please return at least one item', 'error');
+            return;
+        }
+
+        let model = {
+            ReturnNumber: $('#ReturnNumber').val(),
+            ReturnDate: $('#ReturnDate').val(),
+            GRNId: $('#GRNId').val(),
+            SupplierId: $('#SupplierId').val(),
+            WarehouseId: $('#WarehouseId').val(),
+            BranchId: 1, // ✅ Add BranchId if needed
+            TotalAmount: parseFloat($('#totalAmount').text()),
+            Remarks: $('#Remarks').val(),
+            CreatedBy: 1, // ✅ Add CreatedBy if needed
+            Details: details
+        };
+
+        Swal.fire({
+            title: 'Saving...',
+            text: 'Please wait while we save the return',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: '/PurchaseReturn/Save',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function(res) {
+                if (res.success) {
+                    preparePrint(model);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Purchase Return saved successfully',
+                        confirmButtonColor: '#dc2626'
+                    }).then(() => {
+                        window.print();
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    });
+                } else {
+                    Swal.fire('Error', res.message || 'Failed to save return', 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error', 'An error occurred while saving', 'error');
+            }
+        });
+    }
+
+    function preparePrint(model) {
+        $('#pReturnNumber').text(model.ReturnNumber);
+        $('#pReturnDate').text(model.ReturnDate);
+        $('#pSupplier').text($('#SupplierId option:selected').text());
+        $('#pGRNNumber').text($('#GRNId option:selected').text());
+        $('#pWarehouse').text($('#WarehouseId option:selected').text());
+        $('#pTotalAmount').text(`₹ ${model.TotalAmount.toFixed(2)}`);
+        $('#pRemarks').text(model.Remarks || 'N/A');
+
+        let rows = '';
+        let index = 1;
+
+        $('#returnTable tbody tr').each(function() {
+            let item = $(this).find('.item-name').text();
+            let receivedQty = $(this).find('.received-qty').text();
+            let returnQty = $(this).find('.return-qty').val() || 0;
+            let rate = $(this).find('.rate').text();
+            let amount = $(this).find('.amount').text();
+            let reason = $(this).find('.return-reason').val() || '-';
+
+            if (returnQty > 0) {
+                rows += `
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #000;">${index++}</td>
+                        <td style="padding: 6px; border: 1px solid #000;">${item}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${receivedQty}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: center;">${returnQty}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: right;">${rate}</td>
+                        <td style="padding: 6px; border: 1px solid #000; text-align: right;">${amount}</td>
+                        <td style="padding: 6px; border: 1px solid #000;">${reason}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        $('#printItems').html(rows);
+    }
+
+    function clearAll() {
+        Swal.fire({
+            title: 'Clear All?',
+            text: "This will remove all items from the return",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, clear all!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#returnTable tbody').html(`
+                        <tr class="text-center">
+                            <td colspan="10" style="padding: 60px 20px;">
+                                <i class="fas fa-undo-alt" style="font-size: 48px; color: #cbd5e1;"></i>
+                                <p style="color: #94a3b8; margin-top: 15px;">Select a GRN and click "Load GRN Items" to begin</p>
+                            </td>
+                        </tr>
+                    `);
+                $('#grnInfo').text('');
+                $('#Remarks').val('');
+                calculateTotals();
+                Swal.fire('Cleared!', 'All items have been cleared.', 'success');
+            }
+        });
+    }
+</script>

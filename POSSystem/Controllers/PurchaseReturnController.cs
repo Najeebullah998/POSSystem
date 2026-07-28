@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSSystem.Entities;
 using POSSystem.Interfaces;
+using POSSystem.Repositories;
 
 namespace POSSystem.Controllers
 {
@@ -16,6 +17,46 @@ namespace POSSystem.Controllers
             return View();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetGRNItems(int grnId)
+        {
+            try
+            {
+                if (grnId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Invalid GRN Id"
+                    });
+                }
+
+                var result = await _repo.GetGRNForPurchaseReturnAsync(grnId);
+
+                if (result == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "GRN not found"
+                    });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
         public async Task<IActionResult> CreatePurchaseReturn()
         {
             var model = new PurchaseReturnHeaderVM();
