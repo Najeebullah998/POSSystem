@@ -19,6 +19,7 @@ builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<ISupplier, SuppliersRepository>();
 builder.Services.AddScoped<IGRNRepository, GRNRepository>();
 builder.Services.AddScoped<IPurchaseReturnRepository, PurchaseReturnRepository>();
+builder.Services.AddScoped<ISaleReturnRepository, SaleReturnRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
