@@ -16,6 +16,31 @@ namespace POSSystem.Repositories
             _context = context;
         }
 
+        public IEnumerable<ItemSearchVM> SearchItems(string term)
+        {
+            using (var con = _context.CreateConnection())
+            {
+                var sql = @"
+            SELECT TOP (20)
+                ItemId,
+                ItemName,
+                Barcode,
+                SalePrice,
+                StockQty
+            FROM Item
+            WHERE IsActive = 1
+              AND (
+                    ItemName LIKE '%' + @Term + '%'
+                 OR Barcode LIKE '%' + @Term + '%'
+              )
+            ORDER BY ItemName";
+
+                return con.Query<ItemSearchVM>(sql, new
+                {
+                    Term = term
+                });
+            }
+        }
         public bool SaveInvoice(PosInvoiceVm model)
         {
             using (var db = _context.CreateConnection())

@@ -489,8 +489,8 @@
                             <th width="9%">Already Returned</th>
                             <th width="9%">Available Qty</th>
                             <th width="9%">Return Qty</th>
-                            <th width="9%">Rate (₹)</th>
-                            <th width="9%">Amount (₹)</th>
+                            <th width="9%">Rate (Rs)</th>
+                            <th width="9%">Amount (Rs)</th>
                             <th width="14%">Return Reason</th>
                             <th width="9%">Status</th>
                         </tr>
@@ -542,7 +542,7 @@
         </div>
 
         <div class="footer-card">
-            <div class="footer-label">Return Amount (₹)</div>
+            <div class="footer-label">Return Amount (Rs)</div>
             <div class="footer-value footer-value-warning" id="totalAmount">0.00</div>
         </div>
 
@@ -759,8 +759,8 @@
                                    max="${item.availableQty}"
                                    onchange="updateRow(this)" />
                         </td>
-                        <td class="rate">₹ ${parseFloat(item.rate).toFixed(2)}</td>
-                        <td class="amount">₹ 0.00</td>
+                        <td class="rate">Rs ${parseFloat(item.rate).toFixed(2)}</td>
+                        <td class="amount">Rs 0.00</td>
                         <td>
                             <input type="text"
                                    class="return-reason-input return-reason"
@@ -781,7 +781,7 @@
         let row = $(input).closest('tr');
         let availableQty = parseFloat(row.find('.available-qty').text()) || 0;
         let returnQty = parseFloat($(input).val()) || 0;
-        let rate = parseFloat(row.find('.rate').text().replace('₹ ', '')) || 0;
+        let rate = parseFloat(row.find('.rate').text().replace('Rs ', '')) || 0;
 
         // Validate return quantity
         if (returnQty > availableQty) {
@@ -792,7 +792,7 @@
 
         // Calculate amount
         let amount = returnQty * rate;
-        row.find('.amount').text(`₹ ${amount.toFixed(2)}`);
+        row.find('.amount').text(`Rs ${amount.toFixed(2)}`);
 
         // Update status
         if (returnQty > 0) {
@@ -830,7 +830,7 @@
         $('#returnTable tbody tr').each(function() {
             let soldQty = parseFloat($(this).find('.sold-qty').text()) || 0;
             let returnQty = parseFloat($(this).find('.return-qty').val()) || 0;
-            let amount = parseFloat($(this).find('.amount').text().replace('₹ ', '')) || 0;
+            let amount = parseFloat($(this).find('.amount').text().replace('Rs ', '')) || 0;
 
             if (soldQty > 0) {
                 totalItems++;
@@ -871,7 +871,7 @@
             let saleInvoiceDetailId = $(this).data('saleinvoicedetailid');
             let itemId = $(this).data('itemid');
             let returnQty = parseFloat($(this).find('.return-qty').val()) || 0;
-            let rate = parseFloat($(this).find('.rate').text().replace('₹ ', '')) || 0;
+            let rate = parseFloat($(this).find('.rate').text().replace('Rs ', '')) || 0;
             let reason = $(this).find('.return-reason').val() || '';
 
             if (returnQty > 0) {
@@ -950,7 +950,7 @@
         $('#pCustomer').text($('#CustomerId option:selected').text());
         $('#pInvoiceNumber').text($('#InvoiceId option:selected').text());
         $('#pWarehouse').text($('#WarehouseId option:selected').text());
-        $('#pTotalAmount').text(`₹ ${model.TotalAmount.toFixed(2)}`);
+        $('#pTotalAmount').text(`Rs ${model.TotalAmount.toFixed(2)}`);
         $('#pRemarks').text(model.Remarks || 'N/A');
 
         let rows = '';

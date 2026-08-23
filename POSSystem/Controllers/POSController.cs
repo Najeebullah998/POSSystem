@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using NuGet.Protocol.Core.Types;
 using POSSystem.DATA;
 using POSSystem.Entities;
 using POSSystem.Interfaces;
@@ -25,6 +26,14 @@ namespace POSSystem.Controllers
         public IActionResult CreateSale()
         {
             return View();
+        }
+
+        [HttpGet]
+        public JsonResult SearchItems(string term)
+        {
+            var data = _repo.SearchItems(term);
+
+            return Json(data);
         }
         public JsonResult GetItemByBarcode(string barcode)
         {

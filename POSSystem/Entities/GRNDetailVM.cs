@@ -23,5 +23,11 @@
                 return ReceivedQty * Rate;
             }
         }
+
+        public string BatchNo { get; set; }
+
+        public DateTime? ManufacturingDate { get; set; }
+
+        public DateTime? ExpiryDate { get; set; }
     }
 }

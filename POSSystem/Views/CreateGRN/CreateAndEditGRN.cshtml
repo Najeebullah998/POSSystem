@@ -373,8 +373,19 @@
             padding: 20px;
         }
     }
+    .grn-table .manufacturingDate,
+    .grn-table .expiryDate {
+        width: 130px;
+        min-width: 130px;
+    }
 </style>
-
+@{
+    bool isPharmacy = string.Equals(
+        Context.Session.GetString("BusinessTypeName")?.Trim(),
+        "Pharmacy",
+        StringComparison.OrdinalIgnoreCase
+    );
+}
 <div class="grn-container">
     <!-- GRN Header Card -->
     <div class="grn-card">
@@ -452,25 +463,50 @@
             </div>
 
             <!-- Items Table -->
-            <div class="table-wrapper">
+            <div class="grn-table-container">
                 <table class="grn-table" id="grnTable">
-                   <thead>
-                       <tr>
-                           <th style="width:5%;text-align:center">#</th>
-                           <th style="width:30%">Item Name</th>
-                           <th style="width:10%;text-align:center">Order Qty</th>
-                           <th style="width:10%;text-align:center">Pending Qty</th>
-                           <th style="width:15%;text-align:center">Received Qty</th>
-                           <th style="width:10%;text-align:right">Rate</th>
-                           <th style="width:12%;text-align:right">Amount</th>
-                           <th style="width:8%;text-align:center">Status</th>
-                       </tr>
-                   </thead>
+                    <thead>
+                        <tr>
+                            <th style="width:5%;text-align:center">#</th>
+                            <th style="width:25%">Item Name</th>
+                            <th style="width:10%;text-align:center">Order Qty</th>
+                            <th style="width:10%;text-align:center">Pending Qty</th>
+                            <th style="width:12%;text-align:center">Received Qty</th>
+                            <th style="width:10%;text-align:right">Rate</th>
+
+                            @if (isPharmacy)
+                            {
+                                <th style="width:12%; min-width:120px; text-align:center">
+                                    Batch No
+                                </th>
+                            
+                                <th style="width:12%; min-width:130px; text-align:center">
+                                    MFG Date
+                                </th>
+                            
+                                <th style="width:12%; min-width:130px; text-align:center">
+                                    Expiry Date
+                                </th>
+                            }
+
+                            <th style="width:10%;text-align:right">Amount</th>
+                            <th style="width:8%;text-align:center">Status</th>
+                        </tr>
+                    </thead>
+
                     <tbody id="tblBody">
                         <tr class="text-center">
-                            <td colspan="8" style="padding: 60px 20px;">
-                                <i class="fas fa-inbox" style="font-size: 48px; color: #cbd5e1;"></i>
-                                <p style="color: #94a3b8; margin-top: 15px;">Select a PO and click "Load PO Items" to begin</p>
+                            <td colspan="@(isPharmacy ? 11 : 8)"
+                                style="padding:60px 20px;">
+
+                                <i class="fas fa-inbox"
+                                   style="font-size:48px;color:#cbd5e1;">
+                                </i>
+
+                                <p style="color:#94a3b8;margin-top:15px;">
+                                    Select a PO and click "Load PO Items" to begin
+                                </p>
+
                             </td>
                         </tr>
                     </tbody>
@@ -630,80 +666,115 @@
 
   
 
-function loadGrid(items) {
+    function loadGrid(items) {
 
-    $("#tblBody").empty();
+        $("#tblBody").empty();
 
-    $.each(items, function (i, item) {
+        const isPharmacy = @Json.Serialize(isPharmacy);
 
-        let orderQty = parseFloat(item.orderQty) || 0;
-        let pendingQty = parseFloat(item.pendingQty) || 0;
-        let rate = parseFloat(item.rate) || 0;
+        $.each(items, function(i, item) {
 
-        // First GRN => Pending = Order Qty
-        if (pendingQty <= 0 && orderQty > 0) {
-            pendingQty = orderQty;
-        }
+            let orderQty = parseFloat(item.orderQty) || 0;
+            let pendingQty = parseFloat(item.pendingQty) || 0;
+            let rate = parseFloat(item.rate) || 0;
 
-        let status = "";
+            if (pendingQty <= 0 && orderQty > 0) {
+                pendingQty = orderQty;
+            }
 
-        if (pendingQty == 0) {
-            status = '<span class="badge bg-success">Completed</span>';
-        }
-        else if (pendingQty < orderQty) {
-            status = '<span class="badge bg-warning">Partial</span>';
-        }
-        else {
-            status = '<span class="badge bg-secondary">Pending</span>';
-        }
+            let status = "";
 
-        let row = `
-        <tr>
+            if (pendingQty == 0) {
+                status = '<span class="badge bg-success">Completed</span>';
+            }
+            else if (pendingQty < orderQty) {
+                status = '<span class="badge bg-warning">Partial</span>';
+            }
+            else {
+                status = '<span class="badge bg-secondary">Pending</span>';
+            }
 
-            <td class="text-center">${i + 1}</td>
+            let pharmacyColumns = "";
+
+            if (isPharmacy) {
+
+                const currentDate = new Date().toISOString().split('T')[0];
+
+                pharmacyColumns = `
+            <td>
+                <input type="text"
+                       class="form-control form-control-sm batchNo"
+                       placeholder="Batch No">
+            </td>
 
             <td>
-                <input type="hidden" class="itemId" value="${item.itemId}" />
-                ${item.itemName}
+                <input type="date"
+                       class="form-control form-control-sm manufacturingDate"
+                       value="${currentDate}">
             </td>
 
-            <td class="text-center orderQty">
-                ${orderQty.toFixed(2)}
+            <td>
+                <input type="date"
+                       class="form-control form-control-sm expiryDate"
+                       value="${currentDate}">
             </td>
+        `;
+            }
 
-            <td class="text-center pendingQty"
-    data-original="${pendingQty}">
-    ${pendingQty.toFixed(2)}
-</td>
+            let row = `
+            <tr>
 
-            <td style="width:120px;">
-                <input type="number"
-                       class="form-control text-center receivedQty"
-                       min="0"
-                       max="${pendingQty}"
-                       step="0.01"
-                       value="0">
-            </td>
+                <td class="text-center">
+                    ${i + 1}
+                </td>
 
-            <td class="text-end rate">
-                ${rate.toFixed(2)}
-            </td>
+                <td>
+                    <input type="hidden"
+                           class="itemId"
+                           value="${item.itemId}" />
 
-            <td class="text-end amount">
-                0.00
-            </td>
+                    ${item.itemName}
+                </td>
 
-            <td class="text-center status">
-                ${status}
-            </td>
+                <td class="text-center orderQty">
+                    ${orderQty.toFixed(2)}
+                </td>
 
-        </tr>`;
+                <td class="text-center pendingQty"
+                    data-original="${pendingQty}">
+                    ${pendingQty.toFixed(2)}
+                </td>
 
-        $("#tblBody").append(row);
+                <td style="width:120px;">
+                    <input type="number"
+                           class="form-control text-center receivedQty"
+                           min="0"
+                           max="${pendingQty}"
+                           step="0.01"
+                           value="0">
+                </td>
 
-    });
-    calculateFooter();
-}
+                <td class="text-end rate">
+                    ${rate.toFixed(2)}
+                </td>
+
+                ${pharmacyColumns}
+
+                <td class="text-end amount">
+                    0.00
+                </td>
+
+                <td class="text-center status">
+                    ${status}
+                </td>
+
+            </tr>`;
+
+            $("#tblBody").append(row);
+        });
+
+        calculateFooter();
+    }
 
 $(document).on("input", ".receivedQty", function () {
 
@@ -784,106 +855,243 @@ function calculateFooter() {
     $("#TotalAmount").text(totalAmount.toFixed(2));
 }
 
-    $("#btnSaveGRN").click(function() {
+   $("#btnSaveGRN").click(function () {
 
-        var details = [];
+    const isPharmacy = @Json.Serialize(isPharmacy);
 
-        $("#tblBody tr").each(function() {
+    var details = [];
+    var validationFailed = false;
 
-            if ($(this).find(".itemId").length == 0)
-                return;
+    $("#tblBody tr").each(function () {
 
-            details.push({
+        if ($(this).find(".itemId").length == 0)
+            return;
 
-                ItemId: parseInt($(this).find(".itemId").val()),
-                ReceivedQty: parseFloat($(this).find(".receivedQty").val()) || 0,
-                Rate: parseFloat($(this).find(".rate").text()) || 0,
-                Amount: parseFloat($(this).find(".amount").text()) || 0
+        let row = $(this);
 
-            });
+        let receivedQty =
+            parseFloat(row.find(".receivedQty").val()) || 0;
 
-        });
+        // Ignore items which are not being received
+        if (receivedQty <= 0)
+            return;
 
-        var model = {
+        let detail = {
 
-            GRNNumber: $("#GRNNumber").val(),
-            GRNDate: $("#GRNDate").val(),
-            PurchaseOrderId: parseInt($("#PurchaseOrderId").val()),
-            SupplierId: parseInt($("#SupplierId").val()),
-            BranchId: parseInt($("#BranchId").val()),
-            WarehouseId: parseInt($("#WarehouseId").val()),
-            TotalAmount: parseFloat($("#TotalAmount").text()) || 0,
-            Remarks: $("#Remarks").val(),
-            CreatedBy: parseInt($("#CreatedBy").val()),
+            ItemId: parseInt(
+                row.find(".itemId").val()
+            ),
 
-            Details: details
+            ReceivedQty: receivedQty,
 
+            Rate: parseFloat(
+                row.find(".rate").text()
+            ) || 0,
+
+            Amount: parseFloat(
+                row.find(".amount").text()
+            ) || 0
         };
-        console.log(model);
-        console.log(JSON.stringify(model));
-        $.ajax({
 
-            url: "/CreateGRN/SaveGRN",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(model),
 
-            beforeSend: function() {
+        // ==========================================
+        // Pharmacy Validation
+        // ==========================================
 
-                $("#btnSaveGRN")
-                    .prop("disabled", true)
-                    .text("Saving...");
+        if (isPharmacy) {
 
-            },
+            let batchNo =
+                row.find(".batchNo").val()?.trim();
 
-            success: function(res) {
+            let mfgDate =
+                row.find(".manufacturingDate").val();
 
-                if (res.success) {
+            let expiryDate =
+                row.find(".expiryDate").val();
 
-                    Swal.fire({
-                        icon: "success",
-                        title: "Success",
-                        text: res.message
-                    }).then(function() {
 
-                        location.reload();
-                        // ya
-                        // window.location.href="/CreateGRN/Index";
+            // Batch information required
+            if (!batchNo || !mfgDate || !expiryDate) {
 
-                    });
+                validationFailed = true;
 
+                if (!batchNo) {
+                    row.find(".batchNo").focus();
+                }
+                else if (!mfgDate) {
+                    row.find(".manufacturingDate").focus();
                 }
                 else {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: res.message
-                    });
-
+                    row.find(".expiryDate").focus();
                 }
 
-            },
+                return;
+            }
 
-            error: function(xhr) {
+
+            // MFG Date cannot be greater than Expiry Date
+            if (new Date(mfgDate) > new Date(expiryDate)) {
+
+                validationFailed = true;
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Invalid Dates",
+                    text: "Manufacturing Date cannot be greater than Expiry Date."
+                });
+
+                row.find(".manufacturingDate").focus();
+
+                return;
+            }
+
+
+            // Add Pharmacy fields
+            detail.BatchNo = batchNo;
+
+            detail.ManufacturingDate = mfgDate;
+
+            detail.ExpiryDate = expiryDate;
+        }
+
+
+        details.push(detail);
+    });
+
+
+    // ==========================================
+    // Stop if Pharmacy validation failed
+    // ==========================================
+
+    if (validationFailed) {
+
+        Swal.fire({
+            icon: "warning",
+            title: "Batch Information Required",
+            text: "Batch No, Manufacturing Date and Expiry Date are required for Pharmacy items."
+        });
+
+        return;
+    }
+
+
+    // ==========================================
+    // Check Details
+    // ==========================================
+
+    if (details.length === 0) {
+
+        Swal.fire({
+            icon: "warning",
+            title: "No Items",
+            text: "Please enter Received Quantity for at least one item."
+        });
+
+        return;
+    }
+
+
+    // ==========================================
+    // Prepare Model
+    // ==========================================
+
+    var model = {
+
+        GRNNumber: $("#GRNNumber").val(),
+
+        GRNDate: $("#GRNDate").val(),
+
+        PurchaseOrderId:
+            parseInt($("#PurchaseOrderId").val()),
+
+        SupplierId:
+            parseInt($("#SupplierId").val()),
+
+        BranchId:
+            parseInt($("#BranchId").val()),
+
+        WarehouseId:
+            parseInt($("#WarehouseId").val()),
+
+        TotalAmount:
+            parseFloat($("#TotalAmount").text()) || 0,
+
+        Remarks:
+            $("#Remarks").val(),
+
+        CreatedBy:
+            parseInt($("#CreatedBy").val()),
+
+        Details: details
+    };
+
+
+    console.log(model);
+    console.log(JSON.stringify(model));
+
+
+    // ==========================================
+    // Save GRN
+    // ==========================================
+
+    $.ajax({
+
+        url: "/CreateGRN/SaveGRN",
+
+        type: "POST",
+
+        contentType: "application/json",
+
+        data: JSON.stringify(model),
+
+        beforeSend: function () {
+
+            $("#btnSaveGRN")
+                .prop("disabled", true)
+                .html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        },
+
+        success: function (res) {
+
+            if (res.success) {
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: res.message
+                }).then(function () {
+
+                    location.reload();
+
+                });
+
+            }
+            else {
 
                 Swal.fire({
                     icon: "error",
                     title: "Error",
-                    text: xhr.responseText
+                    text: res.message
                 });
-
-            },
-
-            complete: function() {
-
-                $("#btnSaveGRN")
-                    .prop("disabled", false)
-                    .text("Save");
-
             }
+        },
 
-        });
+        error: function (xhr) {
 
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: xhr.responseText
+            });
+        },
+
+        complete: function () {
+
+            $("#btnSaveGRN")
+                .prop("disabled", false)
+                .html('<i class="fas fa-save"></i> Save GRN');
+        }
     });
+
+});
 </script>

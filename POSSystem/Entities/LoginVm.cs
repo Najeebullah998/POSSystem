@@ -10,5 +10,7 @@
         public string? RoleName { get; set; }
         public string? BranchName { get; set; }
         public string? CompanyName { get; set; }
+        public int BusinessTypeId { get; set; }
+        public string BusinessName { get; set; }
     }
 }

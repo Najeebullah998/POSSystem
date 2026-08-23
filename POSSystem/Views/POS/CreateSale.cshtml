@@ -582,41 +582,120 @@
     });
 
     // Search/Scan barcode
-    $('#barcodeInput').on('keypress', function(e) {
-        if (e.which === 13) {
-            let code = $(this).val().trim();
-            if (!code) return;
+    let isSearching = false;
 
-            $.ajax({
-                url: '/POS/GetItemByBarcode',
-                type: 'GET',
-                data: { barcode: code },
-                success: function(res) {
-                    if (!res) {
-                        Swal.fire('Not Found', 'Item not found!', 'error');
-                        $('#barcodeInput').val('').focus();
-                        return;
-                    }
+    //===============================
+    // Barcode Scan
+    //===============================
+    $('#barcodeInput').on('keydown', function(e) {
 
-                    selectedItem = res;
-                    $('#itemName').val(res.itemName);
-                    $('#price').val(res.salePrice);
-                    $('#qty').val(1).focus().select();
+        if (e.key !== 'Enter')
+            return;
 
-                    if (res.stockQty <= 0) {
-                        Swal.fire('Out of Stock', 'This item is out of stock!', 'warning');
-                        $('#itemName').val('');
-                        return;
-                    }
+        e.preventDefault();
 
-                    calculateAmount();
-                },
-                error: function() {
-                    Swal.fire('Error', 'Failed to fetch item', 'error');
-                }
-            });
+        if (isSearching)
+            return;
+
+        let code = $.trim($(this).val());
+
+        if (code === '') {
+            $(this).focus();
+            return;
         }
+
+        isSearching = true;
+
+        $.ajax({
+            url: '/POS/GetItemByBarcode',
+            type: 'GET',
+            data: { barcode: code },
+
+            beforeSend: function() {
+                $('#barcodeInput').prop('disabled', true);
+            },
+
+            success: function(res) {
+
+                // Item not found
+                if (!res || !res.itemId) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Not Found',
+                        text: 'Item not found.'
+                    });
+
+                    clearBarcode();
+                    return;
+                }
+
+                // Out of Stock
+                if (parseFloat(res.stockQty) <= 0) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Out of Stock',
+                        text: 'This item is out of stock.'
+                    });
+
+                    clearBarcode();
+                    return;
+                }
+
+                // Store Selected Item
+                selectedItem = res;
+
+                // Fill Controls
+                $('#itemName').val(res.itemName);
+                $('#price').val(parseFloat(res.salePrice).toFixed(2));
+                $('#qty').val(1);
+
+                calculateAmount();
+
+                // Clear Barcode & Focus Qty
+                $('#barcodeInput').val('');
+                $('#qty').focus().select();
+            },
+
+            error: function() {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Unable to retrieve item.'
+                });
+
+                clearBarcode();
+            },
+
+            complete: function() {
+
+                isSearching = false;
+                $('#barcodeInput').prop('disabled', false);
+
+            }
+        });
+
     });
+
+    //===============================
+    // Clear Barcode Controls
+    //===============================
+    function clearBarcode() {
+
+        selectedItem = null;
+
+        $('#barcodeInput')
+            .val('')
+            .prop('disabled', false)
+            .focus();
+
+        $('#itemName').val('');
+        $('#price').val('');
+        $('#qty').val(1);
+        $('#amount').val('');
+    }
 
     // Calculate amount
     $('#qty').on('keyup change', function() {
@@ -684,7 +763,7 @@
 
             rowIndex++;
             let row = `
-                <tr data-id="${itemId}">
+                    <tr data-id="${itemId}" data-stock="${stockQty}">
                     <td>${rowIndex}</td>
                     <td class="item-name">${itemName}</td>
                     <td class="rate">${rate.toFixed(2)}</td>
@@ -712,19 +791,39 @@
 
     // Update quantity
     window.updateQuantity = function(btn, delta) {
+
         let row = $(btn).closest('tr');
+
         let qtySpan = row.find('.qty-value');
+
         let currentQty = parseFloat(qtySpan.text());
+
+        let stockQty = parseFloat(row.data('stock'));
+
         let newQty = currentQty + delta;
+
         let rate = parseFloat(row.find('.rate').text());
 
+        // Minus button
         if (newQty <= 0) {
             deleteRow(btn);
             return;
         }
 
+        // Stock Validation
+        if (newQty > stockQty) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock Limit',
+                text: `Only ${stockQty} item(s) available in stock.`
+            });
+            return;
+        }
+
         qtySpan.text(newQty);
+
         row.find('.amount').text((newQty * rate).toFixed(2));
+
         calculateTotal();
     };
 
@@ -938,4 +1037,6 @@
     $(window).on('focus', function() {
         $('#printArea').hide();
     });
+
+   
 </script>

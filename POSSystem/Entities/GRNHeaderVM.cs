@@ -13,6 +13,9 @@ namespace POSSystem.Entities
         public int PurchaseOrderId { get; set; }
 
         public int SupplierId { get; set; }
+        public int CompanyId { get; set; }
+        //public int BusinessTypeId { get; set; }
+
 
         public int BranchId { get; set; }
 

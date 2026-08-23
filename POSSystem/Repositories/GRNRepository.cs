@@ -47,46 +47,129 @@ namespace POSSystem.Repositories
                 param.Add("@GRNDate", model.GRNDate);
                 param.Add("@PurchaseOrderId", model.PurchaseOrderId);
                 param.Add("@SupplierId", model.SupplierId);
+
+                // CompanyId is required by sp_SaveGRN
+                param.Add("@CompanyId", model.CompanyId);
+
                 param.Add("@BranchId", model.BranchId);
                 param.Add("@WarehouseId", model.WarehouseId);
                 param.Add("@TotalAmount", model.TotalAmount);
                 param.Add("@Remarks", model.Remarks);
                 param.Add("@CreatedBy", model.CreatedBy);
 
+
                 //===========================
                 // Detail TVP
                 //===========================
 
-                param.Add("@Details",
-                    GetGRNDetailTable(model.Details)
-                    .AsTableValuedParameter("GRNDetailType"));
+                DataTable detailTable =
+                    GetGRNDetailTable(model.Details);
 
-                var grnId = await con.QuerySingleAsync<int>(
+                param.Add(
+                    "@Details",
+                    detailTable.AsTableValuedParameter("GRNDetailType")
+                );
+
+
+                //===========================
+                // Execute Stored Procedure
+                //===========================
+
+                var result = await con.QuerySingleAsync<dynamic>(
                     "sp_SaveGRN",
                     param,
-                    commandType: CommandType.StoredProcedure);
+                    commandType: CommandType.StoredProcedure
+                );
 
-                return grnId;
+                return (int)result.GRNId;
             }
         }
 
-        private DataTable GetGRNDetailTable(List<GRNDetailVM> details)
+
+        private DataTable GetGRNDetailTable(
+            List<GRNDetailVM> details)
         {
             DataTable dt = new DataTable();
 
+            //===========================
+            // Columns must match
+            // GRNDetailType
+            //===========================
+
             dt.Columns.Add("ItemId", typeof(int));
-            dt.Columns.Add("ReceivedQty", typeof(decimal));
-            dt.Columns.Add("Rate", typeof(decimal));
-            dt.Columns.Add("Amount", typeof(decimal));
+
+            dt.Columns.Add(
+                "ReceivedQty",
+                typeof(decimal)
+            );
+
+            dt.Columns.Add(
+                "Rate",
+                typeof(decimal)
+            );
+
+            dt.Columns.Add(
+                "Amount",
+                typeof(decimal)
+            );
+
+            // Pharmacy fields
+            dt.Columns.Add(
+                "BatchNo",
+                typeof(string)
+            );
+
+            dt.Columns.Add(
+                "ManufacturingDate",
+                typeof(DateTime)
+            );
+
+            dt.Columns.Add(
+                "ExpiryDate",
+                typeof(DateTime)
+            );
+
+
+            //===========================
+            // Add Details
+            //===========================
 
             foreach (var item in details)
             {
-                dt.Rows.Add(
-                    item.ItemId,
-                    item.ReceivedQty,
-                    item.Rate,
-                    item.Amount
-                );
+                DataRow row = dt.NewRow();
+
+                row["ItemId"] = item.ItemId;
+
+                row["ReceivedQty"] = item.ReceivedQty;
+
+                row["Rate"] = item.Rate;
+
+                row["Amount"] = item.Amount;
+
+
+                //===========================
+                // Pharmacy Fields
+                //===========================
+
+                row["BatchNo"] =
+                    string.IsNullOrWhiteSpace(item.BatchNo)
+                        ? DBNull.Value
+                        : item.BatchNo;
+
+
+                row["ManufacturingDate"] =
+                    item.ManufacturingDate.HasValue
+                        ? item.ManufacturingDate.Value
+                        : DBNull.Value;
+
+
+                row["ExpiryDate"] =
+                    item.ExpiryDate.HasValue
+                        ? item.ExpiryDate.Value
+                        : DBNull.Value;
+
+
+                dt.Rows.Add(row);
             }
 
             return dt;
