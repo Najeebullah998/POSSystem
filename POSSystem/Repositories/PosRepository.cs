@@ -80,6 +80,8 @@ namespace POSSystem.Repositories
                 parameters.Add("@TotalAmount", model.TotalAmount);
                 parameters.Add("@Discount", model.Discount);
                 parameters.Add("@NetAmount", model.NetAmount);
+                parameters.Add("@PaymentMode", model.PaymentMode);
+                parameters.Add("@PaidAmount", model.NetAmount);
                 parameters.Add("@CreatedBy", model.UserId);
 
                 parameters.Add(
@@ -176,6 +178,22 @@ namespace POSSystem.Repositories
 
                 return true;
             }
+        }
+
+        public async Task<SaleClosingSummary> GetSaleClosingSummaryAsync(int branchId,int userId,DateTime closingDate)
+        {
+            using var connection = _context.CreateConnection();
+
+            return await connection.QueryFirstOrDefaultAsync<SaleClosingSummary>(
+                "sp_GetSaleClosingSummary",
+                new
+                {
+                    BranchId = branchId,
+                    UserId = userId,
+                    ClosingDate = closingDate
+                },
+                commandType: CommandType.StoredProcedure
+            );
         }
 
         public async Task<(PosInvoiceVm Invoice, List<PosInvoiceDetailVm> Details)> GetBillByIdAsync(int invoiceId)

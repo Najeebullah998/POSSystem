@@ -1,0 +1,633 @@
+﻿@model POSSystem.Entities.SaleClosingSummary
+
+@{
+    ViewBag.Title = "Sale Closing";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+        --purple-color: #8b5cf6;
+        --pink-color: #ec4899;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .closing-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Cards */
+    .closing-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .closing-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+    .card-header-closing {
+        background: linear-gradient(135deg, var(--purple-color) 0%, var(--pink-color) 100%);
+        padding: 18px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* Search Section */
+    .search-section {
+        background: var(--light-bg);
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid var(--border-color);
+    }
+
+    .form-label-modern {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        font-size: 14px;
+        width: 100%;
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+    .btn-load {
+        background: linear-gradient(135deg, var(--purple-color) 0%, var(--pink-color) 100%);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+        .btn-load:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+        }
+
+    .btn-print {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+    /* Summary Grid */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        background: var(--light-bg);
+        padding: 18px 20px;
+        border-radius: 12px;
+        text-align: center;
+        transition: all 0.3s;
+        border-left: 4px solid var(--primary-color);
+    }
+
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .summary-card.gross {
+            border-left-color: var(--primary-color);
+        }
+
+        .summary-card.discount {
+            border-left-color: var(--warning-color);
+        }
+
+        .summary-card.net {
+            border-left-color: var(--success-color);
+        }
+
+        .summary-card.returns {
+            border-left-color: var(--danger-color);
+        }
+
+        .summary-card.final {
+            border-left-color: var(--purple-color);
+            background: linear-gradient(135deg, var(--purple-color) 0%, var(--pink-color) 100%);
+            color: white;
+        }
+
+            .summary-card.final .summary-label {
+                color: rgba(255,255,255,0.8);
+            }
+
+            .summary-card.final .summary-value {
+                color: white;
+            }
+
+    .summary-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+        .summary-value.positive {
+            color: var(--success-color);
+        }
+
+        .summary-value.negative {
+            color: var(--danger-color);
+        }
+
+    /* Payment Grid */
+    .payment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .payment-card {
+        background: var(--light-bg);
+        padding: 18px 20px;
+        border-radius: 12px;
+        transition: all 0.3s;
+        border: 2px solid var(--border-color);
+    }
+
+        .payment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .payment-card.highlight {
+            border-color: var(--success-color);
+            background: #f0fdf4;
+        }
+
+    .payment-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .payment-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    /* Divider */
+    .divider {
+        border: none;
+        height: 2px;
+        background: linear-gradient(to right, transparent, var(--border-color), transparent);
+        margin: 20px 0;
+    }
+
+    /* Loading State */
+    .loading-state {
+        text-align: center;
+        padding: 40px;
+        display: none;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top-color: var(--purple-color);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Print Styles */
+    @@media print {
+        body {
+            background: white;
+            padding: 0;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .closing-card {
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+            border-radius: 0 !important;
+        }
+
+            .closing-card:hover {
+                transform: none !important;
+            }
+
+        .card-header-closing {
+            background: #1f2937 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .summary-card.final {
+            background: #8b5cf6 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .card-header-closing {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .closing-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .summary-card, .payment-card {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+        .summary-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .summary-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .summary-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .summary-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .summary-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+</style>
+
+<div class="closing-container">
+    <!-- Header Card -->
+    <div class="closing-card">
+        <div class="card-header-closing">
+            <span><i class="fas fa-chart-line"></i> Sale Closing Summary</span>
+            <span style="font-size: 14px; opacity: 0.9;" id="closingDateTime">
+                <i class="far fa-clock"></i> <span id="currentDateTime"></span>
+            </span>
+        </div>
+        <div class="card-body-custom">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label-modern">
+                            <i class="far fa-calendar-alt"></i> Closing Date
+                        </label>
+                        <input type="date" id="closingDate" class="form-control-modern" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label-modern">&nbsp;</label>
+                        <button class="btn-load" onclick="loadClosing()">
+                            <i class="fas fa-sync-alt"></i> Load
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label-modern">&nbsp;</label>
+                        <button class="btn-print" onclick="printClosing()">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p style="color: #6b7280;">Loading closing summary...</p>
+    </div>
+
+    <!-- Summary Content -->
+    <div id="summaryContent" style="display: none;">
+        <!-- Sales Summary -->
+        <div class="closing-card">
+            <div class="card-body-custom">
+                <h6 style="color: var(--dark-color); margin-bottom: 15px;">
+                    <i class="fas fa-shopping-cart"></i> Sales Summary
+                </h6>
+                <div class="summary-grid" id="salesSummary">
+                    <div class="summary-card gross">
+                        <div class="summary-label">Gross Sales</div>
+                        <div class="summary-value" id="grossSales">Rs 0.00</div>
+                    </div>
+                    <div class="summary-card discount">
+                        <div class="summary-label">Total Discount</div>
+                        <div class="summary-value" id="totalDiscount">Rs 0.00</div>
+                    </div>
+                    <div class="summary-card net">
+                        <div class="summary-label">Net Sales</div>
+                        <div class="summary-value" id="netSales">Rs 0.00</div>
+                    </div>
+                    <div class="summary-card returns">
+                        <div class="summary-label">Total Returns</div>
+                        <div class="summary-value" id="totalReturns">Rs 0.00</div>
+                    </div>
+                    <div class="summary-card final">
+                        <div class="summary-label">Net After Returns</div>
+                        <div class="summary-value" id="netAfterReturns">Rs 0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="closing-card">
+            <div class="card-body-custom">
+                <h6 style="color: var(--dark-color); margin-bottom: 15px;">
+                    <i class="fas fa-money-bill-wave"></i> Payment Summary
+                </h6>
+                <div class="payment-grid" id="paymentSummary">
+                    <div class="payment-card">
+                        <div class="payment-label">Total Bills</div>
+                        <div class="payment-value" id="totalBills">0</div>
+                    </div>
+                    <div class="payment-card">
+                        <div class="payment-label">Cash</div>
+                        <div class="payment-value" id="cashAmount">Rs 0.00</div>
+                    </div>
+                    <div class="payment-card">
+                        <div class="payment-label">EasyPaisa</div>
+                        <div class="payment-value" id="easyPaisa">Rs 0.00</div>
+                    </div>
+                    <div class="payment-card">
+                        <div class="payment-label">Other</div>
+                        <div class="payment-value" id="otherAmount">Rs 0.00</div>
+                    </div>
+                    <div class="payment-card">
+                        <div class="payment-label">Total Payments</div>
+                        <div class="payment-value" id="totalPayments">Rs 0.00</div>
+                    </div>
+                    <div class="payment-card highlight">
+                        <div class="payment-label">Expected Cash</div>
+                        <div class="payment-value" id="expectedCash">Rs 0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Data Message -->
+    <div id="noDataMessage" style="display: none; text-align: center; padding: 40px; background: white; border-radius: 20px;">
+        <i class="fas fa-chart-bar" style="font-size: 48px; color: #cbd5e1;"></i>
+        <p style="color: #94a3b8; margin-top: 15px;">No data found for the selected date</p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+
+<script>
+    let currentClosingData = null;
+
+    $(document).ready(function() {
+        // Set current date
+        const today = new Date();
+        $('#closingDate').val(formatDate(today));
+        updateDateTime();
+
+        // Load closing on page load
+        loadClosing();
+
+        // Auto refresh every 60 seconds
+        setInterval(updateDateTime, 1000);
+    });
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function updateDateTime() {
+        const now = new Date();
+        $('#currentDateTime').text(now.toLocaleString());
+    }
+
+    function loadClosing() {
+        const closingDate = $('#closingDate').val();
+
+        if (!closingDate) {
+            Swal.fire('Warning', 'Please select a closing date', 'warning');
+            return;
+        }
+
+        // Show loading
+        $('#loadingState').show();
+        $('#summaryContent').hide();
+        $('#noDataMessage').hide();
+
+        $.ajax({
+            url: '/POS/GetSaleClosingSummary', // ✅ Update controller name
+            type: 'GET',
+            data: { closingDate: closingDate },
+            success: function(res) {
+                $('#loadingState').hide();
+
+                if (res && res.totalBills > 0) {
+                    currentClosingData = res;
+                    renderClosing(res);
+                    $('#summaryContent').show();
+                    $('#noDataMessage').hide();
+                } else {
+                    $('#summaryContent').hide();
+                    $('#noDataMessage').show();
+                    $('#noDataMessage p').text('No data found for ' + new Date(closingDate).toLocaleDateString());
+                }
+            },
+            error: function() {
+                $('#loadingState').hide();
+                Swal.fire('Error', 'Failed to load closing summary', 'error');
+            }
+        });
+    }
+
+    function renderClosing(data) {
+        // Sales Summary
+        $('#grossSales').text(`Rs ${data.grossSales.toFixed(2)}`);
+        $('#totalDiscount').text(`Rs ${data.discount.toFixed(2)}`);
+        $('#netSales').text(`Rs ${data.netSales.toFixed(2)}`);
+        $('#totalReturns').text(`Rs ${data.totalReturns.toFixed(2)}`);
+        $('#netAfterReturns').text(`Rs ${data.netAfterReturns.toFixed(2)}`);
+
+        // Payment Summary
+        $('#totalBills').text(data.totalBills);
+        $('#cashAmount').text(`Rs ${data.cash.toFixed(2)}`);
+        $('#easyPaisa').text(`Rs ${data.easyPaisa.toFixed(2)}`);
+        $('#otherAmount').text(`Rs ${data.other.toFixed(2)}`);
+        $('#totalPayments').text(`Rs ${data.totalPayments.toFixed(2)}`);
+        $('#expectedCash').text(`Rs ${data.expectedCash.toFixed(2)}`);
+
+        // Color coding
+        updateValueColor('grossSales', data.grossSales);
+        updateValueColor('netSales', data.netSales);
+        updateValueColor('netAfterReturns', data.netAfterReturns);
+        updateValueColor('totalPayments', data.totalPayments);
+        updateValueColor('expectedCash', data.expectedCash);
+    }
+
+    function updateValueColor(elementId, value) {
+        const element = $(`#${elementId}`);
+        if (value < 0) {
+            element.removeClass('positive').addClass('negative');
+        } else {
+            element.removeClass('negative').addClass('positive');
+        }
+    }
+
+    function printClosing() {
+        if (!currentClosingData) {
+            Swal.fire('Info', 'Please load closing data first', 'info');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Printing...',
+            text: 'Preparing closing summary for print',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        setTimeout(() => {
+            Swal.close();
+            window.print();
+        }, 500);
+    }
+
+    // Refresh on Enter key
+    $('#closingDate').on('keypress', function(e) {
+        if (e.which === 13) {
+            loadClosing();
+        }
+    });
+
+    // Auto-refresh data
+    let refreshInterval = null;
+    $('#closingDate').on('change', function() {
+        clearInterval(refreshInterval);
+        // No auto-refresh needed
+    });
+</script>

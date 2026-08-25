@@ -403,6 +403,14 @@
                     </label>
                     <input type="text" id="branchId" class="form-control-modern" style="width: 100%;" placeholder="Main Branch">
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label">Payment Mode</label>
+                    <select id="paymentMode" class="form-select">
+                        <option value="Cash">Cash</option>
+                        <option value="EasyPaisa">EasyPaisa</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
                 <div class="col-md-3">
                     <label class="form-label-modern">
                         <i class="fas fa-user-circle"></i> Cashier
@@ -1093,6 +1101,7 @@
             TotalAmount: parseFloat($('#total').val()) || 0,
             Discount: parseFloat($('#discount').val()) || 0,
             NetAmount: netAmount,
+            PaymentMode: $('#paymentMode').val(),
             Items: items
         };
 

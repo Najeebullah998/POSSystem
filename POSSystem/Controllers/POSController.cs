@@ -186,7 +186,56 @@ namespace POSSystem.Controllers
             return View();
         }
 
-        
+        public async Task<IActionResult> SaleClosing()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSaleClosingSummary(DateTime closingDate)
+        {
+            try
+            {
+                var branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+                var userId = Convert.ToInt32(HttpContext.Session.GetInt32("UserId"));
+
+                var result = await _repo.GetSaleClosingSummaryAsync(
+                    branchId,
+                    userId,
+                    closingDate
+                );
+
+                if (result == null)
+                {
+                    return Json(new SaleClosingSummary
+                    {
+                        TotalBills = 0,
+                        GrossSales = 0,
+                        Discount = 0,
+                        NetSales = 0,
+                        TotalReturns = 0,
+                        NetAfterReturns = 0,
+                        Cash = 0,
+                        EasyPaisa = 0,
+                        Other = 0,
+                        TotalPayments = 0,
+                        ExpectedCash = 0
+                    });
+                }
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+
 
         [HttpGet]
         public async Task<IActionResult> GetBillById(int invoiceId)

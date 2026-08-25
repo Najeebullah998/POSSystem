@@ -11,6 +11,9 @@
         public decimal TotalAmount { get; set; }
         public decimal Discount { get; set; }
         public decimal NetAmount { get; set; }
+        public string PaymentMode { get; set; }
+        public decimal PaidAmount { get; set; }
+
         public string CustomerName { get; set; }
         public string BranchName { get; set; }
         public List<PosInvoiceDetailVm>? Items { get; set; }
