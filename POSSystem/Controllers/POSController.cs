@@ -5,6 +5,7 @@ using NuGet.Protocol.Core.Types;
 using POSSystem.DATA;
 using POSSystem.Entities;
 using POSSystem.Interfaces;
+using POSSystem.Repositories;
 
 namespace POSSystem.Controllers
 {
@@ -69,6 +70,197 @@ namespace POSSystem.Controllers
             var invoiceId = _repo.SaveInvoice(model);
 
             return Json(new { success = true, invoiceId });
+        }
+        [HttpPost]
+        public IActionResult UpdateInvoice([FromBody] PosInvoiceVm model)
+        {
+            if (model == null || model.InvoiceId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid Invoice ID!"
+                });
+            }
+
+            if (model.Items == null || model.Items.Count == 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "No items found!"
+                });
+            }
+
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+
+                if (!userId.HasValue)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User session expired. Please login again."
+                    });
+                }
+
+                model.UserId = userId.Value;
+
+                var result = _repo.UpdateInvoice(model);
+
+                return Json(new
+                {
+                    success = result,
+                    invoiceId = model.InvoiceId,
+                    message = result
+                        ? "Invoice updated successfully!"
+                        : "Invoice could not be updated."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteBill(int invoiceId)
+        {
+            if (invoiceId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid Invoice ID!"
+                });
+            }
+
+            try
+            {
+                // Get logged-in user from session
+                var userId = HttpContext.Session.GetInt32("UserId");
+
+                if (!userId.HasValue)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User session expired. Please login again."
+                    });
+                }
+
+                // Delete invoice and restore stock
+                var result = _repo.DeleteInvoice(invoiceId, userId.Value);
+
+                if (result)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Bill deleted successfully!"
+                    });
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    message = "Bill could not be deleted."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+        public IActionResult CompleteBill()
+        {
+            return View();
+        }
+
+        
+
+        [HttpGet]
+        public async Task<IActionResult> GetBillById(int invoiceId)
+        {
+            try
+            {
+                var result = await _repo.GetBillByIdAsync(invoiceId);
+
+                if (result.Invoice == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Bill not found."
+                    });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    invoice = result.Invoice,
+                    details = result.Details
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCompleteBills(
+    DateTime? fromDate,
+    DateTime? toDate,
+    string invoiceNo)
+        {
+            try
+            {
+                int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+                if (branchId == 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Branch not found in session."
+                    });
+                }
+
+                var bills = await _repo.GetCompleteBillsAsync(
+                    branchId,
+                    fromDate,
+                    toDate,
+                    invoiceNo
+                );
+
+                return Json(new
+                {
+                    success = true,
+                    data = bills
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
     }
 }

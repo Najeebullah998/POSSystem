@@ -391,6 +391,9 @@
         }
 </style>
 
+
+<input type="hidden" id="invoiceId" value="@ViewBag.InvoiceId" />
+<input type="hidden" id="isEditMode" value="true" />
 <div class="return-container">
     <!-- Return Header Card -->
     <div class="return-card">
@@ -616,6 +619,91 @@
     let returnItems = [];
     let rowIndex = 0;
 
+    $(document).ready(function() {
+
+        const invoiceId = parseInt($('#invoiceId').val()) || 0;
+        const isEditMode = $('#isEditMode').val() === 'True' ||
+            $('#isEditMode').val() === 'true';
+
+        if (isEditMode && invoiceId > 0) {
+
+            console.log("EDIT MODE - InvoiceId:", invoiceId);
+
+            loadBillForEdit(invoiceId);
+
+        } else {
+
+            // =========================
+            // NEW BILL MODE
+            // =========================
+
+            if (!$('#invoiceDate').val()) {
+                $('#invoiceDate').val(
+                    new Date().toISOString().split('T')[0]
+                );
+            }
+
+            let invoiceNo =
+                'INV-' + new Date().getTime().toString().slice(-8);
+
+            $('#invoiceNo').val(invoiceNo);
+
+            $('#barcodeInput').focus();
+        }
+
+    });
+
+    $(document).ready(function() {
+
+        const invoiceId = parseInt($('#invoiceId').val()) || 0;
+        const isEditMode = $('#isEditMode').val() === 'true';
+
+        console.log("Invoice ID:", invoiceId);
+        console.log("Edit Mode:", isEditMode);
+
+        if (isEditMode && invoiceId > 0) {
+
+            console.log("Loading Edit Bill:", invoiceId);
+
+            loadBillForEdit(invoiceId);
+
+        } else {
+
+            console.log("New Sale Mode");
+
+            if (!$('#invoiceDate').val()) {
+                $('#invoiceDate').val(
+                    new Date().toISOString().split('T')[0]
+                );
+            }
+
+            let invoiceNo =
+                'INV-' + new Date().getTime().toString().slice(-8);
+
+            $('#invoiceNo').val(invoiceNo);
+
+            $('#barcodeInput').focus();
+        }
+    });
+    $(document).ready(function() {
+
+        $('.select2').select2({
+            placeholder: 'Select option',
+            allowClear: true,
+            width: '100%'
+        });
+
+        var invoiceId = '@ViewBag.InvoiceId';
+
+        if (invoiceId && invoiceId !== '0') {
+
+            $('#InvoiceId')
+                .val(invoiceId)
+                .trigger('change');
+
+            loadInvoiceItems();
+        }
+    });
     $(document).ready(function() {
         // Initialize Select2
         $('.select2').select2({

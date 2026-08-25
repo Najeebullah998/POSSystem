@@ -1,0 +1,936 @@
+﻿@{
+    ViewBag.Title = "Complete Bills";
+}
+
+
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .bills-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Cards */
+    .bills-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .bills-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    }
+
+    .card-header-bills {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 18px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* Search Section */
+    .search-section {
+        background: var(--light-bg);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 2px solid var(--border-color);
+    }
+
+    .form-label-modern {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .form-control-modern:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        outline: none;
+    }
+
+    .btn-search {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+    }
+
+    .btn-reset {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-reset:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    /* Table Styles */
+    .table-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .bills-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 0;
+    }
+
+    .bills-table thead th {
+        background: var(--dark-color);
+        color: white;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 15px;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .bills-table tbody tr {
+        transition: all 0.2s;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .bills-table tbody tr:hover {
+        background: #f8f9ff;
+    }
+
+    .bills-table tbody td {
+        padding: 12px 15px;
+        vertical-align: middle;
+    }
+
+    /* Status Badges */
+    .badge-status {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .badge-paid {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-unpaid {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    .badge-partial {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .bills-table th:last-child,
+    .bills-table td:last-child {
+        width: 180px;
+        min-width: 180px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .bills-table td:last-child {
+        display: table-cell;
+    }
+
+    /* Action Buttons */
+    .btn-action {
+        padding: 5px 9px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        font-size: 11px;
+        transition: all 0.3s;
+        color: white;
+        margin: 2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        vertical-align: middle;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+    .btn-edit {
+        background: var(--warning-color);
+    }
+
+    .btn-detail {
+        background: var(--info-color);
+    }
+
+    .btn-delete {
+        background: var(--danger-color);
+    }
+
+    .btn-print {
+        background: var(--success-color);
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .summary-card {
+        background: var(--light-bg);
+        padding: 15px 20px;
+        border-radius: 12px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .summary-card.highlight {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .summary-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 600;
+        opacity: 0.7;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .summary-card.highlight .summary-value {
+        color: white;
+    }
+
+    /* Print Styles */
+    @@media print {
+        body {
+            background: white;
+            padding: 0;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .bills-card {
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+            border-radius: 0 !important;
+        }
+
+        .bills-card:hover {
+            transform: none !important;
+        }
+
+        .card-header-bills {
+            background: #1f2937 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .badge-status {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    /* Animations */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bills-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .card-header-bills {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+
+<div class="bills-container">
+    <!-- Search Card -->
+    <div class="bills-card">
+        <div class="card-header-bills">
+            <span><i class="fas fa-search"></i> Search Bills</span>
+            <span style="font-size: 14px; opacity: 0.9;">
+                Total Bills: <span id="totalBillsCount">0</span>
+            </span>
+        </div>
+        <div class="card-body-custom">
+            <div class="search-section">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label-modern">
+                            <i class="far fa-calendar-alt"></i> From Date
+                        </label>
+                        <input type="date" id="fromDate" class="form-control-modern" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-modern">
+                            <i class="far fa-calendar-alt"></i> To Date
+                        </label>
+                        <input type="date" id="toDate" class="form-control-modern" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-modern">
+                            <i class="fas fa-hashtag"></i> Invoice No
+                        </label>
+                        <input type="text" id="invoiceNo" class="form-control-modern" placeholder="Search by invoice no..." />
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="row g-2 w-100">
+                            <div class="col-6">
+                                <button class="btn-search" onclick="loadBills()">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn-reset" onclick="resetFilters()">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" style="display: none; text-align: center; padding: 40px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p style="color: #6b7280; margin-top: 15px;">Loading bills...</p>
+            </div>
+
+            <!-- Table -->
+            <div id="tableContainer">
+                <div class="table-wrapper">
+                    <table class="bills-table" id="billsTable">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="15%">Invoice No</th>
+                                <th width="12%">Date</th>
+                                <th width="18%">Customer</th>
+                                <th width="12%">Branch</th>
+                                <th width="10%">Total Rs.</th>
+                                <th width="10%">Discount Rs.</th>
+                                <th width="10%">Net Rs.</th>
+                                <th width="10%">Status</th>
+                                <th width="18%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billsBody">
+                            <tr class="text-center">
+                                <td colspan="10" style="padding: 60px 20px; color: #94a3b8;">
+                                    <i class="fas fa-file-invoice" style="font-size: 48px; display: block; margin-bottom: 15px;"></i>
+                                    No bills found. Click "Search" to load bills.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary -->
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Bills</div>
+                        <div class="summary-value" id="summaryTotalBills">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Total Amount</div>
+                        <div class="summary-value" id="summaryTotalAmount">Rs.0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Total Discount</div>
+                        <div class="summary-value" id="summaryTotalDiscount">Rs.0.00</div>
+                    </div>
+                    <div class="summary-card highlight">
+                        <div class="summary-label">Total Net Amount</div>
+                        <div class="summary-value" id="summaryTotalNet">Rs.0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bill Detail Modal -->
+<div class="modal fade" id="billDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); color: white;">
+                <h5 class="modal-title"><i class="fas fa-file-invoice"></i> Bill Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div id="modalLoading" style="text-align: center; padding: 40px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p style="margin-top: 15px;">Loading bill details...</p>
+                </div>
+                <div id="modalContent" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printModalBill()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+
+<script>
+    let currentBillId = 0;
+    let modalInstance = null;
+    let allBills = [];
+
+    $(document).ready(function() {
+        // Set default dates
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        $('#fromDate').val(formatDate(firstDay));
+        $('#toDate').val(formatDate(today));
+
+        // Load bills on page load
+        loadBills();
+
+        // Enter key for search
+        $('#invoiceNo').on('keypress', function(e) {
+            if (e.which === 13) {
+                loadBills();
+            }
+        });
+    });
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function loadBills() {
+        const fromDate = $('#fromDate').val();
+        const toDate = $('#toDate').val();
+        const invoiceNo = $('#invoiceNo').val().trim();
+
+        $('#loadingState').show();
+        $('#tableContainer').show();
+
+        $.ajax({
+            url: '/POS/GetCompleteBills', // ✅ Update controller name
+            type: 'GET',
+            data: {
+                fromDate: fromDate || null,
+                toDate: toDate || null,
+                invoiceNo: invoiceNo || null
+            },
+            success: function(res) {
+
+                $('#loadingState').hide();
+                $('#tableContainer').show();
+
+                console.log("Response:", res);
+
+                if (res.success) {
+
+                    allBills = res.data || [];
+
+                    renderBills(allBills);
+                    updateSummary(allBills);
+
+                } else {
+
+                    Swal.fire(
+                        'Error',
+                        res.message || 'Failed to load bills',
+                        'error'
+                    );
+                }
+            },
+            error: function(xhr) {
+
+                $('#loadingState').hide();
+                $('#tableContainer').show();
+
+                console.log("STATUS:", xhr.status);
+                console.log("RESPONSE:", xhr.responseText);
+
+                Swal.fire(
+                    'Error',
+                    xhr.responseText || 'Failed to load bills',
+                    'error'
+                );
+            }
+        });
+    }
+
+    function renderBills(bills) {
+        let tbody = $('#billsBody');
+        tbody.empty();
+
+        if (!bills || bills.length === 0) {
+            tbody.html(`
+                <tr class="text-center">
+                    <td colspan="10" style="padding: 60px 20px; color: #94a3b8;">
+                        <i class="fas fa-file-invoice" style="font-size: 48px; display: block; margin-bottom: 15px;"></i>
+                        No bills found. Click "Search" to load bills.
+                    </td>
+                </tr>
+            `);
+            $('#totalBillsCount').text('0');
+            return;
+        }
+
+        bills.forEach(function(bill, index) {
+            let status = getStatus(bill);
+            let statusBadge = getStatusBadge(status);
+
+            let row = `
+                <tr>
+                    <td>${index + 1}</td>
+                        <td style="display:none;">${bill.invoiceId}</td>
+                    <td><strong>${bill.invoiceNo || '-'}</strong></td>
+                    <td>${bill.invoiceDate ? new Date(bill.invoiceDate).toLocaleDateString() : '-'}</td>
+                    <td>${bill.customerName || 'Walk-in'}</td>
+                    <td>${bill.branchName || '-'}</td>
+                    <td>Rs.${parseFloat(bill.totalAmount || 0).toFixed(2)}</td>
+                    <td>Rs.${parseFloat(bill.discount || 0).toFixed(2)}</td>
+                    <td><strong>Rs.${parseFloat(bill.netAmount || 0).toFixed(2)}</strong></td>
+                    <td>${statusBadge}</td>
+                       <td class="no-print">
+        <button class="btn-action btn-edit"
+                onclick="editBill(${bill.invoiceId})"
+                title="Edit">
+            <i class="fas fa-edit"></i>
+        </button>
+
+        <button class="btn-action btn-detail"
+                onclick="viewDetail(${bill.invoiceId})"
+                title="Detail">
+            <i class="fas fa-eye"></i>
+        </button>
+
+        <button class="btn-action btn-delete"
+                onclick="deleteBill(${bill.invoiceId})"
+                title="Delete">
+            <i class="fas fa-trash"></i>
+        </button>
+
+        <button class="btn-action btn-print"
+                onclick="printBill(${bill.invoiceId})"
+                title="Print">
+            <i class="fas fa-print"></i>
+        </button>
+    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+
+        $('#totalBillsCount').text(bills.length);
+    }
+
+    function getStatus(bill) {
+        let net = parseFloat(bill.netAmount) || 0;
+        let paid = parseFloat(bill.netAmount) || 0;
+
+        if (paid >= net && net > 0) return 'paid';
+        if (paid > 0 && paid < net) return 'partial';
+        return 'unpaid';
+    }
+
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'paid':
+                return '<span class="badge-status badge-paid">Paid</span>';
+            case 'partial':
+                return '<span class="badge-status badge-partial">Partial</span>';
+            case 'unpaid':
+                return '<span class="badge-status badge-unpaid">Unpaid</span>';
+            default:
+                return '<span class="badge-status">Unknown</span>';
+        }
+    }
+
+    function updateSummary(bills) {
+        let totalBills = bills.length;
+        let totalAmount = 0;
+        let totalDiscount = 0;
+        let totalNet = 0;
+
+        bills.forEach(function(bill) {
+            totalAmount += parseFloat(bill.totalAmount || 0);
+            totalDiscount += parseFloat(bill.discount || 0);
+            totalNet += parseFloat(bill.netAmount || 0);
+        });
+
+        $('#summaryTotalBills').text(totalBills);
+        $('#summaryTotalAmount').text(`Rs.${totalAmount.toFixed(2)}`);
+        $('#summaryTotalDiscount').text(`Rs.${totalDiscount.toFixed(2)}`);
+        $('#summaryTotalNet').text(`Rs.${totalNet.toFixed(2)}`);
+    }
+
+    function resetFilters() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        $('#fromDate').val(formatDate(firstDay));
+        $('#toDate').val(formatDate(today));
+        $('#invoiceNo').val('');
+
+        loadBills();
+    }
+
+    // =====================
+    // Action Functions
+    // =====================
+
+    function editBill(invoiceId) {
+        if (!invoiceId) {
+            Swal.fire('Error', 'Invalid bill ID', 'error');
+            return;
+        }
+        window.location.href = `/SaleReturn/EditBill?id=${invoiceId}`;
+    }
+
+    function viewDetail(invoiceId) {
+        if (!invoiceId) {
+            Swal.fire('Error', 'Invalid bill ID', 'error');
+            return;
+        }
+
+        currentBillId = invoiceId;
+
+        // Show modal
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(document.getElementById('billDetailModal'));
+        }
+        modalInstance.show();
+
+        // Show loading
+        $('#modalLoading').show();
+        $('#modalContent').hide();
+
+        $.ajax({
+            url: '/POS/GetBillById',
+            type: 'GET',
+            data: { invoiceId: invoiceId },
+            success: function(res) {
+                $('#modalLoading').hide();
+
+                if (res.success) {
+                    renderDetailModal(res.invoice, res.details);
+                    $('#modalContent').show();
+                } else {
+                    $('#modalContent').html(`
+                        <div class="alert alert-danger">
+                            ${res.message || 'Failed to load bill details'}
+                        </div>
+                    `);
+                    $('#modalContent').show();
+                }
+            },
+            error: function() {
+                $('#modalLoading').hide();
+                $('#modalContent').html(`
+                    <div class="alert alert-danger">Failed to load bill details</div>
+                `);
+                $('#modalContent').show();
+            }
+        });
+    }
+
+    function renderDetailModal(invoice, details) {
+        let html = `
+            <div style="padding: 10px;">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Invoice No:</strong> ${invoice.invoiceNo || '-'}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Date:</strong> ${invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : '-'}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Customer:</strong> ${invoice.customerName || 'Walk-in'}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Branch:</strong> ${invoice.branchName || '-'}
+                    </div>
+                </div>
+                <hr>
+                <h6><strong>Items:</strong></h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead style="background: #1f2937; color: white;">
+                            <tr>
+                                <th>#</th>
+                                <th>Item</th>
+                                <th>Rate</th>
+                                <th>Qty</th>
+                                <th>Discount</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+        if (details && details.length > 0) {
+            details.forEach(function(item, index) {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.itemName || 'Unknown'}</td>
+                        <td>Rs.${parseFloat(item.rate || 0).toFixed(2)}</td>
+                        <td>${item.quantity || 0}</td>
+                        <td>Rs.${parseFloat(item.discount || 0).toFixed(2)}</td>
+                        <td><strong>Rs.${parseFloat(item.amount || 0).toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            });
+        } else {
+            html += `
+                <tr>
+                    <td colspan="6" class="text-center">No items found</td>
+                </tr>
+            `;
+        }
+
+        let total = parseFloat(invoice.totalAmount) || 0;
+        let discount = parseFloat(invoice.discount) || 0;
+        let net = parseFloat(invoice.netAmount) || 0;
+        let paid = parseFloat(invoice.paidAmount) || 0;
+        let change = paid - net;
+        if (change < 0) change = 0;
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-3"><strong>Total:</strong> Rs.${total.toFixed(2)}</div>
+                    <div class="col-md-3"><strong>Discount:</strong> Rs.${discount.toFixed(2)}</div>
+                    <div class="col-md-3"><strong>Net:</strong> Rs.${net.toFixed(2)}</div>
+                    <div class="col-md-3"><strong>Paid:</strong> Rs.${paid.toFixed(2)}</div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6"><strong>Change:</strong> Rs.${change.toFixed(2)}</div>
+                    <div class="col-md-6"><strong>Status:</strong> ${getStatusBadge(getStatus(invoice))}</div>
+                </div>
+                ${invoice.remarks ? `<hr><div><strong>Remarks:</strong> ${invoice.remarks}</div>` : ''}
+            </div>
+        `;
+
+        $('#modalContent').html(html);
+    }
+
+    function deleteBill(invoiceId) {
+        if (!invoiceId) {
+            Swal.fire('Error', 'Invalid bill ID', 'error');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This bill will be permanently deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Deleting...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: '/POS/DeleteBill',
+                    type: 'POST',
+                    data: { invoiceId: invoiceId },
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: res.message || 'Bill deleted successfully',
+                                confirmButtonColor: '#10b981'
+                            }).then(() => {
+                                loadBills();
+                            });
+                        } else {
+                            Swal.fire('Error', res.message || 'Failed to delete bill', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Failed to delete bill', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function printBill(invoiceId) {
+        Swal.fire({
+            title: 'Printing...',
+            text: 'Preparing bill for print',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        setTimeout(() => {
+            Swal.close();
+            window.open(`/SaleReturn/PrintBill?id=${invoiceId}`, '_blank');
+        }, 500);
+    }
+
+    function printModalBill() {
+        Swal.fire({
+            title: 'Printing...',
+            text: 'Preparing bill for print',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        setTimeout(() => {
+            Swal.close();
+            window.open(`/SaleReturn/PrintBill?id=${currentBillId}`, '_blank');
+        }, 500);
+    }
+    function saleReturn(invoiceId) {
+
+        if (!invoiceId) {
+            Swal.fire('Error', 'Invalid bill ID', 'error');
+            return;
+        }
+
+        window.location.href = `/SaleReturn/Index?invoiceId=${invoiceId}`;
+    }
+</script>

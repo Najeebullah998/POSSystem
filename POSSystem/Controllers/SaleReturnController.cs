@@ -15,6 +15,23 @@ namespace POSSystem.Controllers
         {
             return View();
         }
+        public async Task<IActionResult> EditBill(int id)
+        {
+            ViewBag.InvoiceId = id;
+            ViewBag.IsEditMode = false;
+
+            var model = new SaleReturnHeaderVM();
+
+            model.ReturnNumber = await _repo.GenerateSaleReturnNumberAsync();
+            model.ReturnDate = DateTime.Now;
+
+            model.InvoiceList = (await _repo.GetInvoiceDropdownAsync()).ToList();
+
+            model.WarehouseId = 2;
+            model.CustomerId = 1;
+
+            return View("CreateSaleReturn", model);
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllSaleReturns()
