@@ -15,7 +15,29 @@ namespace POSSystem.Repositories
         {
             _context = context;
         }
+        public async Task<string> GenerateInvoiceNoAsync(int branchId)
+        {
+            using (var connection = _context.CreateConnection())
+            {
+                var sql = @"
+            SELECT 
+                'INV-' + RIGHT(
+                    '000000' + CAST(
+                        ISNULL(MAX(InvoiceId), 0) + 1 AS VARCHAR(6)
+                    ),
+                    6
+                )
+            FROM PosInvoice
+            WHERE  BranchId = @BranchId";
 
+                return await connection.ExecuteScalarAsync<string>(
+                    sql,
+                    new
+                    {
+                        BranchId = branchId
+                    });
+            }
+        }
         public IEnumerable<ItemSearchVM> SearchItems(string term)
         {
             using (var con = _context.CreateConnection())

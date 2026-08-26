@@ -582,6 +582,20 @@
     // Search/Scan barcode
     let isSearching = false;
 
+
+ $(document).ready(function () {
+
+    $.get('/POS/GenerateInvoiceNo', function (response) {
+
+        if (response.success) {
+            $('#invoiceNo').val(response.invoiceNo);
+        } else {
+            console.log(response.message);
+        }
+
+    });
+
+});
     //===============================
     // Barcode Scan
     //===============================

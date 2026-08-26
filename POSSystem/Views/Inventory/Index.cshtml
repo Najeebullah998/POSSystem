@@ -1,0 +1,926 @@
+﻿@{
+    ViewBag.Title = "Stock Management";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .stock-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Cards */
+    .stock-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .stock-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+    .card-header-stock {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 18px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* Search Section */
+    .search-section {
+        background: var(--light-bg);
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid var(--border-color);
+    }
+
+    .form-label-modern {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        font-size: 14px;
+        width: 100%;
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+
+    .btn-search {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+    .btn-reset {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+        .btn-reset:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .btn-export {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+    /* Table Styles */
+    .table-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .stock-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 0;
+    }
+
+        .stock-table thead th {
+            background: var(--dark-color);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+            border: none;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .stock-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+            .stock-table tbody tr:hover {
+                background: #f8f9ff;
+                transform: scale(1.01);
+            }
+
+        .stock-table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+    /* Stock Status Badges */
+    .badge-stock {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .badge-in-stock {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-low-stock {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-out-of-stock {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    .badge-expired {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    .badge-expiring {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .summary-card {
+        background: var(--light-bg);
+        padding: 18px 20px;
+        border-radius: 12px;
+        text-align: center;
+        transition: all 0.3s;
+        border-left: 4px solid var(--primary-color);
+    }
+
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .summary-card.total-items {
+            border-left-color: var(--primary-color);
+        }
+
+        .summary-card.total-qty {
+            border-left-color: var(--success-color);
+        }
+
+        .summary-card.low-stock {
+            border-left-color: var(--warning-color);
+        }
+
+        .summary-card.out-of-stock {
+            border-left-color: var(--danger-color);
+        }
+
+        .summary-card.expired {
+            border-left-color: var(--danger-color);
+        }
+
+    .summary-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+        .summary-value.danger {
+            color: var(--danger-color);
+        }
+
+        .summary-value.warning {
+            color: var(--warning-color);
+        }
+
+        .summary-value.success {
+            color: var(--success-color);
+        }
+
+    /* Loading State */
+    .loading-state {
+        text-align: center;
+        padding: 60px 20px;
+        display: none;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Select2 Custom */
+    .select2-container .select2-selection--single {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        height: 44px;
+        padding: 5px;
+    }
+
+    .select2-container--focus .select2-selection--single {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 32px;
+        padding-left: 8px;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 40px;
+    }
+
+    /* Print Styles */
+    @@media print {
+        body {
+            background: white;
+            padding: 0;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .stock-card {
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+            border-radius: 0 !important;
+        }
+
+            .stock-card:hover {
+                transform: none !important;
+            }
+
+        .card-header-stock {
+            background: #1f2937 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stock-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .card-header-stock {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    /* No Data */
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #94a3b8;
+    }
+
+        .no-data i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+        }
+
+    /* Warehouse Name */
+    .warehouse-name {
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+</style>
+
+<div class="stock-container">
+    <!-- Header Card -->
+    <div class="stock-card">
+        <div class="card-header-stock">
+            <span><i class="fas fa-boxes"></i> Stock Management</span>
+            <span style="font-size: 14px; opacity: 0.9;">
+                <i class="far fa-clock"></i> <span id="currentDateTime"></span>
+            </span>
+        </div>
+        <div class="card-body-custom">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label-modern">
+                            <i class="fas fa-warehouse"></i> Warehouse
+                        </label>
+                        <select id="warehouseId" class="form-control-modern select2">
+                            <option value="">All Warehouses</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-modern">
+                            <i class="fas fa-box"></i> Item
+                        </label>
+                        <select id="itemId" class="form-control-modern select2">
+                            <option value="">All Items</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-modern">
+                            <i class="fas fa-barcode"></i> Batch No
+                        </label>
+                        <input type="text" id="batchNo" class="form-control-modern" placeholder="Search by batch..." />
+                    </div>
+                    <div class="col-md-3">
+                        <div class="row g-2">
+                            <div class="col-5">
+                                <button class="btn-search" onclick="loadStock()">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <div class="col-4">
+                                <button class="btn-reset" onclick="resetFilters()">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn-export" onclick="exportStock()" title="Export to Excel">
+                                    <i class="fas fa-file-excel"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p style="color: #6b7280;">Loading stock data...</p>
+    </div>
+
+    <!-- Stock Content -->
+    <div id="stockContent" style="display: none;">
+        <!-- Summary Cards -->
+        <div class="stock-card">
+            <div class="card-body-custom">
+                <div class="summary-grid" id="summaryGrid">
+                    <div class="summary-card total-items">
+                        <div class="summary-label">Total Items</div>
+                        <div class="summary-value" id="totalItems">0</div>
+                    </div>
+                    <div class="summary-card total-qty">
+                        <div class="summary-label">Total Quantity</div>
+                        <div class="summary-value success" id="totalQuantity">0</div>
+                    </div>
+                    <div class="summary-card low-stock">
+                        <div class="summary-label">Low Stock Items</div>
+                        <div class="summary-value warning" id="lowStockItems">0</div>
+                    </div>
+                    <div class="summary-card out-of-stock">
+                        <div class="summary-label">Out of Stock</div>
+                        <div class="summary-value danger" id="outOfStockItems">0</div>
+                    </div>
+                    <div class="summary-card expired">
+                        <div class="summary-label">Expired Items</div>
+                        <div class="summary-value danger" id="expiredItems">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Table -->
+        <div class="stock-card">
+            <div class="card-body-custom">
+                <div class="table-wrapper">
+                    <table class="stock-table" id="stockTable">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="18%">Item Name</th>
+                                <th width="12%">Warehouse</th>
+                                <th width="12%">Batch No</th>
+                                <th width="12%">Mfg Date</th>
+                                <th width="12%">Expiry Date</th>
+                                <th width="10%">Quantity</th>
+                                <th width="10%">Status</th>
+                                <th width="9%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockBody">
+                            <tr>
+                                <td colspan="9">
+                                    <div class="no-data">
+                                        <i class="fas fa-boxes"></i>
+                                        <p>No stock data found. Click "Search" to load stock.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Detail Modal -->
+<div class="modal fade" id="stockDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); color: white;">
+                <h5 class="modal-title"><i class="fas fa-box"></i> Stock Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="stockDetailBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+
+<script>
+    let stockData = [];
+    let modalInstance = null;
+
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            placeholder: 'Select option',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Load dropdowns
+        loadWarehouses();
+        loadItems();
+
+        // Update date time
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // Load stock on page load
+        loadStock();
+
+        // Enter key for search
+        $('#batchNo').on('keypress', function(e) {
+            if (e.which === 13) {
+                loadStock();
+            }
+        });
+    });
+
+    function updateDateTime() {
+        const now = new Date();
+        $('#currentDateTime').text(now.toLocaleString());
+    }
+
+    function loadWarehouses() {
+        $.ajax({
+            url: '/Inventory/GetWarehouses',
+            type: 'GET',
+            success: function(res) {
+                if (res.success) {
+                    let select = $('#warehouseId');
+                    select.empty().append('<option value="">All Warehouses</option>');
+                    res.data.forEach(function(item) {
+                        select.append(`<option value="${item.value}">${item.text}</option>`);
+                    });
+                }
+            },
+            error: function() {
+                console.log('Failed to load warehouses');
+            }
+        });
+    }
+
+    function loadItems() {
+        $.ajax({
+            url: '/Inventory/GetItems',
+            type: 'GET',
+            success: function(res) {
+                if (res.success) {
+                    let select = $('#itemId');
+                    select.empty().append('<option value="">All Items</option>');
+                    res.data.forEach(function(item) {
+                        select.append(`<option value="${item.value}">${item.text}</option>`);
+                    });
+                }
+            },
+            error: function() {
+                console.log('Failed to load items');
+            }
+        });
+    }
+
+    function loadStock() {
+        const warehouseId = $('#warehouseId').val() || null;
+        const itemId = $('#itemId').val() || null;
+        const batchNo = $('#batchNo').val().trim() || null;
+
+        $('#loadingState').show();
+        $('#stockContent').hide();
+
+        $.ajax({
+            url: '/Inventory/GetStock',
+            type: 'GET',
+            data: {
+                warehouseId: warehouseId,
+                itemId: itemId,
+                batchNo: batchNo
+            },
+            success: function(res) {
+                $('#loadingState').hide();
+
+                if (res.success) {
+                    stockData = res.data;
+                    renderStock(res.data);
+                    updateSummary(res.data);
+                    $('#stockContent').show();
+                } else {
+                    Swal.fire('Error', res.message || 'Failed to load stock', 'error');
+                }
+            },
+            error: function() {
+                $('#loadingState').hide();
+                Swal.fire('Error', 'Failed to load stock data', 'error');
+            }
+        });
+    }
+
+    function renderStock(data) {
+        let tbody = $('#stockBody');
+        tbody.empty();
+
+        if (!data || data.length === 0) {
+            tbody.html(`
+                    <tr>
+                        <td colspan="9">
+                            <div class="no-data">
+                                <i class="fas fa-boxes"></i>
+                                <p>No stock data found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            return;
+        }
+
+        data.forEach(function(item, index) {
+            const status = getStockStatus(item);
+            const statusBadge = getStatusBadge(status);
+            const isExpired = isExpiredDate(item.expiryDate);
+
+            // Get warehouse name - you can add this to your SP or use a mapping
+            const warehouseName = item.warehouseName || 'Warehouse ' + (item.warehouseId || '');
+
+            let row = `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${item.itemName || '-'}</strong></td>
+                        <td><span class="warehouse-name">${warehouseName}</span></td>
+                        <td>${item.batchNo || '-'}</td>
+                        <td>${item.manufacturingDate ? new Date(item.manufacturingDate).toLocaleDateString() : '-'}</td>
+                        <td class="${isExpired ? 'text-danger fw-bold' : ''}">
+                            ${item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}
+                            ${isExpired ? ' <i class="fas fa-exclamation-triangle text-danger"></i>' : ''}
+                        </td>
+                        <td class="fw-bold">${item.quantity || 0}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewDetail(${index})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            tbody.append(row);
+        });
+    }
+
+    function getStockStatus(item) {
+        const qty = parseFloat(item.quantity) || 0;
+        const expiryDate = item.expiryDate ? new Date(item.expiryDate) : null;
+        const today = new Date();
+
+        // Check if expired
+        if (expiryDate && expiryDate < today) {
+            return 'expired';
+        }
+
+        // Check if expiring soon (within 30 days)
+        if (expiryDate) {
+            const daysDiff = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+            if (daysDiff <= 30 && daysDiff > 0) {
+                return 'expiring';
+            }
+        }
+
+        // Check quantity status
+        if (qty <= 0) {
+            return 'out-of-stock';
+        } else if (qty <= 10) {
+            return 'low-stock';
+        } else {
+            return 'in-stock';
+        }
+    }
+
+    function getStatusBadge(status) {
+        switch (status) {
+            case 'in-stock':
+                return '<span class="badge-stock badge-in-stock"><i class="fas fa-check-circle"></i> In Stock</span>';
+            case 'low-stock':
+                return '<span class="badge-stock badge-low-stock"><i class="fas fa-exclamation-triangle"></i> Low Stock</span>';
+            case 'out-of-stock':
+                return '<span class="badge-stock badge-out-of-stock"><i class="fas fa-times-circle"></i> Out of Stock</span>';
+            case 'expired':
+                return '<span class="badge-stock badge-expired"><i class="fas fa-skull"></i> Expired</span>';
+            case 'expiring':
+                return '<span class="badge-stock badge-expiring"><i class="fas fa-clock"></i> Expiring Soon</span>';
+            default:
+                return '<span class="badge-stock">Unknown</span>';
+        }
+    }
+
+    function isExpiredDate(dateStr) {
+        if (!dateStr) return false;
+        const expiryDate = new Date(dateStr);
+        const today = new Date();
+        return expiryDate < today;
+    }
+
+    function updateSummary(data) {
+        let totalItems = data.length;
+        let totalQty = 0;
+        let lowStock = 0;
+        let outOfStock = 0;
+        let expired = 0;
+
+        data.forEach(function(item) {
+            totalQty += parseFloat(item.quantity) || 0;
+            const status = getStockStatus(item);
+            if (status === 'low-stock') lowStock++;
+            if (status === 'out-of-stock') outOfStock++;
+            if (status === 'expired') expired++;
+        });
+
+        $('#totalItems').text(totalItems);
+        $('#totalQuantity').text(totalQty);
+        $('#lowStockItems').text(lowStock);
+        $('#outOfStockItems').text(outOfStock);
+        $('#expiredItems').text(expired);
+    }
+
+    function viewDetail(index) {
+        const item = stockData[index];
+        if (!item) {
+            Swal.fire('Error', 'Item not found', 'error');
+            return;
+        }
+
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(document.getElementById('stockDetailModal'));
+        }
+
+        const status = getStockStatus(item);
+        const statusBadge = getStatusBadge(status);
+        const warehouseName = item.warehouseName || 'Warehouse ' + (item.warehouseId || '');
+
+        const html = `
+                <div style="padding: 10px;">
+                    
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Item Name:</strong></div>
+                        <div class="col-6">${item.itemName || '-'}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Warehouse:</strong></div>
+                        <div class="col-6">${warehouseName}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Batch No:</strong></div>
+                        <div class="col-6">${item.batchNo || '-'}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Quantity:</strong></div>
+                        <div class="col-6 fw-bold">${item.quantity || 0}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Manufacturing Date:</strong></div>
+                        <div class="col-6">${item.manufacturingDate ? new Date(item.manufacturingDate).toLocaleDateString() : '-'}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Expiry Date:</strong></div>
+                        <div class="col-6">${item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Status:</strong></div>
+                        <div class="col-6">${statusBadge}</div>
+                    </div>
+                </div>
+            `;
+
+        $('#stockDetailBody').html(html);
+        modalInstance.show();
+    }
+
+    function resetFilters() {
+        $('#warehouseId').val('').trigger('change');
+        $('#itemId').val('').trigger('change');
+        $('#batchNo').val('');
+        loadStock();
+    }
+
+    function exportStock() {
+        if (!stockData || stockData.length === 0) {
+            Swal.fire('Warning', 'No data to export', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Exporting...',
+            text: 'Preparing Excel file',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Convert to CSV with BOM for UTF-8
+        let csv = 'Sr#,Item Name,Warehouse,Batch No,Manufacturing Date,Expiry Date,Quantity,Status\n';
+        stockData.forEach(function(item, index) {
+            const status = getStockStatus(item);
+            const statusText = status.replace('-', ' ').toUpperCase();
+            const warehouseName = item.warehouseName || 'Warehouse ' + (item.warehouseId || '');
+            csv += `${index + 1},${item.itemName || '-'},${warehouseName},${item.batchNo || '-'},${item.manufacturingDate ? new Date(item.manufacturingDate).toLocaleDateString() : '-'},${item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '-'},${item.quantity || 0},${statusText}\n`;
+        });
+
+        // Download
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Stock_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        Swal.close();
+        Swal.fire({
+            icon: 'success',
+            title: 'Exported!',
+            text: 'Stock report exported successfully',
+            timer: 2000
+        });
+    }
+
+    // Reload stock every 5 minutes
+    setInterval(function() {
+        if ($('#stockContent').is(':visible')) {
+            loadStock();
+        }
+    }, 300000);
+</script>

@@ -421,7 +421,6 @@
                                 <th width="18%">Customer</th>
                                 <th width="12%">Branch</th>
                                 <th width="10%">Total Rs.</th>
-                                <th width="10%">Discount Rs.</th>
                                 <th width="10%">Net Rs.</th>
                                 <th width="10%">Status</th>
                                 <th width="18%">Actions</th>
@@ -611,7 +610,7 @@
                     <td>${bill.customerName || 'Walk-in'}</td>
                     <td>${bill.branchName || '-'}</td>
                     <td>Rs.${parseFloat(bill.totalAmount || 0).toFixed(2)}</td>
-                    <td>Rs.${parseFloat(bill.discount || 0).toFixed(2)}</td>
+                  
                     <td><strong>Rs.${parseFloat(bill.netAmount || 0).toFixed(2)}</strong></td>
                     <td>${statusBadge}</td>
                        <td class="no-print">
@@ -786,7 +785,7 @@
                                 <th>Item</th>
                                 <th>Rate</th>
                                 <th>Qty</th>
-                                <th>Discount</th>
+                               
                                 <th>Amount</th>
                             </tr>
                         </thead>
@@ -800,7 +799,7 @@
                         <td>${item.itemName || 'Unknown'}</td>
                         <td>Rs.${parseFloat(item.rate || 0).toFixed(2)}</td>
                         <td>${item.quantity || 0}</td>
-                        <td>Rs.${parseFloat(item.discount || 0).toFixed(2)}</td>
+                        
                         <td><strong>Rs.${parseFloat(item.amount || 0).toFixed(2)}</strong></td>
                     </tr>
                 `;
@@ -816,7 +815,7 @@
         let total = parseFloat(invoice.totalAmount) || 0;
         let discount = parseFloat(invoice.discount) || 0;
         let net = parseFloat(invoice.netAmount) || 0;
-        let paid = parseFloat(invoice.paidAmount) || 0;
+        let paid = parseFloat(invoice.netAmount) || 0;
         let change = paid - net;
         if (change < 0) change = 0;
 
@@ -832,7 +831,7 @@
                     <div class="col-md-3"><strong>Paid:</strong> Rs.${paid.toFixed(2)}</div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col-md-6"><strong>Change:</strong> Rs.${change.toFixed(2)}</div>
+                    
                     <div class="col-md-6"><strong>Status:</strong> ${getStatusBadge(getStatus(invoice))}</div>
                 </div>
                 ${invoice.remarks ? `<hr><div><strong>Remarks:</strong> ${invoice.remarks}</div>` : ''}

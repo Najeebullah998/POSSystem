@@ -3,6 +3,8 @@
     public class ItemCategory
     {
         public int CategoryId { get; set; }
+        public int CompanyId { get; set; }
+        public int BranchId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

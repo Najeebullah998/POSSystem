@@ -4,6 +4,7 @@ namespace POSSystem.Interfaces
 {
     public interface IPosRepository
     {
+        Task<string> GenerateInvoiceNoAsync(int branchId);
         bool SaveInvoice(PosInvoiceVm model);
         IEnumerable<ItemSearchVM> SearchItems(string term);
         Task<(PosInvoiceVm Invoice, List<PosInvoiceDetailVm> Details)> GetBillByIdAsync(int invoiceId);

@@ -4,6 +4,10 @@
     {
         public int GRNDetailId { get; set; }
 
+        public int CompanyId { get; set; }
+
+        public int BranchId { get; set; }
+
         public int ItemId { get; set; }
 
         public string ItemName { get; set; }

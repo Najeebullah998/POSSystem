@@ -9,6 +9,7 @@
 
         public int RoleId { get; set; }
         public int BranchId { get; set; }
+        public int CompanyId { get; set; }
 
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

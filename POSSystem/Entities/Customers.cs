@@ -3,6 +3,8 @@
     public class Customers
     {
         public int CustomerId { get; set; }
+        public int CompanyId { get; set; }
+        public int BranchId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public bool IsActive { get; set; }

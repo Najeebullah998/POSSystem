@@ -30,6 +30,41 @@ namespace POSSystem.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GenerateInvoiceNo()
+        {
+            try
+            {
+                int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+                if (companyId == 0 || branchId == 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Company or Branch session not found."
+                    });
+                }
+
+                var invoiceNo = await _repo.GenerateInvoiceNoAsync(branchId);
+
+                return Json(new
+                {
+                    success = true,
+                    invoiceNo = invoiceNo
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
         public JsonResult SearchItems(string term)
         {
             var data = _repo.SearchItems(term);

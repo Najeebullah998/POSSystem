@@ -6,7 +6,8 @@
         public string SupplierName { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        //public int BranchId { get; set; }
+        public int CompanyId { get; set; }
+        public int BranchId { get; set; }
 
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

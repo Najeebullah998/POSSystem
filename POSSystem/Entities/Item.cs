@@ -3,6 +3,8 @@
     public class Item
     {
         public int ItemId { get; set; }
+        public int CompanyId { get; set; }
+        public int BranchId { get; set; }
         public string? Barcode { get; set; }
         public string? ItemName { get; set; }
         public int? CategoryId { get; set; }
