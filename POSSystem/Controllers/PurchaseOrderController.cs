@@ -21,8 +21,12 @@ public class PurchaseOrderController : Controller
     }
     public async Task<IActionResult> GetPurchaseList()
     {
-        var list = await _repo.GetAllAsync();
-        return Json(list);
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+        var result = await _repo.GetAllAsync(companyId, branchId);
+
+        return Json(result);
     }
     // =========================
     // ADD / CREATE SCREEN
@@ -45,24 +49,104 @@ public class PurchaseOrderController : Controller
     [HttpPost]
     public async Task<IActionResult> Save(PurchaseOrderHeaderVm model)
     {
-        if (model == null || model.Details == null || model.Details.Count == 0)
+        try
         {
-            return Json(new { success = false, message = "No items found!" });
+            if (model == null || model.Details == null || model.Details.Count == 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "No items found!"
+                });
+            }
+
+            // ==========================================
+            // Get Session IDs
+            // ==========================================
+
+            int companyId =
+                HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+            int branchId =
+                HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            int userId =
+                HttpContext.Session.GetInt32("UserId") ?? 0;
+
+
+            // ==========================================
+            // Validate Session
+            // ==========================================
+
+            if (companyId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Company not found in session."
+                });
+            }
+
+            if (branchId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Branch not found in session."
+                });
+            }
+
+            if (userId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "User not found in session."
+                });
+            }
+
+
+            // ==========================================
+            // Override Frontend Values
+            // ==========================================
+
+            model.CompanyId = companyId;
+            model.BranchId = branchId;
+            model.CreatedBy = userId;
+
+
+            // ==========================================
+            // Save Purchase Order
+            // ==========================================
+
+            var result = await _repo.SaveAsync(model);
+
+
+            if (result > 0)
+            {
+                return Json(new
+                {
+                    success = true,
+                    message = "Purchase Order Saved Successfully",
+                    id = result
+                });
+            }
+
+
+            return Json(new
+            {
+                success = false,
+                message = "Save failed!"
+            });
         }
-
-        var result = await _repo.SaveAsync(model);
-
-        if (result > 0)
+        catch (Exception ex)
         {
             return Json(new
             {
-                success = true,
-                message = "Purchase Order Saved Successfully",
-                id = result
+                success = false,
+                message = ex.Message
             });
         }
-
-        return Json(new { success = false, message = "Save failed!" });
     }
 
     // =========================

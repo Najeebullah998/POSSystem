@@ -20,56 +20,128 @@ namespace POSSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllWarehouse()
         {
-            var warehouse = await _repo.GetAllAsync();
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var warehouse = await _repo.GetAllAsync(companyId, branchId);
+
             return Json(warehouse);
         }
+
+        [HttpGet]
         public IActionResult AddWarehouse()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> AddWarehouse([FromBody] Warehouse warehouse)
         {
             if (warehouse == null)
-                return Json(new { success = false, message = "Invalid data" });
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid data"
+                });
+            }
 
-            warehouse.CreatedBy = 1; 
-            warehouse.IsActive = warehouse.IsActive;
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-            int id = await _repo.AddAsync(warehouse);
+            warehouse.CreatedBy = userId;
+
+            // Repository WarehouseId generate karega
+            int id = await _repo.AddAsync(
+                warehouse,
+                companyId,
+                branchId
+            );
 
             if (id > 0)
             {
-                return Json(new { success = true, message = "Warehouse saved successfully" });
+                return Json(new
+                {
+                    success = true,
+                    message = "Warehouse saved successfully",
+                    warehouseId = id
+                });
             }
 
-            return Json(new { success = false, message = "Error saving Warehouse" });
+            return Json(new
+            {
+                success = false,
+                message = "Error saving Warehouse"
+            });
         }
 
         [HttpGet]
         public async Task<IActionResult> GetWarehouseById(int id)
         {
-            var warehouse = await _repo.GetByIdAsync(id);
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var warehouse = await _repo.GetByIdAsync(
+                id,
+                companyId,
+                branchId
+            );
+
             return Json(warehouse);
         }
+
         [HttpPost]
-        public async Task<IActionResult> UpdateWarehouse([FromBody] Warehouse warehouse)
+        public async Task<IActionResult> UpdateWarehouse(
+            [FromBody] Warehouse warehouse)
         {
             if (warehouse == null || warehouse.WarehouseId == 0)
-                return Json(new { success = false, message = "Invalid data" });
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid data"
+                });
+            }
 
-            warehouse.ModifiedBy = 1;
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-            await _repo.UpdateAsync(warehouse);
+            warehouse.ModifiedBy = userId;
 
-            return Json(new { success = true, message = "Warehouse updated successfully" });
+            await _repo.UpdateAsync(
+                warehouse,
+                companyId,
+                branchId
+            );
+
+            return Json(new
+            {
+                success = true,
+                message = "Warehouse updated successfully"
+            });
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteWarehouse(int id)
         {
-            await _repo.DeleteAsync(id);
-            return Json(new { success = true, message = "Warehouse deleted successfully" });
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            await _repo.DeleteAsync(
+                id,
+                companyId,
+                branchId,
+                userId
+            );
+
+            return Json(new
+            {
+                success = true,
+                message = "Warehouse deleted successfully"
+            });
         }
     }
 }

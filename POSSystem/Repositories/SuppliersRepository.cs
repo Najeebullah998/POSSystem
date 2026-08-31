@@ -14,91 +14,154 @@ namespace POSSystem.Repositories
             _context = context;
         }
 
-        public async Task<int> AddAsync(Supplier supplier)
+        public async Task<int> AddAsync(Supplier supplier,int companyId,int branchId)
         {
             var query = @"
-                INSERT INTO Suppliers
-                (
-                    SupplierName,
-                    Phone,
-                    Email,
-                    IsActive,
-                    IsDeleted,
-                    CreatedOn,
-                    CreatedBy
-                )
-                VALUES
-                (
-                    @SupplierName,
-                    @Phone,
-                    @Email,
-                    @IsActive,
-                    0,
-                    GETDATE(),
-                    @CreatedBy
-                );
+        DECLARE @SupplierId INT;
 
-                SELECT CAST(SCOPE_IDENTITY() AS INT);
-            ";
+        SELECT @SupplierId = ISNULL(MAX(SupplierId), 0) + 1
+        FROM Suppliers;
+
+        INSERT INTO Suppliers
+        (
+            SupplierId,
+            CompanyId,
+            BranchId,
+            SupplierName,
+            Phone,
+            Email,
+            IsActive,
+            IsDeleted,
+            CreatedOn,
+            CreatedBy
+        )
+        VALUES
+        (
+            @SupplierId,
+            @CompanyId,
+            @BranchId,
+            @SupplierName,
+            @Phone,
+            @Email,
+            @IsActive,
+            0,
+            GETDATE(),
+            @CreatedBy
+        );
+
+        SELECT @SupplierId;
+    ";
 
             using var con = _context.CreateConnection();
-            return await con.ExecuteScalarAsync<int>(query, supplier);
+
+            return await con.ExecuteScalarAsync<int>(query, new
+            {
+                CompanyId = companyId,
+                BranchId = branchId,
+                supplier.SupplierName,
+                supplier.Phone,
+                supplier.Email,
+                supplier.IsActive,
+                supplier.CreatedBy
+            });
         }
 
-        public async Task<IEnumerable<Supplier>> GetAllAsync()
+
+        public async Task<IEnumerable<Supplier>> GetAllAsync(int companyId, int branchId)
         {
             var query = @"
-                SELECT *
-                FROM Suppliers
-                WHERE IsDeleted = 0
-                ORDER BY SupplierName";
+        SELECT *
+        FROM Suppliers
+        WHERE CompanyId = @CompanyId
+          AND BranchId = @BranchId
+          AND IsDeleted = 0
+        ORDER BY SupplierName";
 
             using var con = _context.CreateConnection();
-            return await con.QueryAsync<Supplier>(query);
+
+            return await con.QueryAsync<Supplier>(query, new
+            {
+                CompanyId = companyId,
+                BranchId = branchId
+            });
         }
 
-        public async Task<Supplier?> GetByIdAsync(int id)
+
+        public async Task<Supplier?> GetByIdAsync(int id,int companyId,int branchId)
         {
             var query = @"
-                SELECT *
-                FROM Suppliers
-                WHERE SupplierId = @Id
-                AND IsDeleted = 0";
+        SELECT *
+        FROM Suppliers
+        WHERE SupplierId = @Id
+          AND CompanyId = @CompanyId
+          AND BranchId = @BranchId
+          AND IsDeleted = 0";
 
             using var con = _context.CreateConnection();
-            return await con.QueryFirstOrDefaultAsync<Supplier>(query, new { Id = id });
+
+            return await con.QueryFirstOrDefaultAsync<Supplier>(query, new
+            {
+                Id = id,
+                CompanyId = companyId,
+                BranchId = branchId
+            });
         }
 
-        public async Task UpdateAsync(Supplier supplier)
+
+        public async Task UpdateAsync(Supplier supplier,int companyId,int branchId)
         {
             var query = @"
-                UPDATE Suppliers
-                SET
-                    SupplierName = @SupplierName,
-                    Phone = @Phone,
-                    Email = @Email,
-                    IsActive = @IsActive,
-                    ModifiedOn = GETDATE(),
-                    ModifiedBy = @ModifiedBy
-                WHERE SupplierId = @SupplierId
-                AND IsDeleted = 0";
+        UPDATE Suppliers
+        SET
+            SupplierName = @SupplierName,
+            Phone = @Phone,
+            Email = @Email,
+            IsActive = @IsActive,
+            ModifiedOn = GETDATE(),
+            ModifiedBy = @ModifiedBy
+        WHERE SupplierId = @SupplierId
+          AND CompanyId = @CompanyId
+          AND BranchId = @BranchId
+          AND IsDeleted = 0";
 
             using var con = _context.CreateConnection();
-            await con.ExecuteAsync(query, supplier);
+
+            await con.ExecuteAsync(query, new
+            {
+                supplier.SupplierId,
+                supplier.SupplierName,
+                supplier.Phone,
+                supplier.Email,
+                supplier.IsActive,
+                supplier.ModifiedBy,
+                CompanyId = companyId,
+                BranchId = branchId
+            });
         }
 
-        public async Task DeleteAsync(int id)
+
+        public async Task DeleteAsync(int id,int companyId,int branchId,int userId)
         {
             var query = @"
-                UPDATE Suppliers
-                SET
-                    IsDeleted = 1,
-                    IsActive = 0,
-                    ModifiedOn = GETDATE()
-                WHERE SupplierId = @Id";
+        UPDATE Suppliers
+        SET
+            IsDeleted = 1,
+            IsActive = 0,
+            DeletedOn = GETDATE(),
+            DeletedBy = @DeletedBy
+        WHERE SupplierId = @Id
+          AND CompanyId = @CompanyId
+          AND BranchId = @BranchId";
 
             using var con = _context.CreateConnection();
-            await con.ExecuteAsync(query, new { Id = id });
+
+            await con.ExecuteAsync(query, new
+            {
+                Id = id,
+                CompanyId = companyId,
+                BranchId = branchId,
+                DeletedBy = userId
+            });
         }
 
         //public Task<IEnumerable<dynamic>> GetBranchesAsync()

@@ -9,7 +9,7 @@ namespace POSSystem.Interfaces
         // GET METHODS
         // =========================
 
-        Task<List<PurchaseOrderHeaderVm>> GetAllAsync();
+        Task<List<PurchaseOrderHeaderVm>> GetAllAsync(int companyId, int branchId);
 
         Task<PurchaseOrderHeaderVm> GetByIdAsync(int id);
 

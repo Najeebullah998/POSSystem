@@ -216,7 +216,11 @@ namespace POSSystem.Repositories
             parameters.Add("@ReturnDate", model.ReturnDate);
             parameters.Add("@InvoiceId", model.InvoiceId);
             parameters.Add("@CustomerId", model.CustomerId);
+
+            // Company + Branch
+            parameters.Add("@CompanyId", model.CompanyId);
             parameters.Add("@BranchId", model.BranchId);
+
             parameters.Add("@WarehouseId", model.WarehouseId);
             parameters.Add("@TotalAmount", model.TotalAmount);
             parameters.Add("@Remarks", model.Remarks);
@@ -224,7 +228,8 @@ namespace POSSystem.Repositories
 
             parameters.Add(
                 "@Details",
-                GetSaleReturnDetailTable(model.Details).AsTableValuedParameter("SaleReturnDetailType")
+                GetSaleReturnDetailTable(model.Details)
+                    .AsTableValuedParameter("dbo.SaleReturnDetailType")
             );
 
             var result = await con.ExecuteScalarAsync<int>(

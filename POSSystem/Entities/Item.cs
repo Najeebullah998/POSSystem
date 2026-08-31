@@ -8,7 +8,9 @@
         public string? Barcode { get; set; }
         public string? ItemName { get; set; }
         public int? CategoryId { get; set; }
+        public string? CategoryName { get; set; }
         public int? UnitId { get; set; }
+        public string? UnitName { get; set; } = string.Empty;
         public decimal? SalePrice { get; set; }
         public decimal? CostPrice { get; set; }
         public bool? IsActive { get; set; }

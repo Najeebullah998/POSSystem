@@ -4,14 +4,14 @@ namespace POSSystem.Interfaces
 {
     public interface ICustomer
     {
-        Task<int> AddAsync(Customers customers);
+        Task<int> AddAsync(Customers customers, int companyId, int branchId);
 
-        Task UpdateAsync(Customers customers);
+        Task UpdateAsync(Customers customers, int companyId, int branchId);
 
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id, int companyId, int branchId, int userId);
 
-        Task<Customers?> GetByIdAsync(int id);
+        Task<Customers?> GetByIdAsync(int id, int companyId, int branchId);
 
-        Task<IEnumerable<Customers>> GetAllAsync();
+        Task<IEnumerable<Customers>> GetAllAsync(int companyId, int branchId);
     }
 }

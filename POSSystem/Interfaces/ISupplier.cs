@@ -2,15 +2,16 @@
 
 namespace POSSystem.Interfaces
 {
-    public interface ISupplier  
+    public interface ISupplier
     {
-        Task<int> AddAsync(Supplier supplier);
-        Task UpdateAsync(Supplier supplier);
-        Task DeleteAsync(int id);
-        Task<Supplier?> GetByIdAsync(int id);
-        Task<IEnumerable<Supplier>> GetAllAsync();
+        Task<int> AddAsync(Supplier supplier, int companyId, int branchId);
 
-        //Task<IEnumerable<dynamic>> GetRolesAsync();
-        //Task<IEnumerable<dynamic>> GetBranchesAsync();
+        Task UpdateAsync(Supplier supplier, int companyId, int branchId);
+
+        Task DeleteAsync(int id, int companyId, int branchId, int userId);
+
+        Task<Supplier?> GetByIdAsync(int id, int companyId, int branchId);
+
+        Task<IEnumerable<Supplier>> GetAllAsync(int companyId, int branchId);
     }
 }

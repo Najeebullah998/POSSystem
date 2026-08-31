@@ -4,14 +4,14 @@ namespace POSSystem.Interfaces
 {
     public interface IWarehouse
     {
-        Task<int> AddAsync(Warehouse warehouse);
+        Task<int> AddAsync(Warehouse warehouse, int companyId, int branchId);
 
-        Task UpdateAsync(Warehouse warehouse);
+        Task UpdateAsync(Warehouse warehouse, int companyId, int branchId);
 
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id, int companyId, int branchId, int userId);
 
-        Task<Warehouse?> GetByIdAsync(int id);
+        Task<Warehouse?> GetByIdAsync(int id, int companyId, int branchId);
 
-        Task<IEnumerable<Warehouse>> GetAllAsync();
+        Task<IEnumerable<Warehouse>> GetAllAsync(int companyId, int branchId);
     }
 }

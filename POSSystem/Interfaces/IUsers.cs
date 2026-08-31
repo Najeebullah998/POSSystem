@@ -2,15 +2,20 @@
 
 namespace POSSystem.Interfaces
 {
-    public interface IUsers   // ✅ MUST be public
+    public interface IUsers
     {
-        Task<int> AddAsync(Users user);
-        Task UpdateAsync(Users user);
-        Task DeleteAsync(int id);
-        Task<Users?> GetByIdAsync(int id);
-        Task<IEnumerable<dynamic>> GetAllAsync();
+        Task<int> AddAsync(Users user, int companyId, int branchId);
+
+        Task UpdateAsync(Users user, int companyId, int branchId);
+
+        Task DeleteAsync(int id, int companyId, int branchId, int userId);
+
+        Task<Users?> GetByIdAsync(int id, int companyId, int branchId);
+
+        Task<IEnumerable<dynamic>> GetAllAsync(int companyId, int branchId);
 
         Task<IEnumerable<dynamic>> GetRolesAsync();
-        Task<IEnumerable<dynamic>> GetBranchesAsync();
+
+        Task<IEnumerable<dynamic>> GetBranchesAsync(int companyId);
     }
 }

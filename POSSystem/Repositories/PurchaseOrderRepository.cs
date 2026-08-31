@@ -19,38 +19,72 @@ namespace POSSystem.Repositories
         {
             using (var con = _context.CreateConnection())
             {
-                // REMOVE THIS LINE ❌
-                // await con.OpenAsync();
+                // ==========================================
+                // Purchase Order Detail TVP
+                // ==========================================
 
                 DataTable dt = new DataTable();
+
                 dt.Columns.Add("ItemId", typeof(int));
                 dt.Columns.Add("Quantity", typeof(decimal));
                 dt.Columns.Add("Rate", typeof(decimal));
                 dt.Columns.Add("Amount", typeof(decimal));
 
+
                 foreach (var item in model.Details)
                 {
-                    dt.Rows.Add(item.ItemId, item.Quantity, item.Rate, item.Amount);
+                    dt.Rows.Add(
+                        item.ItemId,
+                        item.Quantity,
+                        item.Rate,
+                        item.Amount
+                    );
                 }
 
+
+                // ==========================================
+                // Stored Procedure Parameters
+                // ==========================================
+
                 var param = new DynamicParameters();
+
                 param.Add("@PONumber", model.PONumber);
                 param.Add("@PODate", model.PODate);
                 param.Add("@SupplierId", model.SupplierId);
+
+                // Company + Branch
+                param.Add("@CompanyId", model.CompanyId);
                 param.Add("@BranchId", model.BranchId);
+
                 param.Add("@WarehouseId", model.WarehouseId);
+
                 param.Add("@TotalAmount", model.TotalAmount);
                 param.Add("@Discount", model.Discount);
                 param.Add("@NetAmount", model.NetAmount);
+
                 param.Add("@CreatedBy", model.CreatedBy);
 
-                param.Add("@Details", dt.AsTableValuedParameter("PurchaseOrderDetailType"));
+
+                // ==========================================
+                // Detail TVP
+                // ==========================================
+
+                param.Add(
+                    "@Details",
+                    dt.AsTableValuedParameter("dbo.PurchaseOrderDetailType")
+                );
+
+
+                // ==========================================
+                // Execute Stored Procedure
+                // ==========================================
 
                 var result = await con.QueryFirstOrDefaultAsync<int>(
                     "sp_SavePurchaseOrder",
                     param,
                     commandType: CommandType.StoredProcedure
                 );
+
 
                 return result;
             }
@@ -59,12 +93,17 @@ namespace POSSystem.Repositories
         // =========================
         // GET ALL
         // =========================
-        public async Task<List<PurchaseOrderHeaderVm>> GetAllAsync()
+        public async Task<List<PurchaseOrderHeaderVm>> GetAllAsync(int companyId, int branchId)
         {
             using (var con = _context.CreateConnection())
             {
                 var result = await con.QueryAsync<PurchaseOrderHeaderVm>(
                     "sp_GetPurchaseOrderList",
+                    new
+                    {
+                        CompanyId = companyId,
+                        BranchId = branchId
+                    },
                     commandType: CommandType.StoredProcedure
                 );
 

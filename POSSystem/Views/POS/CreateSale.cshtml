@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Http
+﻿@model POSSystem.Entities.PosInvoiceVm
+@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 
 <style>
@@ -393,16 +394,22 @@
                     <label class="form-label-modern">
                         <i class="fas fa-user"></i> Customer
                     </label>
-                    <select id="customerId" class="form-control-modern" style="width: 100%;">
-                        <option value="1">👤 Walk-in Customer</option>
+
+                    <select asp-for="CustomerId" class="form-control" id="customerId">
+                        @foreach (var customer in Model.Customerslist)
+                        {
+                            <option value="@customer.CustomerId">
+                                @customer.CustomerName
+                            </option>
+                        }
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label-modern">
+               @*  <div class="col-md-2">
+                    <label hidden class="form-label-modern">
                         <i class="fas fa-store"></i> Branch
                     </label>
-                    <input type="text" id="branchId" class="form-control-modern" style="width: 100%;" placeholder="Main Branch">
-                </div>
+                    <input type="hidden" id="branchId" class="form-control-modern" style="width: 100%;" placeholder="Main Branch">
+                </div> *@
                 <div class="col-md-4">
                     <label class="form-label">Payment Mode</label>
                     <select id="paymentMode" class="form-select">
@@ -411,12 +418,12 @@
                         <option value="Other">Other</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label-modern">
+               @*  <div class="col-md-3">
+                    <label hidden class="form-label-modern">
                         <i class="fas fa-user-circle"></i> Cashier
                     </label>
-                    <input type="text" id="userId" class="form-control-modern" style="width: 100%;" value="@HttpContextAccessor.HttpContext.Session.GetString("UserName")">
-                </div>
+                    <input type="hidden" id="userId" class="form-control-modern" style="width: 100%;" value="@HttpContextAccessor.HttpContext.Session.GetString("UserName")">
+                </div> *@
             </div>
         </div>
     </div>
@@ -1110,8 +1117,8 @@
             InvoiceNo: $('#invoiceNo').val(),
             InvoiceDate: $('#invoiceDate').val(),
             CustomerId: parseInt($('#customerId').val()) || 0,
-            BranchId: parseInt($('#branchId').val()) || 0,
-            UserId: parseInt($('#userId').val()) || 0,
+            // BranchId: parseInt($('#branchId').val()) || 0,
+            // UserId: parseInt($('#userId').val()) || 0,
             TotalAmount: parseFloat($('#total').val()) || 0,
             Discount: parseFloat($('#discount').val()) || 0,
             NetAmount: netAmount,

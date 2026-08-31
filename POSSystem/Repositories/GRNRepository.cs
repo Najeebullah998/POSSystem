@@ -175,7 +175,7 @@ namespace POSSystem.Repositories
             return dt;
         }
 
-        public async Task<GRNHeaderVM> GetPurchaseOrderByIdAsync(int purchaseOrderId)
+        public async Task<GRNHeaderVM> GetPurchaseOrderByIdAsync(int purchaseOrderId,int companyId,int branchId)
         {
             using (var con = _context.CreateConnection())
             {
@@ -183,7 +183,9 @@ namespace POSSystem.Repositories
                     "sp_GetPurchaseOrderForGRN",
                     new
                     {
-                        PurchaseOrderId = purchaseOrderId
+                        PurchaseOrderId = purchaseOrderId,
+                        CompanyId = companyId,
+                        BranchId = branchId
                     },
                     commandType: CommandType.StoredProcedure))
                 {
@@ -191,7 +193,8 @@ namespace POSSystem.Repositories
 
                     if (header != null)
                     {
-                        header.Details = (await multi.ReadAsync<GRNDetailVM>()).ToList();
+                        header.Details =
+                            (await multi.ReadAsync<GRNDetailVM>()).ToList();
                     }
 
                     return header;

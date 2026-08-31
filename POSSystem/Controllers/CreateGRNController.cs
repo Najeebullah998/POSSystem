@@ -19,7 +19,32 @@ namespace POSSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPurchaseOrder(int id)
         {
-            var result = await _repo.GetPurchaseOrderByIdAsync(id);
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            if (companyId == 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Company not found in session."
+                });
+            }
+
+            if (branchId == 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Branch not found in session."
+                });
+            }
+
+            var result = await _repo.GetPurchaseOrderByIdAsync(
+                id,
+                companyId,
+                branchId
+            );
 
             if (result == null)
             {
@@ -62,20 +87,14 @@ namespace POSSystem.Controllers
                 }
 
                 // ==========================================
-                // Get Logged-in User Information from Session
+                // Get Company, Branch & User from Session
                 // ==========================================
 
-                int? companyId =
-                    HttpContext.Session.GetInt32("CompanyId");
+                int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+                int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-                int? branchId =
-                    HttpContext.Session.GetInt32("BranchId");
-
-                int? userId =
-                    HttpContext.Session.GetInt32("UserId");
-
-
-                if (!companyId.HasValue || companyId.Value <= 0)
+                if (companyId <= 0)
                 {
                     return Json(new
                     {
@@ -84,7 +103,7 @@ namespace POSSystem.Controllers
                     });
                 }
 
-                if (!branchId.HasValue || branchId.Value <= 0)
+                if (branchId <= 0)
                 {
                     return Json(new
                     {
@@ -93,7 +112,7 @@ namespace POSSystem.Controllers
                     });
                 }
 
-                if (!userId.HasValue || userId.Value <= 0)
+                if (userId <= 0)
                 {
                     return Json(new
                     {
@@ -102,23 +121,19 @@ namespace POSSystem.Controllers
                     });
                 }
 
-
                 // ==========================================
-                // Override values from frontend
+                // Always use Session values
                 // ==========================================
 
-                model.CompanyId = companyId.Value;
-
-                model.BranchId = branchId.Value;
-
-                model.CreatedBy = userId.Value;
-
+                model.CompanyId = companyId;
+                model.BranchId = branchId;
+                model.CreatedBy = userId;
 
                 // ==========================================
                 // Validate Details
                 // ==========================================
 
-                if (model.Details == null)
+                if (model.Details == null || !model.Details.Any())
                 {
                     return Json(new
                     {
@@ -127,15 +142,13 @@ namespace POSSystem.Controllers
                     });
                 }
 
-
                 // ==========================================
-                // Sirf received items rakho
+                // Only received items
                 // ==========================================
 
                 model.Details = model.Details
                     .Where(x => x.ReceivedQty > 0)
                     .ToList();
-
 
                 if (!model.Details.Any())
                 {
@@ -146,14 +159,11 @@ namespace POSSystem.Controllers
                     });
                 }
 
-
                 // ==========================================
                 // Save GRN
                 // ==========================================
 
-                var result =
-                    await _repo.SaveGRNAsync(model);
-
+                var result = await _repo.SaveGRNAsync(model);
 
                 if (result > 0)
                 {
@@ -164,7 +174,6 @@ namespace POSSystem.Controllers
                         id = result
                     });
                 }
-
 
                 return Json(new
                 {

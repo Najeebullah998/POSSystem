@@ -20,7 +20,9 @@ namespace POSSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
-            var Categories = await _repo.GetAllAsync();
+            int companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
+            int branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+            var Categories = await _repo.GetAllAsync(companyId,branchId);
             return Json(Categories);
         }
         public IActionResult AddCategories()
@@ -33,24 +35,49 @@ namespace POSSystem.Controllers
             if (Categories == null)
                 return Json(new { success = false, message = "Invalid data" });
 
-            Categories.CreatedBy = 1; // session se le sakte ho
-            Categories.IsActive = Categories.IsActive;
+            int companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
+            int branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+            int userId = Convert.ToInt32(HttpContext.Session.GetInt32("UserId"));
 
-            int id = await _repo.AddAsync(Categories);
+            Categories.CreatedBy = userId;
+
+            int id = await _repo.AddAsync(Categories, companyId, branchId);
 
             if (id > 0)
             {
-                return Json(new { success = true, message = "Category saved successfully" });
+                return Json(new
+                {
+                    success = true,
+                    message = "Category saved successfully"
+                });
             }
 
-            return Json(new { success = false, message = "Error saving Category" });
+            return Json(new
+            {
+                success = false,
+                message = "Error saving Category"
+            });
         }
 
         [HttpGet]
         public async Task<IActionResult> GetCategoryById(int id)
         {
-            var category = await _repo.GetByIdAsync(id);
+            int companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
+            int branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+
+            var category = await _repo.GetByIdAsync(id, companyId, branchId);
+
             return Json(category);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetCategories()
+        {
+            int companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
+            int branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+
+            var categories = await _repo.GetAllAsync(companyId, branchId);
+
+            return Json(categories);
         }
         [HttpPost]
         public async Task<IActionResult> UpdateCategory([FromBody] ItemCategory category)
@@ -58,18 +85,34 @@ namespace POSSystem.Controllers
             if (category == null || category.CategoryId == 0)
                 return Json(new { success = false, message = "Invalid data" });
 
-            category.ModifiedBy = 1;
+            int companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
+            int branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+            int userId = Convert.ToInt32(HttpContext.Session.GetInt32("UserId"));
 
-            await _repo.UpdateAsync(category);
+            category.ModifiedBy = userId;
 
-            return Json(new { success = true, message = "Category updated successfully" });
+            await _repo.UpdateAsync(category, companyId, branchId);
+
+            return Json(new
+            {
+                success = true,
+                message = "Category updated successfully"
+            });
         }
-
         [HttpPost]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            await _repo.DeleteAsync(id);
-            return Json(new { success = true, message = "Category deleted successfully" });
+            int companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
+            int branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
+            int userId = Convert.ToInt32(HttpContext.Session.GetInt32("UserId"));
+
+            await _repo.DeleteAsync(id, companyId, branchId, userId);
+
+            return Json(new
+            {
+                success = true,
+                message = "Category deleted successfully"
+            });
         }
     }
 }

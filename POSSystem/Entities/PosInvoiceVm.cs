@@ -9,6 +9,7 @@
         public int BranchId { get; set; }
         public int CompanyId { get; set; }
         public int UserId { get; set; }
+        public int CreatedBy { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal Discount { get; set; }
         public decimal NetAmount { get; set; }
@@ -17,6 +18,8 @@
 
         public string CustomerName { get; set; }
         public string BranchName { get; set; }
+        public List<Customers> Customerslist { get; set; }
+        = new List<Customers>();
         public List<PosInvoiceDetailVm>? Items { get; set; }
     }
 

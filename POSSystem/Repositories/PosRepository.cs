@@ -15,6 +15,30 @@ namespace POSSystem.Repositories
         {
             _context = context;
         }
+
+        public async Task<List<Customers>> GetDropdownAsync(int companyId, int branchId)
+        {
+            using (var con = _context.CreateConnection())
+            {
+                var result = await con.QueryAsync<Customers>(
+                    @"
+            SELECT 
+                CustomerId,
+                CustomerName
+            FROM Customers
+            WHERE CompanyId = @CompanyId
+              AND BranchId = @BranchId
+            ORDER BY CustomerName
+            ",
+                    new
+                    {
+                        CompanyId = companyId,
+                        BranchId = branchId
+                    });
+
+                return result.ToList();
+            }
+        }
         public async Task<string> GenerateInvoiceNoAsync(int branchId)
         {
             using (var connection = _context.CreateConnection())
@@ -69,15 +93,20 @@ namespace POSSystem.Repositories
             {
                 var dt = new DataTable();
 
+                // ==========================================
+                // Invoice Detail TVP
+                // ==========================================
+
                 dt.Columns.Add("ItemId", typeof(int));
                 dt.Columns.Add("Quantity", typeof(decimal));
                 dt.Columns.Add("Rate", typeof(decimal));
                 dt.Columns.Add("Amount", typeof(decimal));
 
-                // Optional Pharmacy Fields
+                // Pharmacy Fields
                 dt.Columns.Add("BatchNo", typeof(string));
                 dt.Columns.Add("ManufacturingDate", typeof(DateTime));
                 dt.Columns.Add("ExpiryDate", typeof(DateTime));
+
 
                 foreach (var item in model.Items)
                 {
@@ -86,30 +115,55 @@ namespace POSSystem.Repositories
                         item.Quantity,
                         item.Rate,
                         item.Amount,
-                        DBNull.Value, // BatchNo
-                        DBNull.Value, // ManufacturingDate
-                        DBNull.Value  // ExpiryDate
+
+                        // Currently NULL for normal POS
+                        DBNull.Value,
+                        DBNull.Value,
+                        DBNull.Value
                     );
                 }
+
+
+                // ==========================================
+                // Stored Procedure Parameters
+                // ==========================================
 
                 var parameters = new DynamicParameters();
 
                 parameters.Add("@InvoiceNo", model.InvoiceNo);
                 parameters.Add("@InvoiceDate", model.InvoiceDate);
                 parameters.Add("@CustomerId", model.CustomerId);
+
+                // Company + Branch
+                parameters.Add("@CompanyId", model.CompanyId);
                 parameters.Add("@BranchId", model.BranchId);
+
                 parameters.Add("@UserId", model.UserId);
+
                 parameters.Add("@TotalAmount", model.TotalAmount);
                 parameters.Add("@Discount", model.Discount);
                 parameters.Add("@NetAmount", model.NetAmount);
+
+                // Payment
                 parameters.Add("@PaymentMode", model.PaymentMode);
                 parameters.Add("@PaidAmount", model.NetAmount);
+
                 parameters.Add("@CreatedBy", model.UserId);
+
+
+                // ==========================================
+                // Detail TVP
+                // ==========================================
 
                 parameters.Add(
                     "@InvoiceDetails",
                     dt.AsTableValuedParameter("dbo.PosInvoiceDetailType")
                 );
+
+
+                // ==========================================
+                // Execute Stored Procedure
+                // ==========================================
 
                 var result = db.Execute(
                     "sp_SavePosInvoice",
@@ -202,7 +256,7 @@ namespace POSSystem.Repositories
             }
         }
 
-        public async Task<SaleClosingSummary> GetSaleClosingSummaryAsync(int branchId,int userId,DateTime closingDate)
+        public async Task<SaleClosingSummary> GetSaleClosingSummaryAsync(int companyId,int branchId,int userId,DateTime closingDate)
         {
             using var connection = _context.CreateConnection();
 
@@ -210,6 +264,7 @@ namespace POSSystem.Repositories
                 "sp_GetSaleClosingSummary",
                 new
                 {
+                    CompanyId = companyId,
                     BranchId = branchId,
                     UserId = userId,
                     ClosingDate = closingDate
@@ -239,6 +294,7 @@ namespace POSSystem.Repositories
         }
 
         public async Task<IEnumerable<PosInvoiceVm>> GetCompleteBillsAsync(
+    int companyId,
     int branchId,
     DateTime? fromDate,
     DateTime? toDate,
@@ -248,6 +304,7 @@ namespace POSSystem.Repositories
             {
                 var parameters = new DynamicParameters();
 
+                parameters.Add("@CompanyId", companyId);
                 parameters.Add("@BranchId", branchId);
                 parameters.Add("@FromDate", fromDate);
                 parameters.Add("@ToDate", toDate);
@@ -258,6 +315,53 @@ namespace POSSystem.Repositories
                     parameters,
                     commandType: CommandType.StoredProcedure
                 );
+            }
+        }
+        public async Task<SaleClosingSaveResult> SaveAsync(
+    int companyId,
+    int branchId,
+    int userId,
+    DateTime closingDate,
+    decimal openingCash,
+    decimal totalSales,
+    decimal totalReturns,
+    decimal netSales,
+    decimal cashSales,
+    decimal easyPaisaSales,
+    decimal otherSales,
+    decimal actualCash,
+    string remarks)
+        {
+            using (var con = _context.CreateConnection())
+            {
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@CompanyId", companyId);
+                parameters.Add("@BranchId", branchId);
+                parameters.Add("@UserId", userId);
+                parameters.Add("@ClosingDate", closingDate.Date);
+
+                parameters.Add("@OpeningCash", openingCash);
+
+                parameters.Add("@TotalSales", totalSales);
+                parameters.Add("@TotalReturns", totalReturns);
+                parameters.Add("@NetSales", netSales);
+
+                parameters.Add("@CashSales", cashSales);
+                parameters.Add("@EasyPaisaSales", easyPaisaSales);
+                parameters.Add("@OtherSales", otherSales);
+
+                parameters.Add("@ActualCash", actualCash);
+
+                parameters.Add("@Remarks", remarks);
+
+                var result = await con.QueryFirstOrDefaultAsync<SaleClosingSaveResult>(
+                    "sp_SaveSaleClosing",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
             }
         }
     }

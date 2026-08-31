@@ -80,10 +80,6 @@
                     <input type="text" class="form-control" id="warehouseName" placeholder="Enter name" />
                 </div>
                 <div class="mb-3">
-                    <label for="branchid" class="form-label">Branch Name</label>
-                    <input type="text" class="form-control" id="branchid" placeholder="Enter Branch" />
-                </div>
-                <div class="mb-3">
                     <label for="location" class="form-label">Location</label>
                     <input type="text" class="form-control" id="location" placeholder="Enter location" />
                 </div>
@@ -115,7 +111,7 @@
 
                     var row = `<tr>
                         <td>${warehouse.warehouseName}</td>
-                        <td>${warehouse.branchId}</td>
+                            <td>${warehouse.branchName}</td>
                         <td>${warehouse.locations}</td>
                         <td>${status}</td>
                         <td class="text-center">
@@ -156,7 +152,6 @@
         $('#modalTitle').text('Add warehouse');
         $('#warehouseId').val(0);
         $('#warehouseName').val('');
-        $('#branchid').val('');
         $('#location').val('');
         $('#IsActive').prop('checked', true);
         warehouseModal.show();
@@ -208,26 +203,29 @@
     //         }
     //     });
     // }
-        function savewarehouse() {
+    function savewarehouse() {
 
         var warehouse = {
-            WarehouseId: $('#warehouseId').val(),
+            WarehouseId: parseInt($('#warehouseId').val()) || 0,
             WarehouseName: $('#warehouseName').val(),
-            BranchId: $('#branchid').val(),
             Locations: $('#location').val(),
             IsActive: $('#IsActive').is(':checked')
         };
 
-        var url = warehouse.WarehouseId == 0
+        console.log("Warehouse:", warehouse);
+
+        var url = warehouse.WarehouseId === 0
             ? '/Warehouses/AddWarehouse'
             : '/Warehouses/UpdateWarehouse';
 
         $.ajax({
             url: url,
             type: 'POST',
-            contentType: 'application/json',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
             data: JSON.stringify(warehouse),
-            success: function (response) {
+
+            success: function(response) {
 
                 if (response.success) {
 
@@ -239,13 +237,29 @@
                         text: response.message,
                         timer: 1500,
                         showConfirmButton: false
-                    }).then(() => {
+                    }).then(function() {
                         loadwarehouses();
                     });
 
                 } else {
-                    Swal.fire('Error', response.message, 'error');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
                 }
+            },
+
+            error: function(xhr) {
+
+                console.log("Error:", xhr.responseText);
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong!'
+                });
             }
         });
     }
@@ -258,7 +272,6 @@
                 $('#modalTitle').text('Edit Warehouse');
                 $('#warehouseId').val(data.warehouseId);
                 $('#warehouseName').val(data.warehouseName);
-                $('#branchid').val(data.branchId);
                 $('#location').val(data.locations);
                 $('#IsActive').prop('checked', data.isActive);
 

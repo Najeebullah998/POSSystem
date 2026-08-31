@@ -20,56 +20,131 @@ namespace POSSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllitems()
         {
-            var items = await _repo.GetAllAsync();
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var items = await _repo.GetAllAsync(companyId, branchId);
+
             return Json(items);
         }
+
+
+        [HttpGet]
         public IActionResult Additems()
         {
             return View();
         }
+
+
         [HttpPost]
         public async Task<IActionResult> Additems([FromBody] Item items)
         {
             if (items == null)
-                return Json(new { success = false, message = "Invalid data" });
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid data"
+                });
+            }
 
-            items.CreatedBy = 1;
-            items.IsActive = items.IsActive;
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-            int id = await _repo.AddAsync(items);
+            items.CreatedBy = userId;
+
+            int id = await _repo.AddAsync(
+                items,
+                companyId,
+                branchId
+            );
 
             if (id > 0)
             {
-                return Json(new { success = true, message = "items saved successfully" });
+                return Json(new
+                {
+                    success = true,
+                    message = "Item saved successfully",
+                    itemId = id
+                });
             }
 
-            return Json(new { success = false, message = "Error saving items" });
+            return Json(new
+            {
+                success = false,
+                message = "Error saving item"
+            });
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetItemById(int id)
         {
-            var item = await _repo.GetByIdAsync(id);
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var item = await _repo.GetByIdAsync(
+                id,
+                companyId,
+                branchId
+            );
+
             return Json(item);
         }
+
+
         [HttpPost]
         public async Task<IActionResult> UpdateItem([FromBody] Item item)
         {
             if (item == null || item.ItemId == 0)
-                return Json(new { success = false, message = "Invalid data" });
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid data"
+                });
+            }
 
-            item.ModifiedBy = 1;
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-            await _repo.UpdateAsync(item);
+            item.ModifiedBy = userId;
 
-            return Json(new { success = true, message = "Item updated successfully" });
+            await _repo.UpdateAsync(
+                item,
+                companyId,
+                branchId
+            );
+
+            return Json(new
+            {
+                success = true,
+                message = "Item updated successfully"
+            });
         }
+
 
         [HttpPost]
         public async Task<IActionResult> DeleteItem(int id)
         {
-            await _repo.DeleteAsync(id);
-            return Json(new { success = true, message = "Item deleted successfully" });
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            await _repo.DeleteAsync(
+                id,
+                companyId,
+                branchId,
+                userId
+            );
+
+            return Json(new
+            {
+                success = true,
+                message = "Item deleted successfully"
+            });
         }
     }
 }

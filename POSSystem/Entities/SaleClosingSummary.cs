@@ -15,5 +15,6 @@
 
         public decimal TotalPayments { get; set; }
         public decimal ExpectedCash { get; set; }
+        public DateTime ClosingDate { get; set; }
     }
 }

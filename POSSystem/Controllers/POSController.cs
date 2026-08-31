@@ -24,9 +24,16 @@ namespace POSSystem.Controllers
             return View();
         }
 
-        public IActionResult CreateSale()
+        public async Task<IActionResult> CreateSale()
         {
-            return View();
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var model = new PosInvoiceVm();
+
+            model.Customerslist = await _repo.GetDropdownAsync(companyId, branchId);
+
+            return View(model);
         }
 
         [HttpGet]
@@ -97,14 +104,97 @@ namespace POSSystem.Controllers
         [HttpPost]
         public IActionResult SaveInvoice([FromBody] PosInvoiceVm model)
         {
-            if (model == null || model.Items == null || model.Items.Count == 0)
+            try
             {
-                return Json(new { success = false, message = "No items found!" });
+                if (model == null || model.Items == null || model.Items.Count == 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "No items found!"
+                    });
+                }
+
+                // ==========================================
+                // Get IDs from Session
+                // ==========================================
+
+                int companyId =
+                    HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+                int branchId =
+                    HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+                int userId =
+                    HttpContext.Session.GetInt32("UserId") ?? 0;
+
+
+                // ==========================================
+                // Validate Session
+                // ==========================================
+
+                if (companyId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Company not found in session."
+                    });
+                }
+
+                if (branchId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Branch not found in session."
+                    });
+                }
+
+                if (userId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User not found in session."
+                    });
+                }
+
+
+                // ==========================================
+                // Override Frontend Values
+                // ==========================================
+
+                model.CompanyId = companyId;
+                model.BranchId = branchId;
+                model.UserId = userId;
+
+
+                // CreatedBy should also be logged-in user
+                model.CreatedBy = userId;
+
+
+                // ==========================================
+                // Save Invoice
+                // ==========================================
+
+                var invoiceId = _repo.SaveInvoice(model);
+
+
+                return Json(new
+                {
+                    success = true,
+                    invoiceId = invoiceId
+                });
             }
-
-            var invoiceId = _repo.SaveInvoice(model);
-
-            return Json(new { success = true, invoiceId });
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
         [HttpPost]
         public IActionResult UpdateInvoice([FromBody] PosInvoiceVm model)
@@ -233,8 +323,10 @@ namespace POSSystem.Controllers
             {
                 var branchId = Convert.ToInt32(HttpContext.Session.GetInt32("BranchId"));
                 var userId = Convert.ToInt32(HttpContext.Session.GetInt32("UserId"));
+                var companyId = Convert.ToInt32(HttpContext.Session.GetInt32("CompanyId"));
 
                 var result = await _repo.GetSaleClosingSummaryAsync(
+                    companyId,
                     branchId,
                     userId,
                     closingDate
@@ -306,14 +398,21 @@ namespace POSSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCompleteBills(
-    DateTime? fromDate,
-    DateTime? toDate,
-    string invoiceNo)
+        public async Task<IActionResult> GetCompleteBills(DateTime? fromDate,DateTime? toDate,string invoiceNo)
         {
             try
             {
+                int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
                 int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+                if (companyId == 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Company not found in session."
+                    });
+                }
 
                 if (branchId == 0)
                 {
@@ -324,12 +423,7 @@ namespace POSSystem.Controllers
                     });
                 }
 
-                var bills = await _repo.GetCompleteBillsAsync(
-                    branchId,
-                    fromDate,
-                    toDate,
-                    invoiceNo
-                );
+                var bills = await _repo.GetCompleteBillsAsync(companyId,branchId,fromDate,toDate,invoiceNo);
 
                 return Json(new
                 {
@@ -343,6 +437,104 @@ namespace POSSystem.Controllers
                 {
                     success = false,
                     message = ex.Message
+                });
+            }
+        }
+
+        public async Task<IActionResult> SaveSaleClosing()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> SaveSaleClosing([FromBody] SaleClosingSaveVM model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Invalid request."
+                    });
+                }
+
+                // Get CompanyId, BranchId and UserId from Session
+                int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+                int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+                // Validate session
+                if (companyId <= 0 || branchId <= 0 || userId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Session expired. Please login again."
+                    });
+                }
+
+                // Validate closing date
+                if (model.ClosingDate == default(DateTime))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Closing date is required."
+                    });
+                }
+
+                // Save closing
+                var result = await _repo.SaveAsync(
+                    companyId,
+                    branchId,
+                    userId,
+                    model.ClosingDate,
+                    model.OpeningCash,
+                    model.TotalSales,
+                    model.TotalReturns,
+                    model.NetSales,
+                    model.CashSales,
+                    model.EasyPaisaSales,
+                    model.OtherSales,
+                    model.ActualCash,
+                    model.Remarks
+                );
+
+                if (result == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Sale closing could not be saved."
+                    });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = result.Message,
+                    closingId = result.ClosingId,
+                    closingNo = result.ClosingNo,
+                    expectedCash = result.ExpectedCash,
+                    actualCash = result.ActualCash,
+                    cashDifference = result.CashDifference
+                });
+            }
+            catch (SqlException ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred while saving sale closing."
                 });
             }
         }

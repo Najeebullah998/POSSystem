@@ -123,7 +123,8 @@ namespace POSSystem.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> SaveSaleReturn([FromBody] SaleReturnHeaderVM model)
+        public async Task<IActionResult> SaveSaleReturn(
+     [FromBody] SaleReturnHeaderVM model)
         {
             try
             {
@@ -136,9 +137,79 @@ namespace POSSystem.Controllers
                     });
                 }
 
+                // ==========================================
+                // Get Session Values
+                // ==========================================
+
+                int? companyId =
+                    HttpContext.Session.GetInt32("CompanyId");
+
+                int? branchId =
+                    HttpContext.Session.GetInt32("BranchId");
+
+                int? userId =
+                    HttpContext.Session.GetInt32("UserId");
+
+
+                if (!companyId.HasValue || companyId.Value <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Company is not configured in session."
+                    });
+                }
+
+                if (!branchId.HasValue || branchId.Value <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Branch is not configured in session."
+                    });
+                }
+
+                if (!userId.HasValue || userId.Value <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User is not configured in session."
+                    });
+                }
+
+
+                // ==========================================
+                // Override Frontend Values
+                // ==========================================
+
+                model.CompanyId = companyId.Value;
+                model.BranchId = branchId.Value;
+                model.CreatedBy = userId.Value;
+
+
+                // ==========================================
+                // Validate Details
+                // ==========================================
+
+                if (model.Details == null || !model.Details.Any())
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Sale Return details are required."
+                    });
+                }
+
+
+                // ==========================================
+                // Only ReturnQty > 0
+                // ==========================================
+
                 model.Details = model.Details
-                                     .Where(x => x.ReturnQty > 0)
-                                     .ToList();
+                    .Where(x => x.ReturnQty > 0)
+                    .ToList();
+
 
                 if (!model.Details.Any())
                 {
@@ -149,7 +220,14 @@ namespace POSSystem.Controllers
                     });
                 }
 
-                var result = await _repo.SaveSaleReturnAsync(model);
+
+                // ==========================================
+                // Save Sale Return
+                // ==========================================
+
+                var result =
+                    await _repo.SaveSaleReturnAsync(model);
+
 
                 if (result > 0)
                 {
@@ -160,6 +238,7 @@ namespace POSSystem.Controllers
                         id = result
                     });
                 }
+
 
                 return Json(new
                 {

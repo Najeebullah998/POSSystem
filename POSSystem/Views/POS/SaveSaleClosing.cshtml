@@ -1,0 +1,1377 @@
+﻿```cshtml
+@model POSSystem.Entities.SaleClosingSummary
+
+@* @{
+    ViewBag.Title = "Save Sale Closing";
+} *@
+@* System.NullReferenceException: 'Object reference not set to an instance of an object.'
+
+Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>
+.Model.get returned null. *@
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+        --purple-color: #8b5cf6;
+        --pink-color: #ec4899;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .closing-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .closing-card {
+        background: white;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.10);
+    }
+
+    .card-header-closing {
+        background: linear-gradient(135deg, var(--purple-color) 0%, var(--pink-color) 100%);
+        padding: 20px 25px;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body-custom {
+        padding: 25px;
+    }
+
+    /* SUMMARY */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .info-box {
+        background: var(--light-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+        .info-box.net {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+    .info-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+
+    /* PAYMENT TABLE */
+    .payment-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+    }
+
+        .payment-table th {
+            background: var(--dark-color);
+            color: white;
+            padding: 14px;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .payment-table td {
+            padding: 14px;
+            border-top: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+    .payment-method {
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+
+    .system-amount {
+        font-weight: 700;
+        color: #374151;
+        font-size: 15px;
+    }
+
+    .actual-input {
+        width: 100%;
+        max-width: 220px;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        outline: none;
+    }
+
+        .actual-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.10);
+        }
+
+    .difference {
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+        .difference.positive {
+            color: var(--success-color);
+        }
+
+        .difference.negative {
+            color: var(--danger-color);
+        }
+
+        .difference.zero {
+            color: #6b7280;
+        }
+
+    /* CASH SECTION */
+    .cash-section {
+        background: #f0fdf4;
+        border: 2px solid #bbf7d0;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .cash-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #374151;
+        margin-bottom: 7px;
+    }
+
+    .form-control-modern {
+        width: 100%;
+        padding: 11px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 14px;
+        outline: none;
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.10);
+        }
+
+        .form-control-modern[readonly] {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+    textarea.form-control-modern {
+        resize: vertical;
+        min-height: 90px;
+    }
+
+    /* TOTALS */
+    .total-box {
+        margin-top: 20px;
+        background: linear-gradient(135deg, var(--purple-color) 0%, var(--pink-color) 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .total-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        text-align: center;
+    }
+
+    .total-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        opacity: 0.8;
+        margin-bottom: 5px;
+    }
+
+    .total-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    /* BUTTONS */
+    .btn-save {
+        background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 13px 35px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(16,185,129,0.30);
+        }
+
+        .btn-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-back {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 13px 30px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    .action-section {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    /* LOADING */
+    .loading {
+        text-align: center;
+        padding: 30px;
+        color: #6b7280;
+        display: none;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e5e7eb;
+        border-top-color: var(--purple-color);
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+        margin: 0 auto 10px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .cash-grid,
+        .total-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-table {
+            font-size: 13px;
+        }
+
+            .payment-table th,
+            .payment-table td {
+                padding: 9px;
+            }
+
+        .actual-input {
+            max-width: 150px;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<span id="closingDateText"></span>
+<div class="closing-container">
+
+    <!-- HEADER -->
+    <div class="closing-card">
+
+        <div class="card-header-closing">
+
+            <span>
+                <i class="fas fa-lock"></i>
+                Save Sale Closing
+            </span>
+
+            <span style="font-size:13px; opacity:.9;">
+                <i class="far fa-calendar-alt"></i>
+                <span id="closingDateText"></span>
+            </span>
+
+        </div>
+
+        <div class="card-body-custom">
+
+            <div class="loading" id="loadingState">
+                <div class="spinner"></div>
+                Loading closing data...
+            </div>
+
+            <!-- SUMMARY -->
+            <div id="summarySection">
+
+                <div class="info-grid">
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Total Bills
+                        </div>
+
+                        <div class="info-value" id="totalBills">
+                            0
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Total Sales
+                        </div>
+
+                        <div class="info-value" id="totalSales">
+                            Rs 0.00
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Total Returns
+                        </div>
+
+                        <div class="info-value" id="totalReturns">
+                            Rs 0.00
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box net">
+
+                        <div class="info-label">
+                            Net Sales After Returns
+                        </div>
+
+                        <div class="info-value" id="netSales">
+                            Rs 0.00
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PAYMENT CLOSING -->
+    <div class="closing-card">
+
+        <div class="card-header-closing">
+
+            <span>
+                <i class="fas fa-money-bill-wave"></i>
+                Payment Closing
+            </span>
+
+        </div>
+
+
+        <div class="card-body-custom">
+
+            <table class="payment-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Payment Method</th>
+                        <th>System Amount</th>
+                        <th>Actual Amount</th>
+                        <th>Difference</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <!-- CASH -->
+
+                    <tr>
+
+                        <td>
+
+                            <span class="payment-method">
+
+                                <i class="fas fa-money-bill"></i>
+                                Cash
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span class="system-amount"
+                                  id="cashSystem">
+                                Rs 0.00
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <input type="number"
+                                   id="cashActual"
+                                   class="actual-input"
+                                   min="0"
+                                   step="0.01"
+                                   value="0" />
+
+                        </td>
+
+                        <td>
+
+                            <span class="difference zero"
+                                  id="cashDifference">
+                                Rs 0.00
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+
+                    <!-- EASYPAISA -->
+
+                    <tr>
+
+                        <td>
+
+                            <span class="payment-method">
+
+                                <i class="fas fa-mobile-alt"></i>
+                                EasyPaisa
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span class="system-amount"
+                                  id="easyPaisaSystem">
+                                Rs 0.00
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <input type="number"
+                                   id="easyPaisaActual"
+                                   class="actual-input"
+                                   min="0"
+                                   step="0.01"
+                                   value="0" />
+
+                        </td>
+
+                        <td>
+
+                            <span class="difference zero"
+                                  id="easyPaisaDifference">
+                                Rs 0.00
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+
+                    <!-- OTHER -->
+
+                    <tr>
+
+                        <td>
+
+                            <span class="payment-method">
+
+                                <i class="fas fa-credit-card"></i>
+                                Other
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span class="system-amount"
+                                  id="otherSystem">
+                                Rs 0.00
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <input type="number"
+                                   id="otherActual"
+                                   class="actual-input"
+                                   min="0"
+                                   step="0.01"
+                                   value="0" />
+
+                        </td>
+
+                        <td>
+
+                            <span class="difference zero"
+                                  id="otherDifference">
+                                Rs 0.00
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <!-- CASH DETAILS -->
+
+            <div class="cash-section">
+
+                <h6 style="font-weight:700; color:#166534; margin-bottom:15px;">
+
+                    <i class="fas fa-cash-register"></i>
+                    Cash Details
+
+                </h6>
+
+
+                <div class="cash-grid">
+
+                    <!-- OPENING CASH -->
+
+                    <div class="form-group">
+
+                        <label>
+                            Opening Cash
+                        </label>
+
+                        <input type="number"
+                               id="openingCash"
+                               class="form-control-modern"
+                               min="0"
+                               step="0.01"
+                               value="0" />
+
+                    </div>
+
+
+                    <!-- EXPECTED CASH -->
+
+                    <div class="form-group">
+
+                        <label>
+                            Expected Cash
+                        </label>
+
+                        <input type="text"
+                               id="expectedCash"
+                               class="form-control-modern"
+                               value="Rs 0.00"
+                               readonly />
+
+                    </div>
+
+
+                    <!-- ACTUAL CASH -->
+
+                    <div class="form-group">
+
+                        <label>
+                            Actual Cash
+                        </label>
+
+                        <input type="text"
+                               id="actualCashDisplay"
+                               class="form-control-modern"
+                               value="Rs 0.00"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TOTALS -->
+
+            <div class="total-box">
+
+                <div class="total-grid">
+
+                    <div>
+
+                        <div class="total-label">
+                            System Payments
+                        </div>
+
+                        <div class="total-value"
+                             id="totalSystem">
+                            Rs 0.00
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="total-label">
+                            Actual Payments
+                        </div>
+
+                        <div class="total-value"
+                             id="totalActual">
+                            Rs 0.00
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="total-label">
+                            Total Difference
+                        </div>
+
+                        <div class="total-value"
+                             id="totalDifference">
+                            Rs 0.00
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- REMARKS -->
+
+            <div style="margin-top:20px;">
+
+                <div class="form-group">
+
+                    <label>
+
+                        <i class="fas fa-comment-alt"></i>
+                        Remarks
+
+                    </label>
+
+                    <textarea id="remarks"
+                              class="form-control-modern"
+                              placeholder="Enter remarks if required..."></textarea>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="action-section">
+
+                <button type="button"
+                        class="btn-back"
+                        onclick="goBack()">
+
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+
+                </button>
+
+
+                <button type="button"
+                        class="btn-save"
+                        id="btnSave"
+                        onclick="saveClosing()">
+
+                    <i class="fas fa-lock"></i>
+                    Save Closing
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+
+    let closingData = null;
+
+
+    $(document).ready(function() {
+
+        const today = new Date();
+        const closingDate = formatDate(today);
+
+        $('#closingDateText').text(closingDate);
+
+        loadClosingData();
+
+        $('#cashActual').on('input', calculateDifferences);
+        $('#easyPaisaActual').on('input', calculateDifferences);
+        $('#otherActual').on('input', calculateDifferences);
+        $('#openingCash').on('input', calculateDifferences);
+    });
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    /* ==========================================
+       LOAD SUMMARY
+       ========================================== */
+
+    function loadClosingData() {
+
+        const closingDate = formatDate(new Date());
+
+        $('#closingDateText').text(closingDate);
+
+        $.ajax({
+            url: '/POS/GetSaleClosingSummary',
+            type: 'GET',
+            data: {
+                closingDate: closingDate
+            },
+            success: function(res) {
+
+                if (!res || res.totalBills <= 0) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data',
+                        text: 'No sale data found for this date.'
+                    }).then(function() {
+                        goBack();
+                    });
+
+                    return;
+                }
+
+                closingData = res;
+
+                renderData(res);
+            },
+            error: function() {
+
+                Swal.fire(
+                    'Error',
+                    'Failed to load closing data.',
+                    'error'
+                );
+            }
+        });
+    }
+
+
+    /* ==========================================
+       RENDER DATA
+       ========================================== */
+
+    function renderData(data) {
+
+        const totalBills =
+            parseInt(data.totalBills) || 0;
+
+        const grossSales =
+            parseFloat(data.grossSales) || 0;
+
+        const totalReturns =
+            parseFloat(data.totalReturns) || 0;
+
+        const netAfterReturns =
+            parseFloat(data.netAfterReturns) || 0;
+
+        const cash =
+            parseFloat(data.cash) || 0;
+
+        const easyPaisa =
+            parseFloat(data.easyPaisa) || 0;
+
+        const other =
+            parseFloat(data.other) || 0;
+
+
+        $('#totalBills')
+            .text(totalBills);
+
+
+        $('#totalSales')
+            .text(formatAmount(grossSales));
+
+
+        $('#totalReturns')
+            .text(formatAmount(totalReturns));
+
+
+        $('#netSales')
+            .text(formatAmount(netAfterReturns));
+
+
+        $('#cashSystem')
+            .text(formatAmount(cash));
+
+
+        $('#easyPaisaSystem')
+            .text(formatAmount(easyPaisa));
+
+
+        $('#otherSystem')
+            .text(formatAmount(other));
+
+
+        calculateDifferences();
+
+    }
+
+
+    /* ==========================================
+       CALCULATE DIFFERENCES
+       ========================================== */
+
+    function calculateDifferences() {
+
+        if (!closingData)
+            return;
+
+
+        const cashSystem =
+            parseFloat(closingData.cash) || 0;
+
+        const easyPaisaSystem =
+            parseFloat(closingData.easyPaisa) || 0;
+
+        const otherSystem =
+            parseFloat(closingData.other) || 0;
+
+
+        const cashActual =
+            parseFloat($('#cashActual').val()) || 0;
+
+        const easyPaisaActual =
+            parseFloat($('#easyPaisaActual').val()) || 0;
+
+        const otherActual =
+            parseFloat($('#otherActual').val()) || 0;
+
+
+        /* PAYMENT DIFFERENCES */
+
+        const cashDifference =
+            cashActual - cashSystem;
+
+        const easyPaisaDifference =
+            easyPaisaActual - easyPaisaSystem;
+
+        const otherDifference =
+            otherActual - otherSystem;
+
+
+        $('#cashDifference')
+            .text(formatAmount(cashDifference));
+
+        $('#easyPaisaDifference')
+            .text(formatAmount(easyPaisaDifference));
+
+        $('#otherDifference')
+            .text(formatAmount(otherDifference));
+
+
+        setDifferenceClass(
+            '#cashDifference',
+            cashDifference
+        );
+
+
+        setDifferenceClass(
+            '#easyPaisaDifference',
+            easyPaisaDifference
+        );
+
+
+        setDifferenceClass(
+            '#otherDifference',
+            otherDifference
+        );
+
+
+        /* TOTAL PAYMENTS */
+
+        const totalSystem =
+            cashSystem +
+            easyPaisaSystem +
+            otherSystem;
+
+
+        const totalActual =
+            cashActual +
+            easyPaisaActual +
+            otherActual;
+
+
+        const totalDifference =
+            totalActual - totalSystem;
+
+
+        $('#totalSystem')
+            .text(formatAmount(totalSystem));
+
+
+        $('#totalActual')
+            .text(formatAmount(totalActual));
+
+
+        $('#totalDifference')
+            .text(formatAmount(totalDifference));
+
+
+        setDifferenceClass(
+            '#totalDifference',
+            totalDifference
+        );
+
+
+        /* ACTUAL CASH */
+
+        $('#actualCashDisplay')
+            .val(formatAmount(cashActual));
+
+
+        /* EXPECTED CASH */
+
+        const openingCash =
+            parseFloat($('#openingCash').val()) || 0;
+
+
+        const expectedCash =
+            openingCash + cashSystem;
+
+
+        $('#expectedCash')
+            .val(formatAmount(expectedCash));
+
+    }
+
+
+    /* ==========================================
+       DIFFERENCE COLOR
+       ========================================== */
+
+    function setDifferenceClass(selector, value) {
+
+        const element = $(selector);
+
+
+        element.removeClass(
+            'positive negative zero'
+        );
+
+
+        if (value > 0) {
+
+            element.addClass('positive');
+
+        }
+        else if (value < 0) {
+
+            element.addClass('negative');
+
+        }
+        else {
+
+            element.addClass('zero');
+
+        }
+
+    }
+
+
+    /* ==========================================
+       SAVE CLOSING
+       ========================================== */
+
+    function saveClosing() {
+
+        if (!closingData) {
+
+            Swal.fire(
+                'Warning',
+                'Closing data is not loaded.',
+                'warning'
+            );
+
+            return;
+        }
+
+
+        const cashActual =
+            parseFloat($('#cashActual').val()) || 0;
+
+        const easyPaisaActual =
+            parseFloat($('#easyPaisaActual').val()) || 0;
+
+        const otherActual =
+            parseFloat($('#otherActual').val()) || 0;
+
+        const openingCash =
+            parseFloat($('#openingCash').val()) || 0;
+
+
+        const cashSystem =
+            parseFloat(closingData.cash) || 0;
+
+
+        const expectedCash =
+            openingCash + cashSystem;
+
+
+        const cashDifference =
+            cashActual - expectedCash;
+
+
+        Swal.fire({
+
+            title: 'Save Sale Closing?',
+
+            html:
+                'Once saved, this closing will be marked as <b>Closed</b>.',
+
+            icon: 'question',
+
+            showCancelButton: true,
+
+            confirmButtonText: 'Yes, Save Closing',
+
+            cancelButtonText: 'Cancel'
+
+        }).then(function(result) {
+
+            if (!result.isConfirmed)
+                return;
+
+
+            $('#btnSave')
+                .prop('disabled', true)
+                .html(
+                    '<i class="fas fa-spinner fa-spin"></i> Saving...'
+                );
+
+
+            const model = {
+
+                closingDate: formatDate(new Date()),
+
+
+                openingCash:
+                    openingCash,
+
+
+                totalSales:
+                    parseFloat(closingData.grossSales) || 0,
+
+
+                totalReturns:
+                    parseFloat(closingData.totalReturns) || 0,
+
+
+                netSales:
+                    parseFloat(closingData.netAfterReturns) || 0,
+
+
+                cashSales:
+                    cashSystem,
+
+
+                easyPaisaSales:
+                    parseFloat(closingData.easyPaisa) || 0,
+
+
+                otherSales:
+                    parseFloat(closingData.other) || 0,
+
+
+                expectedCash:
+                    expectedCash,
+
+
+                actualCash:
+                    cashActual,
+
+
+                cashDifference:
+                    cashDifference,
+
+
+                remarks:
+                    $('#remarks').val()
+
+            };
+
+
+            console.log(
+                'Sale Closing Save Model:',
+                model
+            );
+
+
+            $.ajax({
+
+                url: '/POS/SaveSaleClosing',
+
+                type: 'POST',
+
+                contentType:
+                    'application/json; charset=utf-8',
+
+                data:
+                    JSON.stringify(model),
+
+
+                success: function(res) {
+
+                    if (res && res.success) {
+
+                        Swal.fire({
+
+                            icon: 'success',
+
+                            title: 'Closing Saved',
+
+                            html:
+                                '<b>Closing No:</b> ' +
+                                (res.closingNo || '') +
+                                '<br><br>' +
+                                'Sale closing saved successfully.',
+
+                            confirmButtonText: 'OK'
+
+                        }).then(function() {
+
+                            window.location.href =
+                                '/POS/SaleClosing';
+
+                        });
+
+                    }
+                    else {
+
+                        resetSaveButton();
+
+
+                        Swal.fire(
+
+                            'Error',
+
+                            res.message ||
+                            'Unable to save sale closing.',
+
+                            'error'
+
+                        );
+
+                    }
+
+                },
+
+
+                error: function(xhr) {
+
+                    resetSaveButton();
+
+
+                    console.log(xhr);
+
+
+                    let message =
+                        'An error occurred while saving closing.';
+
+
+                    if (
+                        xhr.responseJSON &&
+                        xhr.responseJSON.message
+                    ) {
+
+                        message =
+                            xhr.responseJSON.message;
+
+                    }
+
+
+                    Swal.fire(
+                        'Error',
+                        message,
+                        'error'
+                    );
+
+                }
+
+            });
+
+        });
+
+    }
+
+
+    /* ==========================================
+       RESET SAVE BUTTON
+       ========================================== */
+
+    function resetSaveButton() {
+
+        $('#btnSave')
+            .prop('disabled', false)
+            .html(
+                '<i class="fas fa-lock"></i> Save Closing'
+            );
+
+    }
+
+
+    /* ==========================================
+       FORMAT AMOUNT
+       ========================================== */
+
+    function formatAmount(value) {
+
+        value =
+            parseFloat(value) || 0;
+
+
+        return 'Rs ' +
+            value.toLocaleString(
+                'en-PK',
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+    }
+
+
+    /* ==========================================
+       NO DATA
+       ========================================== */
+
+    function showNoData() {
+
+        Swal.fire({
+
+            icon: 'warning',
+
+            title: 'No Data',
+
+            text:
+                'No sale data found for this date.'
+
+        }).then(function() {
+
+            goBack();
+
+        });
+
+    }
+
+
+    /* ==========================================
+       BACK
+       ========================================== */
+
+    function goBack() {
+
+        window.history.back();
+
+    }
+
+</script>
+```

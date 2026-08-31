@@ -19,54 +19,137 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
-        var data = await _repo.GetAllAsync();
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+        var data = await _repo.GetAllAsync(companyId, branchId);
+
         return Json(data);
     }
+
 
     [HttpGet]
     public async Task<IActionResult> GetUserById(int id)
     {
-        var user = await _repo.GetByIdAsync(id);
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+        var user = await _repo.GetByIdAsync(
+            id,
+            companyId,
+            branchId
+        );
+
         return Json(user);
     }
+
 
     [HttpPost]
     public async Task<IActionResult> AddUser([FromBody] Users user)
     {
-        user.CreatedBy = 1;
+        if (user == null)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Invalid data"
+            });
+        }
 
-        int id = await _repo.AddAsync(user);
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+        int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-        return Json(new { success = id > 0, message = "User saved" });
+        user.CreatedBy = userId;
+
+        int id = await _repo.AddAsync(
+            user,
+            companyId,
+            branchId
+        );
+
+        return Json(new
+        {
+            success = id > 0,
+            message = id > 0
+                ? "User saved successfully"
+                : "Error saving user",
+            userId = id
+        });
     }
+
 
     [HttpPost]
     public async Task<IActionResult> UpdateUser([FromBody] Users user)
     {
-        user.ModifiedBy = 1;
+        if (user == null || user.UserId == 0)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Invalid data"
+            });
+        }
 
-        await _repo.UpdateAsync(user);
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+        int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
-        return Json(new { success = true, message = "User updated" });
+        user.ModifiedBy = userId;
+
+        await _repo.UpdateAsync(
+            user,
+            companyId,
+            branchId
+        );
+
+        return Json(new
+        {
+            success = true,
+            message = "User updated successfully"
+        });
     }
+
 
     [HttpPost]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        await _repo.DeleteAsync(id);
-        return Json(new { success = true, message = "User deleted" });
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+        int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+        await _repo.DeleteAsync(
+            id,
+            companyId,
+            branchId,
+            userId
+        );
+
+        return Json(new
+        {
+            success = true,
+            message = "User deleted successfully"
+        });
     }
+
 
     [HttpGet]
     public async Task<IActionResult> GetRoles()
     {
-        return Json(await _repo.GetRolesAsync());
+
+        var roles = await _repo.GetRolesAsync();
+        return Json(roles);
     }
+
 
     [HttpGet]
     public async Task<IActionResult> GetBranches()
     {
-        return Json(await _repo.GetBranchesAsync());
+        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0; 
+
+        var branches = await _repo.GetBranchesAsync(companyId);
+
+        return Json(branches);
     }
 
 

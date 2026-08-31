@@ -139,24 +139,39 @@ namespace POSSystem.Repositories
             param.Add("@ReturnDate", model.ReturnDate);
             param.Add("@GRNId", model.GRNId);
             param.Add("@SupplierId", model.SupplierId);
+
+            // Company + Branch
+            param.Add("@CompanyId", model.CompanyId);
             param.Add("@BranchId", model.BranchId);
+
             param.Add("@WarehouseId", model.WarehouseId);
+
             param.Add("@TotalAmount", model.TotalAmount);
             param.Add("@Remarks", model.Remarks);
             param.Add("@CreatedBy", model.CreatedBy);
+
 
             //===========================
             // Detail TVP
             //===========================
 
-            param.Add("@Details",
+            param.Add(
+                "@Details",
                 GetPurchaseReturnDetailTable(model.Details)
-                .AsTableValuedParameter("PurchaseReturnDetailType"));
+                    .AsTableValuedParameter("dbo.PurchaseReturnDetailType")
+            );
+
+
+            //===========================
+            // Execute Stored Procedure
+            //===========================
 
             var purchaseReturnId = await con.QuerySingleAsync<int>(
                 "sp_SavePurchaseReturn",
                 param,
-                commandType: CommandType.StoredProcedure);
+                commandType: CommandType.StoredProcedure
+            );
+
 
             return purchaseReturnId;
         }

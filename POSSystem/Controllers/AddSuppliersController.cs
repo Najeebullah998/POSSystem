@@ -22,7 +22,11 @@ namespace POSSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllSuppliers()
         {
-            var suppliers = await _repo.GetAllAsync();
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var suppliers = await _repo.GetAllAsync(companyId, branchId);
+
             return Json(suppliers);
         }
 
@@ -36,12 +40,24 @@ namespace POSSystem.Controllers
         public async Task<IActionResult> AddSupplier([FromBody] Supplier supplier)
         {
             if (supplier == null)
-                return Json(new { success = false, message = "Invalid data" });
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid data"
+                });
+            }
+
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
 
             supplier.CreatedBy = 1;
-            supplier.IsActive = supplier.IsActive;
 
-            int id = await _repo.AddAsync(supplier);
+            int id = await _repo.AddAsync(
+                supplier,
+                companyId,
+                branchId
+            );
 
             if (id > 0)
             {
@@ -62,7 +78,15 @@ namespace POSSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSupplierById(int id)
         {
-            var supplier = await _repo.GetByIdAsync(id);
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var supplier = await _repo.GetByIdAsync(
+                id,
+                companyId,
+                branchId
+            );
+
             return Json(supplier);
         }
 
@@ -78,9 +102,16 @@ namespace POSSystem.Controllers
                 });
             }
 
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
             supplier.ModifiedBy = 1;
 
-            await _repo.UpdateAsync(supplier);
+            await _repo.UpdateAsync(
+                supplier,
+                companyId,
+                branchId
+            );
 
             return Json(new
             {
@@ -92,7 +123,17 @@ namespace POSSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
-            await _repo.DeleteAsync(id);
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            int userId = 1;
+
+            await _repo.DeleteAsync(
+                id,
+                companyId,
+                branchId,
+                userId
+            );
 
             return Json(new
             {

@@ -15,6 +15,7 @@ namespace POSSystem.Entities
         public int CustomerId { get; set; }
 
         public int BranchId { get; set; }
+        public int CompanyId { get; set; }
 
         public int WarehouseId { get; set; }
 
