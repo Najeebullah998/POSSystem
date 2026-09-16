@@ -15,43 +15,88 @@ public class PurchaseOrderController : Controller
     // =========================
     // INDEX (LIST PAGE)
     // =========================
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
         return View();
     }
+
+
+    // =========================
+    // GET PURCHASE ORDER LIST
+    // =========================
     public async Task<IActionResult> GetPurchaseList()
     {
-        int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
-        int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+        int companyId =
+            HttpContext.Session.GetInt32("CompanyId") ?? 0;
 
-        var result = await _repo.GetAllAsync(companyId, branchId);
+        int branchId =
+            HttpContext.Session.GetInt32("BranchId") ?? 0;
 
-        return Json(result);
+        if (companyId <= 0 || branchId <= 0)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Company or Branch not found in session."
+            });
+        }
+
+        var result =
+            await _repo.GetAllAsync(companyId, branchId);
+
+        return Json(new
+        {
+            success = true,
+            data = result
+        });
     }
+
+
     // =========================
     // ADD / CREATE SCREEN
     // =========================
     public async Task<IActionResult> CreatePurchseOrder()
     {
+        int companyId =
+            HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+        int branchId =
+            HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+        if (companyId <= 0 || branchId <= 0)
+        {
+            return RedirectToAction("Index");
+        }
+
         var model = new PurchaseOrderHeaderVm();
 
-        model.PONumber = await _repo.GeneratePONumberAsync();
+        model.CompanyId = companyId;
+        model.BranchId = branchId;
 
-        model.SupplierList = await _repo.GetSupplierDDAsync();
-        model.WarehouseList = await _repo.GetWarehouseDDAsync();
+        model.PONumber =
+            await _repo.GeneratePONumberAsync(companyId, branchId);
+
+        model.SupplierList =
+            await _repo.GetSupplierDDAsync(companyId, branchId);
+
+        model.WarehouseList =
+            await _repo.GetWarehouseDDAsync(companyId, branchId);
 
         return View(model);
     }
 
+
     // =========================
-    // SAVE PURCHASE ORDER (AJAX)
+    // SAVE PURCHASE ORDER
     // =========================
     [HttpPost]
     public async Task<IActionResult> Save(PurchaseOrderHeaderVm model)
     {
         try
         {
-            if (model == null || model.Details == null || model.Details.Count == 0)
+            if (model == null ||
+                model.Details == null ||
+                model.Details.Count == 0)
             {
                 return Json(new
                 {
@@ -59,6 +104,7 @@ public class PurchaseOrderController : Controller
                     message = "No items found!"
                 });
             }
+
 
             // ==========================================
             // Get Session IDs
@@ -116,10 +162,11 @@ public class PurchaseOrderController : Controller
 
 
             // ==========================================
-            // Save Purchase Order
+            // Save
             // ==========================================
 
-            var result = await _repo.SaveAsync(model);
+            var result =
+                await _repo.SaveAsync(model);
 
 
             if (result > 0)
@@ -149,45 +196,276 @@ public class PurchaseOrderController : Controller
         }
     }
 
+
     // =========================
     // EDIT SCREEN
     // =========================
     public async Task<IActionResult> Edit(int id)
     {
-        var model = await _repo.GetByIdAsync(id);
+        try
+        {
+            int companyId =
+                HttpContext.Session.GetInt32("CompanyId") ?? 0;
 
-        model.SupplierList = await _repo.GetSupplierDDAsync();
-        model.WarehouseList = await _repo.GetWarehouseDDAsync();
+            int branchId =
+                HttpContext.Session.GetInt32("BranchId") ?? 0;
 
-        return View("Create", model);
+            if (companyId <= 0 || branchId <= 0)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var model = await _repo.GetByIdAsync(
+                id,
+                companyId,
+                branchId
+            );
+
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            // Dropdowns
+            model.SupplierList =
+                await _repo.GetSupplierDDAsync(
+                    companyId,
+                    branchId
+                );
+
+            model.WarehouseList =
+                await _repo.GetWarehouseDDAsync(
+                    companyId,
+                    branchId
+                );
+
+            // Ensure Company/Branch remain session based
+            model.CompanyId = companyId;
+            model.BranchId = branchId;
+
+            return View("CreatePurchseOrder", model);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
+
     // =========================
-    // DELETE
+    // UPDATE PURCHASE ORDER
     // =========================
+    [HttpPost]
+    public async Task<IActionResult> Update(PurchaseOrderHeaderVm model)
+    {
+        try
+        {
+            if (model == null ||
+                model.Details == null ||
+                model.Details.Count == 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "No items found!"
+                });
+            }
+
+
+            // ==========================================
+            // Get Session IDs
+            // ==========================================
+
+            int companyId =
+                HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+            int branchId =
+                HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            int userId =
+                HttpContext.Session.GetInt32("UserId") ?? 0;
+
+
+            // ==========================================
+            // Validate Session
+            // ==========================================
+
+            if (companyId <= 0 ||
+                branchId <= 0 ||
+                userId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid session. Please login again."
+                });
+            }
+
+
+            // ==========================================
+            // Override Frontend Values
+            // ==========================================
+
+            model.CompanyId = companyId;
+            model.BranchId = branchId;
+            model.ModifiedBy = userId;
+
+
+            // ==========================================
+            // Update
+            // ==========================================
+
+            var result =
+                await _repo.UpdateAsync(model);
+
+
+            if (result > 0)
+            {
+                return Json(new
+                {
+                    success = true,
+                    message = "Purchase Order Updated Successfully",
+                    id = result
+                });
+            }
+
+
+            return Json(new
+            {
+                success = false,
+                message = "Update failed!"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
+    }
+
+
+    // =========================
+    // DELETE PURCHASE ORDER
+    // =========================
+    [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await _repo.DeleteAsync(id);
-
-        return Json(new
+        try
         {
-            success = result > 0,
-            message = "Deleted Successfully"
-        });
+            int companyId =
+                HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+            int branchId =
+                HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            int userId =
+                HttpContext.Session.GetInt32("UserId") ?? 0;
+
+
+            if (companyId <= 0 ||
+                branchId <= 0 ||
+                userId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid session. Please login again."
+                });
+            }
+
+
+            var result =
+                await _repo.DeleteAsync(
+                    id,
+                    companyId,
+                    branchId,
+                    userId);
+
+
+            return Json(new
+            {
+                success = result > 0,
+                message = result > 0
+                    ? "Purchase Order Deleted Successfully"
+                    : "Delete failed!"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
     }
 
+
     // =========================
-    // ITEM SEARCH (AJAX)
+    // ITEM BY BARCODE
     // =========================
     public async Task<IActionResult> GetItemByBarcode(string barcode)
     {
-        var item = await _repo.GetItemByBarcodeAsync(barcode);
+        int companyId =
+            HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+        int branchId =
+            HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+
+        if (companyId <= 0 || branchId <= 0)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Company or Branch not found."
+            });
+        }
+
+
+        var item =
+            await _repo.GetItemByBarcodeAsync(
+                barcode,
+                companyId,
+                branchId);
+
+
         return Json(item);
     }
 
+
+    // =========================
+    // ITEM SEARCH
+    // =========================
     public async Task<IActionResult> SearchItem(string term)
     {
-        var items = await _repo.SearchItemAsync(term);
+        int companyId =
+            HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+        int branchId =
+            HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+
+        if (companyId <= 0 || branchId <= 0)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Company or Branch not found."
+            });
+        }
+
+
+        var items =
+            await _repo.SearchItemAsync(
+                term,
+                companyId,
+                branchId);
+
+
         return Json(items);
     }
 }

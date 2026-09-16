@@ -13,7 +13,7 @@ namespace POSSystem.Repositories
         {
             _context = context;
         }
-        public async Task<int> AddAsync(Item item,int companyId,int branchId)
+        public async Task<int> AddAsync(Item item, int companyId, int branchId)
         {
             var query = @"
         DECLARE @ItemId INT;
@@ -31,6 +31,7 @@ namespace POSSystem.Repositories
             CategoryId,
             UnitId,
             SalePrice,
+            SaleQuantity,
             CostPrice,
             IsActive,
             IsDeleted,
@@ -47,6 +48,7 @@ namespace POSSystem.Repositories
             @CategoryId,
             @UnitId,
             @SalePrice,
+            @SaleQuantity,
             @CostPrice,
             @IsActive,
             0,
@@ -68,6 +70,7 @@ namespace POSSystem.Repositories
                 item.CategoryId,
                 item.UnitId,
                 item.SalePrice,
+                item.SaleQuantity,
                 item.CostPrice,
                 item.IsActive,
                 item.CreatedBy
@@ -75,11 +78,7 @@ namespace POSSystem.Repositories
         }
 
 
-        public async Task DeleteAsync(
-            int id,
-            int companyId,
-            int branchId,
-            int userId)
+        public async Task DeleteAsync(int id,int companyId,int branchId,int userId)
         {
             var query = @"
         UPDATE Items
@@ -106,8 +105,8 @@ namespace POSSystem.Repositories
 
 
         public async Task<IEnumerable<Item>> GetAllAsync(
-            int companyId,
-            int branchId)
+    int companyId,
+    int branchId)
         {
             var query = @"
         SELECT
@@ -121,10 +120,10 @@ namespace POSSystem.Repositories
             i.UnitId,
             u.UnitName,
             i.SalePrice,
+            i.SaleQuantity,
             i.CostPrice,
-            i.IsActive,
-            c.CategoryName,
-            u.UnitName
+            i.IsActive
+
         FROM Items i
 
         LEFT JOIN ItemCategories c
@@ -177,10 +176,7 @@ namespace POSSystem.Repositories
         }
 
 
-        public async Task UpdateAsync(
-            Item item,
-            int companyId,
-            int branchId)
+        public async Task UpdateAsync(Item item, int companyId, int branchId)
         {
             var query = @"
         UPDATE Items
@@ -190,6 +186,7 @@ namespace POSSystem.Repositories
             CategoryId = @CategoryId,
             UnitId = @UnitId,
             SalePrice = @SalePrice,
+            SaleQuantity = @SaleQuantity,
             CostPrice = @CostPrice,
             IsActive = @IsActive,
             ModifiedOn = GETDATE(),
@@ -209,6 +206,7 @@ namespace POSSystem.Repositories
                 item.CategoryId,
                 item.UnitId,
                 item.SalePrice,
+                item.SaleQuantity,
                 item.CostPrice,
                 item.IsActive,
                 item.ModifiedBy,

@@ -8,8 +8,10 @@
         public int CustomerId { get; set; }
         public int BranchId { get; set; }
         public int CompanyId { get; set; }
+        public int WarehouseId { get; set; }
         public int UserId { get; set; }
         public int CreatedBy { get; set; }
+        public int ModifiedBy { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal Discount { get; set; }
         public decimal NetAmount { get; set; }
@@ -25,13 +27,24 @@
 
     public class PosInvoiceDetailVm
     {
+        public int InvoiceDetailId { get; set; }
+
         public int ItemId { get; set; }
+
         public decimal Quantity { get; set; }
+
+        public decimal ReturnQty { get; set; }
+
         public string ItemName { get; set; }
+
         public decimal Rate { get; set; }
+
         public decimal Amount { get; set; }
+
         public string BatchNo { get; set; }
+
         public DateTime? ManufacturingDate { get; set; }
+
         public DateTime? ExpiryDate { get; set; }
     }
 }

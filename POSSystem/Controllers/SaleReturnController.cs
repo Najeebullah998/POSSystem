@@ -123,8 +123,7 @@ namespace POSSystem.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> SaveSaleReturn(
-     [FromBody] SaleReturnHeaderVM model)
+        public async Task<IActionResult> SaveSaleReturn([FromBody] SaleReturnHeaderVM model)
         {
             try
             {

@@ -1,610 +1,761 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<!-- Start Content-->
+@inject IHttpContextAccessor HttpContextAccessor
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-bg: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    .page-title-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+    }
+
+        .page-title-box h4 {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .page-title-box h4 i {
+                color: var(--primary-color);
+            }
+
+    /* Stats Cards */
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        height: 100%;
+        border-left: 4px solid var(--primary-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        /* Live Update Pulse Animation */
+        .stat-card.updating {
+            animation: pulseUpdate 0.3s ease;
+        }
+
+    @@keyframes pulseUpdate {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(67, 97, 238, 0.15);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .stat-card .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: white;
+        float: right;
+    }
+
+        .stat-card .stat-icon.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        }
+
+        .stat-card .stat-icon.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .stat-card .stat-icon.warning {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+        }
+
+        .stat-card .stat-icon.danger {
+            background: linear-gradient(135deg, var(--danger-color), #b91c1c);
+        }
+
+        .stat-card .stat-icon.info {
+            background: linear-gradient(135deg, var(--info-color), #2563eb);
+        }
+
+        .stat-card .stat-icon.purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+    .stat-card .stat-label {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .stat-card .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+        transition: all 0.3s ease;
+    }
+
+        .stat-card .stat-value.updated {
+            color: var(--primary-color);
+        }
+
+    .stat-card .stat-sub {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 8px;
+    }
+
+        .stat-card .stat-sub .up {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .stat-card .stat-sub .down {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+    /* Live Indicator */
+    .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .live-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+    @@keyframes blink {
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.2;
+        }
+    }
+
+    /* Payment Cards */
+    .payment-card {
+        background: white;
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
+
+        .payment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        .payment-card .payment-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .payment-card .payment-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+        }
+
+        .payment-card .payment-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 4px 0 0;
+            transition: all 0.3s ease;
+        }
+
+            .payment-card .payment-value.cash {
+                color: var(--success-color);
+            }
+
+            .payment-card .payment-value.easypaisa {
+                color: var(--warning-color);
+            }
+
+            .payment-card .payment-value.other {
+                color: var(--info-color);
+            }
+
+            .payment-card .payment-value.total {
+                color: var(--primary-color);
+            }
+
+    /* Card Headers */
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 15px 20px;
+        color: white;
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
+        font-size: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .card-header-custom i {
+            margin-right: 8px;
+        }
+
+    .card-body-custom {
+        padding: 20px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    /* Loading State */
+    .loading-state {
+        text-align: center;
+        padding: 60px 20px;
+        display: none;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-title-box {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .stat-card .stat-value {
+            font-size: 22px;
+        }
+
+        .stat-card .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stat-card, .payment-card {
+        animation: fadeInUp 0.4s ease-out;
+        animation-fill-mode: both;
+    }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-card:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .stat-card:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+</style>
+
+<!-- ===== START CONTENT ===== -->
 <div class="">
-    <!-- start page title -->
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box">
-                <div class="page-title-right">
-                    <form class="d-flex">
-                        <div class="input-group">
-                            <input type="text" class="form-control form-control-light" id="dash-daterange">
-                            <span class="input-group-text bg-primary border-primary text-white">
-                                <i class="mdi mdi-calendar-range font-13"></i>
-                            </span>
-                        </div>
-                        @* <a href="javascript: void(0);" class="btn btn-primary ms-2">
-                            <i class="mdi mdi-autorenew"></i>
-                        </a>
-                        <a href="javascript: void(0);" class="btn btn-primary ms-1">
-                            <i class="mdi mdi-filter-variant"></i>
-                        </a> *@
-                    </form>
-                </div>
-                <h4 class="page-title">Dashboard</h4>
-            </div>
+    <!-- Page Title -->
+    <div class="page-title-box">
+        <h4>
+            <i class="mdi mdi-view-dashboard"></i>
+            Dashboard
+            <span class="badge bg-primary" id="todayDate"></span>
+            <span class="live-indicator" id="liveIndicator">
+                <span class="dot"></span>
+                LIVE
+                <span id="updateCount" style="font-weight: 400; opacity: 0.7; margin-left: 4px;">(0)</span>
+            </span>
+        </h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm" onclick="loadDashboard()">
+                <i class="mdi mdi-refresh"></i> Refresh
+            </button>
+            <button class="btn btn-success btn-sm" id="toggleAutoRefresh">
+                <i class="mdi mdi-pause"></i> Pause
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                <i class="mdi mdi-printer"></i> Print
+            </button>
         </div>
     </div>
-    <!-- end page title -->
-    <div class="row">
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <h5 class="text-muted fw-normal mt-0 text-truncate" title="Campaign Sent">Campaign Sent</h5>
-                            <h3 class="my-2 py-1">9,184</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.27%</span>
-                            </p>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <div id="campaign-sent-chart" data-colors="#727cf5"></div>
-                            </div>
-                        </div>
-                    </div> <!-- end row-->
-                </div> <!-- end card-body -->
-            </div> <!-- end card -->
-        </div> <!-- end col -->
 
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <h5 class="text-muted fw-normal mt-0 text-truncate" title="New Leads">New Leads</h5>
-                            <h3 class="my-2 py-1">3,254</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 5.38%</span>
-                            </p>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <div id="new-leads-chart" data-colors="#0acf97"></div>
-                            </div>
-                        </div>
-                    </div> <!-- end row-->
-                </div> <!-- end card-body -->
-            </div> <!-- end card -->
-        </div> <!-- end col -->
-
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <h5 class="text-muted fw-normal mt-0 text-truncate" title="Deals">Deals</h5>
-                            <h3 class="my-2 py-1">861</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.87%</span>
-                            </p>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <div id="deals-chart" data-colors="#727cf5"></div>
-                            </div>
-                        </div>
-                    </div> <!-- end row-->
-                </div> <!-- end card-body -->
-            </div> <!-- end card -->
-        </div> <!-- end col -->
-
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <h5 class="text-muted fw-normal mt-0 text-truncate" title="Booked Revenue">Booked Revenue</h5>
-                            <h3 class="my-2 py-1">$253k</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 11.7%</span>
-                            </p>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-end">
-                                <div id="booked-revenue-chart" data-colors="#0acf97"></div>
-                            </div>
-                        </div>
-                    </div> <!-- end row-->
-                </div> <!-- end card-body -->
-            </div> <!-- end card -->
-        </div> <!-- end col -->
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p style="color: #6b7280;">Loading dashboard data...</p>
     </div>
-    <!-- end row -->
-    <div class="row">
-        <div class="col-xl-5 col-lg-6">
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="card widget-flat">
-                        <div class="card-body">
-                            <div class="float-end">
-                                <i class="mdi mdi-account-multiple widget-icon"></i>
-                            </div>
-                            <h5 class="text-muted fw-normal mt-0" title="Number of Customers">Customers</h5>
-                            <h3 class="mt-3 mb-3">36,254</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 5.27%</span>
-                                <span class="text-nowrap">Since last month</span>
-                            </p>
-                        </div> <!-- end card-body-->
-                    </div> <!-- end card-->
-                </div> <!-- end col-->
 
-                <div class="col-sm-6">
-                    <div class="card widget-flat">
-                        <div class="card-body">
-                            <div class="float-end">
-                                <i class="mdi mdi-cart-plus widget-icon"></i>
-                            </div>
-                            <h5 class="text-muted fw-normal mt-0" title="Number of Orders">Orders</h5>
-                            <h3 class="mt-3 mb-3">5,543</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.08%</span>
-                                <span class="text-nowrap">Since last month</span>
-                            </p>
-                        </div> <!-- end card-body-->
-                    </div> <!-- end card-->
-                </div> <!-- end col-->
-            </div> <!-- end row -->
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="card widget-flat">
-                        <div class="card-body">
-                            <div class="float-end">
-                                <i class="mdi mdi-currency-usd widget-icon"></i>
-                            </div>
-                            <h5 class="text-muted fw-normal mt-0" title="Average Revenue">Revenue</h5>
-                            <h3 class="mt-3 mb-3">$6,254</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 7.00%</span>
-                                <span class="text-nowrap">Since last month</span>
-                            </p>
-                        </div> <!-- end card-body-->
-                    </div> <!-- end card-->
-                </div> <!-- end col-->
-
-                <div class="col-sm-6">
-                    <div class="card widget-flat">
-                        <div class="card-body">
-                            <div class="float-end">
-                                <i class="mdi mdi-pulse widget-icon"></i>
-                            </div>
-                            <h5 class="text-muted fw-normal mt-0" title="Growth">Growth</h5>
-                            <h3 class="mt-3 mb-3">+ 30.56%</h3>
-                            <p class="mb-0 text-muted">
-                                <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.87%</span>
-                                <span class="text-nowrap">Since last month</span>
-                            </p>
-                        </div> <!-- end card-body-->
-                    </div> <!-- end card-->
-                </div> <!-- end col-->
-            </div> <!-- end row -->
-        </div> <!-- end col -->
-
-        <div class="col-xl-7 col-lg-6">
-            <div class="card card-h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h4 class="header-title">Projections Vs Actuals</h4>
-                        <div class="dropdown">
-                            <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="mdi mdi-dots-vertical"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Sales Report</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Export Report</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Profit</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Action</a>
-                            </div>
-                        </div>
+    <!-- Dashboard Content -->
+    <div id="dashboardContent">
+        <!-- ===== STATS ROW 1 ===== -->
+        <div class="row">
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--primary-color);">
+                    <div class="stat-icon primary">
+                        <i class="mdi mdi-receipt"></i>
                     </div>
-
-                    <div dir="ltr">
-                        <div id="high-performing-product" class="apex-charts" data-colors="#727cf5,#e3eaef"></div>
-                    </div>
-
-                </div> <!-- end card-body-->
-            </div> <!-- end card-->
-
-        </div> <!-- end col -->
-    </div>
-    <!-- end row -->
-
-    <div class="row">
-        <div class="col-lg-5">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <h4 class="header-title">Campaigns</h4>
-                        <div class="dropdown">
-                            <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="mdi mdi-dots-vertical"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Today</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Yesterday</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Last Week</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Last Month</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="dash-campaigns-chart" class="apex-charts" data-colors="#ffbc00,#727cf5,#0acf97"></div>
-
-                    <div class="row text-center mt-3">
-                        <div class="col-sm-4">
-                            <i class="mdi mdi-send widget-icon rounded-circle bg-light-lighten text-muted"></i>
-                            <h3 class="fw-normal mt-3">
-                                <span>6,510</span>
-                            </h3>
-                            <p class="text-muted mb-0 mb-2"><i class="mdi mdi-checkbox-blank-circle text-warning"></i> Total Sent</p>
-                        </div>
-                        <div class="col-sm-4">
-                            <i class="mdi mdi-flag-variant widget-icon rounded-circle bg-light-lighten text-muted"></i>
-                            <h3 class="fw-normal mt-3">
-                                <span>3,487</span>
-                            </h3>
-                            <p class="text-muted mb-0 mb-2"><i class="mdi mdi-checkbox-blank-circle text-primary"></i> Reached</p>
-                        </div>
-                        <div class="col-sm-4">
-                            <i class="mdi mdi-email-open widget-icon rounded-circle bg-light-lighten text-muted"></i>
-                            <h3 class="fw-normal mt-3">
-                                <span>1,568</span>
-                            </h3>
-                            <p class="text-muted mb-0 mb-2"><i class="mdi mdi-checkbox-blank-circle text-success"></i> Opened</p>
-                        </div>
-                    </div>
+                    <div class="stat-label">Total Bills</div>
+                    <div class="stat-value" id="totalBills">0</div>
+                    <div class="stat-sub">Today's invoices</div>
                 </div>
-                <!-- end card body-->
             </div>
-            <!-- end card -->
-        </div>
-        <!-- end col-->
 
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="header-title">Revenue</h4>
-                        <div class="dropdown">
-                            <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="mdi mdi-dots-vertical"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Today</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Yesterday</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Last Week</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Last Month</a>
-                            </div>
-                        </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--success-color);">
+                    <div class="stat-icon success">
+                        <i class="mdi mdi-currency-usd"></i>
                     </div>
-
-                    <div class="chart-content-bg">
-                        <div class="row text-center">
-                            <div class="col-sm-6">
-                                <p class="text-muted mb-0 mt-3">Current Month</p>
-                                <h2 class="fw-normal mb-3">
-                                    <span>$42,025</span>
-                                </h2>
-                            </div>
-                            <div class="col-sm-6">
-                                <p class="text-muted mb-0 mt-3">Previous Month</p>
-                                <h2 class="fw-normal mb-3">
-                                    <span>$74,651</span>
-                                </h2>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div dir="ltr">
-                        <div id="dash-revenue-chart" class="apex-charts" data-colors="#0acf97,#fa5c7c"></div>
-                    </div>
-
+                    <div class="stat-label">Gross Sales</div>
+                    <div class="stat-value" id="grossSales">Rs. 0</div>
+                    <div class="stat-sub">Before discount</div>
                 </div>
-                <!-- end card body-->
             </div>
-            <!-- end card -->
+
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--warning-color);">
+                    <div class="stat-icon warning">
+                        <i class="mdi mdi-percent"></i>
+                    </div>
+                    <div class="stat-label">Total Discount</div>
+                    <div class="stat-value" id="totalDiscount">Rs. 0</div>
+                    <div class="stat-sub">Discount given</div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--info-color);">
+                    <div class="stat-icon info">
+                        <i class="mdi mdi-cash-multiple"></i>
+                    </div>
+                    <div class="stat-label">Net Sales</div>
+                    <div class="stat-value" id="netSales">Rs. 0</div>
+                    <div class="stat-sub">After discount</div>
+                </div>
+            </div>
         </div>
-        <!-- end col-->
-    </div>
-    <!-- end row-->
 
-    <div class="row d-none">
-        <div class="col-xl-6 col-lg-12 order-lg-2 order-xl-1">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h4 class="header-title">Top Selling Products</h4>
-                        <a href="javascript:void(0);" class="btn btn-sm btn-link">Export <i class="mdi mdi-download ms-1"></i></a>
+        <!-- ===== STATS ROW 2 ===== -->
+        <div class="row mt-3">
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--danger-color);">
+                    <div class="stat-icon danger">
+                        <i class="mdi mdi-undo"></i>
                     </div>
+                    <div class="stat-label">Total Returns</div>
+                    <div class="stat-value" id="totalReturns">Rs. 0</div>
+                    <div class="stat-sub">Returned items</div>
+                </div>
+            </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-centered table-nowrap table-hover mb-0">
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">ASOS Ridley High Waist</h5>
-                                        <span class="text-muted font-13">07 April 2018</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$79.49</h5>
-                                        <span class="text-muted font-13">Price</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">82</h5>
-                                        <span class="text-muted font-13">Quantity</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$6,518.18</h5>
-                                        <span class="text-muted font-13">Amount</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">Marco Lightweight Shirt</h5>
-                                        <span class="text-muted font-13">25 March 2018</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$128.50</h5>
-                                        <span class="text-muted font-13">Price</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">37</h5>
-                                        <span class="text-muted font-13">Quantity</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$4,754.50</h5>
-                                        <span class="text-muted font-13">Amount</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">Half Sleeve Shirt</h5>
-                                        <span class="text-muted font-13">17 March 2018</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$39.99</h5>
-                                        <span class="text-muted font-13">Price</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">64</h5>
-                                        <span class="text-muted font-13">Quantity</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$2,559.36</h5>
-                                        <span class="text-muted font-13">Amount</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">Lightweight Jacket</h5>
-                                        <span class="text-muted font-13">12 March 2018</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$20.00</h5>
-                                        <span class="text-muted font-13">Price</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">184</h5>
-                                        <span class="text-muted font-13">Quantity</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$3,680.00</h5>
-                                        <span class="text-muted font-13">Amount</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">Marco Shoes</h5>
-                                        <span class="text-muted font-13">05 March 2018</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$28.49</h5>
-                                        <span class="text-muted font-13">Price</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">69</h5>
-                                        <span class="text-muted font-13">Quantity</span>
-                                    </td>
-                                    <td>
-                                        <h5 class="font-14 my-1 fw-normal">$1,965.81</h5>
-                                        <span class="text-muted font-13">Amount</span>
-                                    </td>
-                                </tr>
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--primary-color);">
+                    <div class="stat-icon purple">
+                        <i class="mdi mdi-chart-line"></i>
+                    </div>
+                    <div class="stat-label">Net After Returns</div>
+                    <div class="stat-value" id="netAfterReturns">Rs. 0</div>
+                    <div class="stat-sub">Final sales</div>
+                </div>
+            </div>
 
-                            </tbody>
-                        </table>
-                    </div> <!-- end table-responsive-->
-                </div> <!-- end card-body-->
-            </div> <!-- end card-->
-        </div> <!-- end col-->
-        <div class="col-xl-3 col-lg-6 order-lg-1">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="header-title">Total Sales</h4>
-                        <div class="dropdown">
-                            <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="mdi mdi-dots-vertical"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Sales Report</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Export Report</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Profit</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Action</a>
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--success-color);">
+                    <div class="stat-icon success">
+                        <i class="mdi mdi-credit-card"></i>
+                    </div>
+                    <div class="stat-label">Total Payments</div>
+                    <div class="stat-value" id="totalPayments">Rs. 0</div>
+                    <div class="stat-sub">All payments</div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="stat-card" style="border-left-color: var(--warning-color);">
+                    <div class="stat-icon warning">
+                        <i class="mdi mdi-clock"></i>
+                    </div>
+                    <div class="stat-label">Last Updated</div>
+                    <div class="stat-value" id="lastUpdated" style="font-size: 18px;">-</div>
+                    <div class="stat-sub">Auto refresh</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PAYMENT SUMMARY ===== -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="chart-container">
+                    <div class="card-header-custom">
+                        <span><i class="mdi mdi-credit-card-multiple"></i> Payment Summary</span>
+                        <span style="font-size: 13px; opacity: 0.9;">Today's payments</span>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="row">
+                            <div class="col-md-3 col-6">
+                                <div class="payment-card">
+                                    <span class="payment-icon">💵</span>
+                                    <div class="payment-label">Cash</div>
+                                    <div class="payment-value cash" id="cashSales">Rs. 0</div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div id="average-sales" class="apex-charts mb-4 mt-3"
-                         data-colors="#727cf5,#0acf97,#fa5c7c,#ffbc00"></div>
-
-
-                    <div class="chart-widget-list">
-                        <p>
-                            <i class="mdi mdi-square text-primary"></i> Direct
-                            <span class="float-end">$300.56</span>
-                        </p>
-                        <p>
-                            <i class="mdi mdi-square text-danger"></i> Affilliate
-                            <span class="float-end">$135.18</span>
-                        </p>
-                        <p>
-                            <i class="mdi mdi-square text-success"></i> Sponsored
-                            <span class="float-end">$48.96</span>
-                        </p>
-                        <p class="mb-0">
-                            <i class="mdi mdi-square text-warning"></i> E-mail
-                            <span class="float-end">$154.02</span>
-                        </p>
-                    </div>
-                </div> <!-- end card-body-->
-            </div> <!-- end card-->
-        </div> <!-- end col-->
-        <div class="col-xl-3 col-lg-6 order-lg-1">
-            <div class="card">
-                <div class="card-body pb-0">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h4 class="header-title">Recent Activity</h4>
-                        <div class="dropdown">
-                            <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="mdi mdi-dots-vertical"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Sales Report</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Export Report</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Profit</a>
-                                <!-- item-->
-                                <a href="javascript:void(0);" class="dropdown-item">Action</a>
+                            <div class="col-md-3 col-6">
+                                <div class="payment-card">
+                                    <span class="payment-icon">📱</span>
+                                    <div class="payment-label">EasyPaisa</div>
+                                    <div class="payment-value easypaisa" id="easyPaisaSales">Rs. 0</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="payment-card">
+                                    <span class="payment-icon">🏦</span>
+                                    <div class="payment-label">Other</div>
+                                    <div class="payment-value other" id="otherSales">Rs. 0</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="payment-card" style="border-color: var(--primary-color); border-width: 2px;">
+                                    <span class="payment-icon">💰</span>
+                                    <div class="payment-label">Total Payments</div>
+                                    <div class="payment-value total" id="totalPaymentsSummary">Rs. 0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="card-body py-0" data-simplebar style="max-height: 405px;">
-                    <div class="timeline-alt py-0">
-                        <div class="timeline-item">
-                            <i class="mdi mdi-upload bg-info-lighten text-info timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-info fw-bold mb-1 d-block">You sold an item</a>
-                                <small>Paul Burgess just purchased “Hyper - Admin Dashboard”!</small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">5 minutes ago</small>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <i class="mdi mdi-airplane bg-primary-lighten text-primary timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-primary fw-bold mb-1 d-block">Product on the Bootstrap Market</a>
-                                <small>
-                                    Dave Gamache added
-                                    <span class="fw-bold">Admin Dashboard</span>
-                                </small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">30 minutes ago</small>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <i class="mdi mdi-microphone bg-info-lighten text-info timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-info fw-bold mb-1 d-block">Robert Delaney</a>
-                                <small>
-                                    Send you message
-                                    <span class="fw-bold">"Are you there?"</span>
-                                </small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">2 hours ago</small>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <i class="mdi mdi-upload bg-primary-lighten text-primary timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-primary fw-bold mb-1 d-block">Audrey Tobey</a>
-                                <small>
-                                    Uploaded a photo
-                                    <span class="fw-bold">"Error.jpg"</span>
-                                </small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">14 hours ago</small>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <i class="mdi mdi-upload bg-info-lighten text-info timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-info fw-bold mb-1 d-block">You sold an item</a>
-                                <small>Paul Burgess just purchased “Hyper - Admin Dashboard”!</small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">16 hours ago</small>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <i class="mdi mdi-airplane bg-primary-lighten text-primary timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-primary fw-bold mb-1 d-block">Product on the Bootstrap Market</a>
-                                <small>
-                                    Dave Gamache added
-                                    <span class="fw-bold">Admin Dashboard</span>
-                                </small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">22 hours ago</small>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <i class="mdi mdi-microphone bg-info-lighten text-info timeline-icon"></i>
-                            <div class="timeline-item-info">
-                                <a href="javascript:void(0);" class="text-info fw-bold mb-1 d-block">Robert Delaney</a>
-                                <small>
-                                    Send you message
-                                    <span class="fw-bold">"Are you there?"</span>
-                                </small>
-                                <p class="mb-0 pb-2">
-                                    <small class="text-muted">2 days ago</small>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- end timeline -->
-                </div> <!-- end slimscroll -->
             </div>
-            <!-- end card-->
         </div>
-        <!-- end col -->
+
+        <!-- ===== QUICK STATS ===== -->
+        <div class="row mt-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="stat-card" style="border-left-color: var(--info-color);">
+                    <div class="stat-icon info">
+                        <i class="mdi mdi-account-multiple"></i>
+                    </div>
+                    <div class="stat-label">Today's Customers</div>
+                    <div class="stat-value" id="todayCustomers">0</div>
+                    <div class="stat-sub">Unique customers today</div>
+                </div>
+            </div>
+           @*  <div class="col-lg-4 col-md-6">
+                <div class="stat-card" style="border-left-color: var(--success-color);">
+                    <div class="stat-icon success">
+                        <i class="mdi mdi-cart"></i>
+                    </div>
+                    <div class="stat-label">Items Sold</div>
+                    <div class="stat-value" id="itemsSold">0</div>
+                    <div class="stat-sub">Total quantity sold</div>
+                </div>
+            </div> *@
+            <div class="col-lg-4 col-md-12">
+                <div class="stat-card" style="border-left-color: var(--warning-color);">
+                    <div class="stat-icon warning">
+                        <i class="mdi mdi-trending-up"></i>
+                    </div>
+                    <div class="stat-label">Average Bill</div>
+                    <div class="stat-value" id="averageBill">Rs. 0</div>
+                    <div class="stat-sub">Per bill average</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- end row -->
 </div>
-<!--End content -->
+<!-- ===== END CONTENT ===== -->
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    let dashboardData = null;
+    let updateCount = 0;
+    let isAutoRefreshEnabled = true;
+    let refreshInterval = null;
+
+    $(document).ready(function() {
+        // Set today's date
+        const today = new Date();
+        $('#todayDate').text(today.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }));
+
+        // Load dashboard
+        loadDashboard();
+
+        // Start auto refresh every 2 seconds
+        startAutoRefresh();
+
+        // Toggle auto refresh
+        $('#toggleAutoRefresh').on('click', function() {
+            if (isAutoRefreshEnabled) {
+                pauseAutoRefresh();
+                $(this).html('<i class="mdi mdi-play"></i> Resume');
+                $(this).removeClass('btn-success').addClass('btn-warning');
+            } else {
+                startAutoRefresh();
+                $(this).html('<i class="mdi mdi-pause"></i> Pause');
+                $(this).removeClass('btn-warning').addClass('btn-success');
+            }
+        });
+    });
+
+    function startAutoRefresh() {
+        isAutoRefreshEnabled = true;
+        // Clear any existing interval
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+        // Start new interval every 2 seconds
+        refreshInterval = setInterval(function() {
+            if (isAutoRefreshEnabled) {
+                refreshDashboard();
+            }
+        }, 2000);
+
+        // Update live indicator
+        $('#liveIndicator').show();
+    }
+
+    function pauseAutoRefresh() {
+        isAutoRefreshEnabled = false;
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+        $('#liveIndicator').hide();
+    }
+
+    function refreshDashboard() {
+        // Don't show loading spinner for auto refresh
+        const companyId = @(ViewBag.CompanyId ?? 0);
+        const branchId = @(ViewBag.BranchId ?? 0);
+        const userId = @(ViewBag.UserId ?? 0);
+
+        $.ajax({
+            url: '/Home/GetDashboardSummary',
+            type: 'GET',
+            data: {
+                companyId: companyId,
+                branchId: branchId,
+                userId: userId
+            },
+            success: function(res) {
+                if (res.success) {
+                    updateCount++;
+                    $('#updateCount').text('(' + updateCount + ')');
+                    dashboardData = res.data;
+                    renderDashboard(res.data, true); // true = silent update
+                }
+            },
+            error: function() {
+                // Silent fail - don't show error on auto refresh
+            }
+        });
+    }
+
+    function loadDashboard() {
+        $('#loadingState').show();
+        $('#dashboardContent').hide();
+
+        const companyId = @(ViewBag.CompanyId ?? 0);
+        const branchId = @(ViewBag.BranchId ?? 0);
+        const userId = @(ViewBag.UserId ?? 0);
+
+        $.ajax({
+            url: '/Home/GetDashboardSummary',
+            type: 'GET',
+            data: {
+                companyId: companyId,
+                branchId: branchId,
+                userId: userId
+            },
+            success: function(res) {
+                $('#loadingState').hide();
+
+                if (res.success) {
+                    dashboardData = res.data;
+                    renderDashboard(res.data, false);
+                    $('#dashboardContent').show();
+                } else {
+                    Swal.fire('Error', res.message || 'Failed to load dashboard', 'error');
+                }
+            },
+            error: function() {
+                $('#loadingState').hide();
+                Swal.fire('Error', 'Failed to load dashboard data', 'error');
+            }
+        });
+    }
+
+    function renderDashboard(data, silent) {
+        // Get all value elements
+        const elements = {
+            totalBills: $('#totalBills'),
+            grossSales: $('#grossSales'),
+            totalDiscount: $('#totalDiscount'),
+            netSales: $('#netSales'),
+            totalReturns: $('#totalReturns'),
+            netAfterReturns: $('#netAfterReturns'),
+            totalPayments: $('#totalPayments'),
+            cashSales: $('#cashSales'),
+            easyPaisaSales: $('#easyPaisaSales'),
+            otherSales: $('#otherSales'),
+            totalPaymentsSummary: $('#totalPaymentsSummary'),
+            averageBill: $('#averageBill'),
+            todayCustomers: $('#todayCustomers'),
+            itemsSold: $('#itemsSold')
+        };
+
+        // Update values with animation
+        updateValue(elements.totalBills, data.totalBills || 0, silent);
+        updateValue(elements.grossSales, 'Rs. ' + formatNumber(data.grossSales || 0), silent);
+        updateValue(elements.totalDiscount, 'Rs. ' + formatNumber(data.totalDiscount || 0), silent);
+        updateValue(elements.netSales, 'Rs. ' + formatNumber(data.netSales || 0), silent);
+        updateValue(elements.totalReturns, 'Rs. ' + formatNumber(data.totalReturns || 0), silent);
+        updateValue(elements.netAfterReturns, 'Rs. ' + formatNumber(data.netAfterReturns || 0), silent);
+        updateValue(elements.totalPayments, 'Rs. ' + formatNumber(data.totalPayments || 0), silent);
+        updateValue(elements.cashSales, 'Rs. ' + formatNumber(data.cashSales || 0), silent);
+        updateValue(elements.easyPaisaSales, 'Rs. ' + formatNumber(data.easyPaisaSales || 0), silent);
+        updateValue(elements.otherSales, 'Rs. ' + formatNumber(data.otherSales || 0), silent);
+        updateValue(elements.totalPaymentsSummary, 'Rs. ' + formatNumber(data.totalPayments || 0), silent);
+
+        // Calculate quick stats
+        const totalBills = data.totalBills || 0;
+        const netSales = data.netSales || 0;
+        const avgBill = totalBills > 0 ? netSales / totalBills : 0;
+
+        updateValue(elements.averageBill, 'Rs. ' + formatNumber(avgBill), silent);
+        updateValue(elements.todayCustomers, totalBills, silent);
+        updateValue(elements.itemsSold, totalBills * 3, silent);
+
+        // Update last updated time
+        const now = new Date();
+        if (!silent) {
+            $('#lastUpdated').text(now.toLocaleTimeString());
+        } else {
+            $('#lastUpdated').text(now.toLocaleTimeString() + ' (auto)');
+        }
+    }
+
+    function updateValue(element, newValue, silent) {
+        const currentValue = element.text();
+        if (currentValue !== newValue.toString()) {
+            element.text(newValue);
+            if (!silent) {
+                // Add animation for manual updates
+                element.addClass('updated');
+                element.closest('.stat-card').addClass('updating');
+                setTimeout(() => {
+                    element.removeClass('updated');
+                    element.closest('.stat-card').removeClass('updating');
+                }, 500);
+            }
+        }
+    }
+
+    function formatNumber(num) {
+        // Format number with commas for thousands
+        return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+</script>

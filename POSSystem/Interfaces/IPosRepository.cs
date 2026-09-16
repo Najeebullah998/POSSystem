@@ -7,17 +7,21 @@ namespace POSSystem.Interfaces
         Task<string> GenerateInvoiceNoAsync(int branchId);
         bool SaveInvoice(PosInvoiceVm model);
         IEnumerable<ItemSearchVM> SearchItems(string term);
-        Task<(PosInvoiceVm Invoice, List<PosInvoiceDetailVm> Details)> GetBillByIdAsync(int invoiceId);
+        Task<(PosInvoiceVm Header, List<PosInvoiceDetailVm> Details)> GetBillByIdAsync(int companyId,int branchId,int invoiceId
+    );
         Task<IEnumerable<PosInvoiceVm>> GetCompleteBillsAsync(int companyId, int branchId, DateTime? fromDate, DateTime? toDate, string invoiceNo);
-        bool UpdateInvoice(PosInvoiceVm model);
-        bool DeleteInvoice(int invoiceId, int modifiedBy);
-        Task<SaleClosingSummary> GetSaleClosingSummaryAsync(int companyId, int branchId, int userId, DateTime closingDate);
-        Task<List<Customers>> GetDropdownAsync(int companyId, int branchId);
-        Task<SaleClosingSaveResult> SaveAsync(
+        Task<bool> UpdatePosInvoiceAsync(
         int companyId,
         int branchId,
-        int userId,
-        DateTime closingDate,
+        int invoiceId,
+        PosInvoiceVm model,
+        List<PosInvoiceDetailVm> details,
+        int modifiedBy
+    );
+        bool DeleteInvoiceDetail(int invoiceDetailId, int companyId, int branchId, int modifiedBy);
+        Task<SaleClosingSummary> GetSaleClosingSummaryAsync(int companyId, int branchId, int userId, DateTime closingDate);
+        Task<List<Customers>> GetDropdownAsync(int companyId, int branchId);
+        Task<SaleClosingSaveResult> SaveAsync(int companyId,int branchId,int userId,DateTime closingDate,
         decimal openingCash,
         decimal totalSales,
         decimal totalReturns,

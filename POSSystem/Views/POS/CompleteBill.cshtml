@@ -647,13 +647,14 @@
     }
 
     function getStatus(bill) {
-        let net = parseFloat(bill.netAmount) || 0;
-        let paid = parseFloat(bill.netAmount) || 0;
+    let net = parseFloat(bill.netAmount) || 0;
+    let paid = parseFloat(bill.netAmount) || 0;
 
-        if (paid >= net && net > 0) return 'paid';
-        if (paid > 0 && paid < net) return 'partial';
-        return 'unpaid';
-    }
+    if (paid >= net && net > 0) return 'paid';
+    if (paid > 0 && paid < net) return 'partial';
+
+    return 'unpaid';
+}
 
     function getStatusBadge(status) {
         switch(status) {
@@ -706,7 +707,7 @@
             Swal.fire('Error', 'Invalid bill ID', 'error');
             return;
         }
-        window.location.href = `/SaleReturn/EditBill?id=${invoiceId}`;
+        window.location.href = `/POS/CreateSale?invoiceId=${invoiceId}`;
     }
 
     function viewDetail(invoiceId) {

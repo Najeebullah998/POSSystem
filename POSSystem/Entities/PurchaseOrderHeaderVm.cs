@@ -26,6 +26,8 @@ namespace POSSystem.Entities
         public string supplierName { get; set; }
 
         public int CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set;  }
+        public int ModifiedBy { get; set; }
 
         public List<PurchaseOrderDetailVm> Details { get; set; }
         public List<SelectListItem> SupplierList { get; set; }

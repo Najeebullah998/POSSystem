@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Mvc.Rendering;
 using POSSystem.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace POSSystem.Interfaces
         Task<Company?> GetByIdAsync(int id);
 
         Task<IEnumerable<Company>> GetAllAsync();
+        Task<IEnumerable<SelectListItem>> GetBusinessTypeDropdownAsync();
     }
 
 }

@@ -16,7 +16,13 @@ a {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
+.menu-arrow {
+    transition: transform 0.25s ease;
+}
 
+    .menu-arrow.rotate {
+        transform: rotate(180deg);
+    }
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
   color: #fff;
   background-color: #1b6ec2;

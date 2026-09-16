@@ -28,6 +28,7 @@ public class AccountRepository
 
             c.CompanyId,
             c.CompanyName,
+            c.LogoPath,
 
             u.BusinessTypeId,
             bt.BusinessName AS BusinessName

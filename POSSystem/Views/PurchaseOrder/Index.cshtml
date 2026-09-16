@@ -1,5 +1,6 @@
-﻿@{
-    ViewData["Title"] = "Suppliers";
+﻿
+@{
+    ViewData["Title"] = "Purchase Orders";
 }
 
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -9,17 +10,23 @@
     <div class="row mb-1">
         <div class="col-12">
             <div class="page-title-box">
+
                 <div class="page-title-right">
                     <div class="input-group ms-1">
-                        <input type="text" class="form-control form-control-light" id="dash-daterange">
+                        <input type="text"
+                               class="form-control form-control-light"
+                               id="dash-daterange">
+
                         <span class="input-group-text bg-primary border-primary text-white">
                             <i class="mdi mdi-calendar-range font-13"></i>
                         </span>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
+
 
     <div class="row">
 
@@ -27,26 +34,38 @@
 
             <div class="card">
 
+                <!-- HEADER -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center flex-wrap p-1 pb-0 gap-2">
 
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="javascript:void(0);" class="btn btn-primary listbuttons">Go Back</a>
+
+                        <a href="javascript:history.back();"
+                           class="btn btn-primary listbuttons">
+                            Go Back
+                        </a>
+
                     </div>
 
+
                     <div>
+
                         <a href="/PurchaseOrder/CreatePurchseOrder"
                            class="btn btn-primary listbuttons">
                             New Purchase Order
                         </a>
+
                     </div>
 
                 </div>
 
+
+                <!-- TABLE -->
                 <div class="card-body">
 
                     <div class="dataTables_wrapper">
 
-                        <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                        <table id="datatable-buttons"
+                               class="table table-striped dt-responsive nowrap w-100">
 
                             <thead>
                                 <tr>
@@ -75,16 +94,25 @@
 
 </div>
 
+
 <script>
 
-
-       $(document).ready(function () {
+    $(document).ready(function() {
 
         loadPurchaseOrders();
 
     });
 
-        function formatDate(date) {
+
+    // =========================
+    // FORMAT DATE
+    // =========================
+    function formatDate(date) {
+
+        if (!date) {
+            return "";
+        }
+
         return new Date(date).toLocaleDateString('en-GB', {
             day: '2-digit',
             month: 'short',
@@ -92,55 +120,169 @@
         });
     }
 
-        function loadPurchaseOrders() {
+
+    // =========================
+    // LOAD PURCHASE ORDERS
+    // =========================
+    function loadPurchaseOrders() {
 
         $.ajax({
 
             url: '/PurchaseOrder/GetPurchaseList',
             type: 'GET',
 
-            success: function (data) {
+            success: function(response) {
 
                 var tbody = $("#datatable-buttons tbody");
 
                 tbody.empty();
 
-                $.each(data, function (i, po) {
+
+                // =================================
+                // Validate Response
+                // =================================
+
+                if (!response.success) {
+
+                    Swal.fire(
+                        "Error",
+                        response.message || "Unable to load Purchase Orders.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+
+                var data = response.data || [];
+
+
+                // =================================
+                // No Records
+                // =================================
+
+                if (data.length === 0) {
 
                     tbody.append(`
-                        <tr>
-                            <td>${po.poNumber}</td>
-                           <td>${formatDate(po.poDate)}</td>
-                            <td>${po.supplierName}</td>
-                            <td>${po.totalAmount}</td>
-                            <td>${po.status}</td>
-                            <td class="text-center">
+                            <tr>
+                                <td colspan="6"
+                                    class="text-center text-muted">
+                                    No Purchase Orders Found
+                                </td>
+                            </tr>
+                        `);
 
-                                <a href="/PurchaseOrder/Index?id=${po.purchaseOrderId}"
-                                   class="btn btn-success btn-sm">
-                                   Edit
-                                </a>
+                    return;
+                }
 
-                                <button class="btn btn-danger btn-sm"
-                                        onclick="deletePurchaseOrder(${po.purchaseOrderId})">
-                                    Delete
-                                </button>
 
-                                <a href="/PurchaseOrder/Print?id=${po.purchaseOrderId}"
-                                   class="btn btn-info btn-sm">
-                                   Print
-                                </a>
+                // =================================
+                // Render Records
+                // =================================
 
-                                <a href="/GRN/Index?purchaseOrderId=${po.purchaseOrderId}"
-                                   class="btn btn-warning btn-sm">
-                                   GRN
-                                </a>
+                $.each(data, function(i, po) {
 
-                            </td>
-                        </tr>
-                    `);
+                    tbody.append(`
+
+                            <tr>
+
+                                <td>
+                                    ${po.poNumber || ''}
+                                </td>
+
+
+                                <td>
+                                    ${formatDate(po.poDate)}
+                                </td>
+
+
+                                <td>
+                                    ${po.supplierName || ''}
+                                </td>
+
+
+                                <td>
+                                    ${Number(po.totalAmount || 0).toFixed(2)}
+                                </td>
+
+
+                                <td>
+                                    <span class="badge
+                                        ${po.status === 'Pending'
+                            ? 'bg-warning'
+                            : 'bg-success'}">
+
+                                        ${po.status || ''}
+                                    </span>
+                                </td>
+
+
+                                <td class="text-center">
+
+                                    <!-- EDIT -->
+
+                                    <a href="/PurchaseOrder/Edit?id=${po.purchaseOrderId}"
+                                       class="btn btn-success btn-sm">
+
+                                        <i class="mdi mdi-pencil"></i>
+                                        Edit
+
+                                    </a>
+
+
+                                    <!-- DELETE -->
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm"
+                                            onclick="deletePurchaseOrder(${po.purchaseOrderId})">
+
+                                        <i class="mdi mdi-delete"></i>
+                                        Delete
+
+                                    </button>
+
+
+                                    <!-- PRINT -->
+
+                                    <a href="/PurchaseOrder/Print?id=${po.purchaseOrderId}"
+                                       class="btn btn-info btn-sm">
+
+                                        <i class="mdi mdi-printer"></i>
+                                        Print
+
+                                    </a>
+
+
+                                    <!-- GRN -->
+
+                                    <a href="/GRN/Index?purchaseOrderId=${po.purchaseOrderId}"
+                                       class="btn btn-warning btn-sm">
+
+                                        <i class="mdi mdi-package-variant"></i>
+                                        GRN
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        `);
 
                 });
+
+            },
+
+
+            error: function(xhr) {
+
+                Swal.fire(
+                    "Error",
+                    "Unable to load Purchase Orders.",
+                    "error"
+                );
+
+                console.log(xhr.responseText);
 
             }
 
@@ -148,35 +290,93 @@
 
     }
 
-    
 
-        function deletePurchaseOrder(id) {
+    // =========================
+    // DELETE PURCHASE ORDER
+    // =========================
+    function deletePurchaseOrder(id) {
 
         Swal.fire({
+
             title: "Are you sure?",
+
             text: "This Purchase Order will be deleted.",
+
             icon: "warning",
-            showCancelButton: true
+
+            showCancelButton: true,
+
+            confirmButtonText: "Yes, Delete",
+
+            cancelButtonText: "Cancel"
+
         }).then((result) => {
 
-            if (result.isConfirmed) {
+            if (!result.isConfirmed) {
+                return;
+            }
 
-                $.post("/PurchaseOrder/Delete?id=" + id, function (res) {
+
+            $.ajax({
+
+                url: "/PurchaseOrder/Delete",
+
+                type: "POST",
+
+                data: {
+                    id: id
+                },
+
+
+                success: function(res) {
 
                     if (res.success) {
 
-                        Swal.fire("Deleted!", res.message, "success");
+                        Swal.fire(
+                            "Deleted!",
+                            res.message,
+                            "success"
+                        ).then(function() {
 
-                        loadPurchaseOrders();
+                            loadPurchaseOrders();
+
+                        });
+
+                    }
+                    else {
+
+                        Swal.fire(
+                            "Cannot Delete",
+                            res.message || "Delete failed.",
+                            "error"
+                        );
 
                     }
 
-                });
+                },
 
-            }
+
+                error: function(xhr) {
+
+                    var message = "Unable to delete Purchase Order.";
+
+                    if (xhr.responseText) {
+                        console.log(xhr.responseText);
+                    }
+
+                    Swal.fire(
+                        "Error",
+                        message,
+                        "error"
+                    );
+
+                }
+                
+            });
 
         });
 
     }
 
 </script>
+

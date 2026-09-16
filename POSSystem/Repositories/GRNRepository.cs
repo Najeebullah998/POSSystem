@@ -15,10 +15,11 @@ namespace POSSystem.Repositories
     public class GRNRepository : IGRNRepository
     {
         private readonly DapperContext _context;
-
-        public GRNRepository(DapperContext context)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public GRNRepository(DapperContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<string> GenerateGRNNumberAsync()
@@ -205,9 +206,22 @@ namespace POSSystem.Repositories
         {
             using (var con = _context.CreateConnection())
             {
+                var companyId = _httpContextAccessor.HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                var branchId = _httpContextAccessor.HttpContext.Session.GetInt32("BranchId") ?? 0;
+
                 var result = await con.QueryAsync<SelectListItem>(
-                    "SELECT PurchaseOrderId AS Value, PONumber AS Text FROM PurchaseOrderHeader WHERE IsDeleted = 0"
-                );
+                    @"SELECT 
+                PurchaseOrderId AS Value,
+                PONumber AS Text
+              FROM PurchaseOrderHeader
+              WHERE IsDeleted = 0
+                AND CompanyId = @CompanyId
+                AND BranchId = @BranchId",
+                    new
+                    {
+                        CompanyId = companyId,
+                        BranchId = branchId
+                    });
 
                 return result.ToList();
             }
@@ -217,9 +231,22 @@ namespace POSSystem.Repositories
         {
             using (var con = _context.CreateConnection())
             {
+                var companyId = _httpContextAccessor.HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                var branchId = _httpContextAccessor.HttpContext.Session.GetInt32("BranchId") ?? 0;
+
                 var result = await con.QueryAsync<SelectListItem>(
-                    "SELECT SupplierId AS Value, SupplierName AS Text FROM Suppliers WHERE IsDeleted = 0"
-                );
+                    @"SELECT 
+                SupplierId AS Value,
+                SupplierName AS Text
+              FROM Suppliers
+              WHERE IsDeleted = 0
+                AND CompanyId = @CompanyId
+                AND BranchId = @BranchId",
+                    new
+                    {
+                        CompanyId = companyId,
+                        BranchId = branchId
+                    });
 
                 return result.ToList();
             }
@@ -229,9 +256,22 @@ namespace POSSystem.Repositories
         {
             using (var con = _context.CreateConnection())
             {
+                var companyId = _httpContextAccessor.HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                var branchId = _httpContextAccessor.HttpContext.Session.GetInt32("BranchId") ?? 0;
+
                 var result = await con.QueryAsync<SelectListItem>(
-                    "SELECT WarehouseId AS Value, WarehouseName AS Text FROM Warehouses WHERE IsDeleted = 0"
-                );
+                    @"SELECT 
+                WarehouseId AS Value,
+                WarehouseName AS Text
+              FROM Warehouses
+              WHERE IsDeleted = 0
+                AND CompanyId = @CompanyId
+                AND BranchId = @BranchId",
+                    new
+                    {
+                        CompanyId = companyId,
+                        BranchId = branchId
+                    });
 
                 return result.ToList();
             }

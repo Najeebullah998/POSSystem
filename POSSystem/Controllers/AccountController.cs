@@ -32,6 +32,7 @@ namespace POSSystem.Controllers
                 // Company Information
                 HttpContext.Session.SetInt32("CompanyId", user.CompanyId);
                 HttpContext.Session.SetString("CompanyName", user.CompanyName);
+                HttpContext.Session.SetString("LogoPath", user.LogoPath);
 
                 // Role Information
                 HttpContext.Session.SetString("RoleName", user.RoleName);

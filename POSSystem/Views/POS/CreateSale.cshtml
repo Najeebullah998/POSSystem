@@ -27,6 +27,15 @@
         min-height: 100vh;
     }
 
+    .print-company-logo {
+        width: 65px;
+        height: 65px;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+        margin: 0 auto 5px auto;
+    }
+
     /* Main Container */
     .pos-container {
         max-width: 1600px;
@@ -282,47 +291,152 @@
         display: none;
     }
 
-    @@media print {
-        body * {
-            visibility: hidden;
-        }
-        .print-area-hidden {
-            display: block !important;
-        }
+  @@media print {
 
-        #printArea, #printArea * {
-            visibility: visible;
-        }
-
-        #printArea {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 80mm;
-            background: white;
-            padding: 10px;
-            display: block !important; /* Override the display:none */
-        }
-
-        .thermal-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-        }
-
-            .thermal-table td, .thermal-table th {
-                border: 1px dashed #000;
-                padding: 4px;
-            }
-        /* Hide payment footer and other elements during print */
-        .payment-footer {
-            display: none !important;
-        }
-
-        .pos-container {
-            display: none !important;
-        }
+    @@page {
+        size: 80mm auto;
+        margin: 0;
     }
+
+    html,
+    body {
+        width: 80mm;
+        margin: 0;
+        padding: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea,
+    #printArea * {
+        visibility: visible;
+    }
+
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+
+        width: 80mm;
+        max-width: 80mm;
+
+        padding: 4mm;
+        margin: 0;
+
+        box-sizing: border-box;
+
+        background: white;
+
+        font-size: 11px;
+        line-height: 1.35;
+
+        display: block !important;
+    }
+
+    /* Company Name */
+    #printArea table:first-child td:first-child {
+        font-size: 17px !important;
+        font-weight: bold;
+        padding-bottom: 3px;
+    }
+
+    /* Sales Invoice heading */
+    #printArea table:first-child tr:nth-child(2) td {
+        font-size: 12px !important;
+        font-weight: bold;
+        padding-bottom: 4px;
+    }
+
+    .thermal-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+
+        font-size: 11px;
+    }
+
+    .thermal-table td,
+    .thermal-table th {
+        border: 1px dashed #000;
+        padding: 4px 3px;
+        vertical-align: middle;
+
+        word-wrap: break-word;
+    }
+
+    /* Header information table */
+    #printArea table:first-child td {
+        border: none;
+        padding: 2px 3px;
+        font-size: 10px;
+    }
+
+    /* Items table columns */
+    #printArea table:nth-child(2) th:nth-child(1),
+    #printArea table:nth-child(2) td:nth-child(1) {
+        width: 7%;
+        text-align: center;
+    }
+
+    #printArea table:nth-child(2) th:nth-child(2),
+    #printArea table:nth-child(2) td:nth-child(2) {
+        width: 42%;
+        text-align: left;
+    }
+
+    #printArea table:nth-child(2) th:nth-child(3),
+    #printArea table:nth-child(2) td:nth-child(3) {
+        width: 17%;
+        text-align: right;
+    }
+
+    #printArea table:nth-child(2) th:nth-child(4),
+    #printArea table:nth-child(2) td:nth-child(4) {
+        width: 12%;
+        text-align: center;
+    }
+
+    #printArea table:nth-child(2) th:nth-child(5),
+    #printArea table:nth-child(2) td:nth-child(5) {
+        width: 22%;
+        text-align: right;
+    }
+
+    /* Table header */
+    .thermal-table thead th {
+        font-size: 10px;
+        font-weight: bold;
+        padding: 4px 2px;
+    }
+
+    /* Total / Discount / Net */
+    .thermal-table tfoot td {
+        font-size: 10px;
+        padding: 4px 3px;
+    }
+
+    .thermal-table tfoot tr:last-child td {
+        font-size: 12px;
+        font-weight: bold;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    #pNet {
+        font-size: 13px !important;
+        font-weight: bold;
+    }
+
+    .payment-footer {
+        display: none !important;
+    }
+
+    .pos-container {
+        display: none !important;
+    }
+}
 
     /* Animations */
     @@keyframes slideIn {
@@ -369,7 +483,7 @@
 </style>
 
 <input type="hidden" id="invoiceId" value="@ViewBag.InvoiceId" />
-<input type="hidden" id="isEditMode" value="true" />
+<input type="hidden" id="isEditMode" value="false" />
 <div class="pos-container">
     <!-- Header Card -->
     <div class="pos-card">
@@ -495,8 +609,8 @@
         </div>
 
         <div class="payment-card">
-            <div class="payment-label">Discount (Rs)</div>
-            <input type="number" id="discount" class="payment-input" style="width: 100%;" value="0" step="1">
+            <div class="payment-label">Discount (%)</div>
+            <input type="number" id="discount" class="payment-input" style="width: 100%;" value="0" step="0.01" min="0" max="100">
         </div>
 
         <div class="payment-card" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); color: white;">
@@ -524,31 +638,60 @@
 
 <!-- Print Template -->
 <div id="printArea" class="print-area-hidden">
-    <table class="thermal-table">
-        <tr>
-            <td colspan="4" style="text-align: center; font-size: 16px; font-weight: bold;">@HttpContextAccessor.HttpContext.Session.GetString("CompanyName")</td>
-        </tr>
-        <tr>
-            <td colspan="4" style="text-align: center;">SALES INVOICE</td>
-        </tr>
-        <tr>
-            <td colspan="2">Cashier:</td>
-            <td colspan="2">@HttpContextAccessor.HttpContext.Session.GetString("UserName")</td>
-        </tr>
-        <tr>
-            <td colspan="2">Invoice #:</td>
-            <td colspan="2" id="pInvoiceNo"></td>
-        </tr>
-        <tr>
-            <td colspan="2">Date:</td>
-            <td colspan="2" id="pDate"></td>
-        </tr>
-        <tr>
-            <td colspan="4" style="height: 5px;"></td>
-        </tr>
-    </table>
 
     <table class="thermal-table">
+
+        <!-- COMPANY LOGO -->
+        <tr>
+            <td colspan="5" style="text-align:center;">
+                <img src="@HttpContextAccessor.HttpContext.Session.GetString("LogoPath")"
+                     class="print-company-logo"
+                     alt="Company Logo" />
+            </td>
+        </tr>
+
+        <!-- COMPANY NAME -->
+        <tr>
+            <td colspan="5"
+                style="text-align:center;font-size:17px;font-weight:bold;">
+                @HttpContextAccessor.HttpContext.Session.GetString("CompanyName")
+            </td>
+        </tr>
+
+        <!-- INVOICE TITLE -->
+        <tr>
+            <td colspan="5"
+                style="text-align:center;font-size:12px;font-weight:bold;">
+                SALES INVOICE
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2">Cashier:</td>
+            <td colspan="3">
+                @HttpContextAccessor.HttpContext.Session.GetString("UserName")
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2">Invoice #:</td>
+            <td colspan="3" id="pInvoiceNo"></td>
+        </tr>
+
+        <tr>
+            <td colspan="2">Date:</td>
+            <td colspan="3" id="pDate"></td>
+        </tr>
+
+        <tr>
+            <td colspan="5" style="height:5px;"></td>
+        </tr>
+
+    </table>
+
+
+    <table class="thermal-table">
+
         <thead>
             <tr>
                 <th>#</th>
@@ -558,22 +701,38 @@
                 <th>Amount</th>
             </tr>
         </thead>
+
         <tbody id="printItems"></tbody>
+
         <tfoot>
+
             <tr>
-                <td colspan="4"><strong>Total</strong></td>
+                <td colspan="4">
+                    <strong>Total</strong>
+                </td>
                 <td id="pTotal"></td>
             </tr>
+
             <tr>
-                <td colspan="4"><strong>Discount</strong></td>
+                <td colspan="4">
+                    <strong>Discount</strong>
+                </td>
                 <td id="pDiscount"></td>
             </tr>
+
             <tr>
-                <td colspan="4"><strong>NET TOTAL</strong></td>
-                <td><strong id="pNet"></strong></td>
+                <td colspan="4">
+                    <strong>NET TOTAL</strong>
+                </td>
+                <td>
+                    <strong id="pNet"></strong>
+                </td>
             </tr>
+
         </tfoot>
+
     </table>
+
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -581,901 +740,2422 @@
 <script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
 
 <script>
+
     let rowIndex = 0;
     let selectedItem = null;
-
-   
-
-    // Search/Scan barcode
     let isSearching = false;
 
 
- $(document).ready(function () {
+    // =========================================================
+    // DOCUMENT READY
+    // =========================================================
 
-    $.get('/POS/GenerateInvoiceNo', function (response) {
+    $(document).ready(function () {
 
-        if (response.success) {
-            $('#invoiceNo').val(response.invoiceNo);
-        } else {
-            console.log(response.message);
+        console.log("POS Screen Loaded");
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const invoiceId =
+            parseInt(urlParams.get('invoiceId')) || 0;
+
+        console.log("URL Invoice ID:", invoiceId);
+
+
+        // =====================================================
+        // EDIT EXISTING INVOICE
+        // =====================================================
+
+        if (invoiceId > 0) {
+
+            console.log("EDIT MODE");
+
+            $('#invoiceId').val(invoiceId);
+            $('#isEditMode').val('true');
+
+            loadBillForEdit(invoiceId);
+
+        }
+
+        // =====================================================
+        // NEW SALE
+        // =====================================================
+
+        else {
+
+            console.log("NEW SALE MODE");
+
+            $('#invoiceId').val(0);
+            $('#isEditMode').val('false');
+
+            generateInvoiceNumber();
+
         }
 
     });
 
-});
-    //===============================
-    // Barcode Scan
-    //===============================
-    $('#barcodeInput').on('keydown', function(e) {
 
-        if (e.key !== 'Enter')
-            return;
+    // =========================================================
+    // GENERATE NEW INVOICE NUMBER
+    // =========================================================
 
-        e.preventDefault();
-
-        if (isSearching)
-            return;
-
-        let code = $.trim($(this).val());
-
-        if (code === '') {
-            $(this).focus();
-            return;
-        }
-
-        isSearching = true;
+    function generateInvoiceNumber() {
 
         $.ajax({
-            url: '/POS/GetItemByBarcode',
+
+            url: '/POS/GenerateInvoiceNo',
+
             type: 'GET',
-            data: { barcode: code },
 
-            beforeSend: function() {
-                $('#barcodeInput').prop('disabled', true);
+            success: function (response) {
+
+                console.log(
+                    "Generate Invoice Response:",
+                    response
+                );
+
+                if (response && response.success) {
+
+                    $('#invoiceNo')
+                        .val(response.invoiceNo);
+
+                }
+                else {
+
+                    Swal.fire(
+                        'Error',
+                        response.message ||
+                        'Unable to generate invoice number.',
+                        'error'
+                    );
+
+                }
+
             },
 
-            success: function(res) {
+            error: function (xhr) {
 
-                // Item not found
-                if (!res || !res.itemId) {
+                console.log(
+                    "Generate Invoice Error:",
+                    xhr.responseText
+                );
 
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Not Found',
-                        text: 'Item not found.'
-                    });
-
-                    clearBarcode();
-                    return;
-                }
-
-                // Out of Stock
-                if (parseFloat(res.stockQty) <= 0) {
-
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Out of Stock',
-                        text: 'This item is out of stock.'
-                    });
-
-                    clearBarcode();
-                    return;
-                }
-
-                // Store Selected Item
-                selectedItem = res;
-
-                // Fill Controls
-                $('#itemName').val(res.itemName);
-                $('#price').val(parseFloat(res.salePrice).toFixed(2));
-                $('#qty').val(1);
-
-                calculateAmount();
-
-                // Clear Barcode & Focus Qty
-                $('#barcodeInput').val('');
-                $('#qty').focus().select();
-            },
-
-            error: function() {
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Unable to retrieve item.'
-                });
-
-                clearBarcode();
-            },
-
-            complete: function() {
-
-                isSearching = false;
-                $('#barcodeInput').prop('disabled', false);
+                Swal.fire(
+                    'Error',
+                    'Unable to generate invoice number.',
+                    'error'
+                );
 
             }
+
         });
 
-    });
-
-    //===============================
-    // Clear Barcode Controls
-    //===============================
-    function clearBarcode() {
-
-        selectedItem = null;
-
-        $('#barcodeInput')
-            .val('')
-            .prop('disabled', false)
-            .focus();
-
-        $('#itemName').val('');
-        $('#price').val('');
-        $('#qty').val(1);
-        $('#amount').val('');
     }
 
-    // Calculate amount
-    $('#qty').on('keyup change', function() {
-        calculateAmount();
-    });
 
-    function calculateAmount() {
-        let qty = parseFloat($('#qty').val()) || 0;
-        let price = parseFloat($('#price').val()) || 0;
-        $('#amount').val((qty * price).toFixed(2));
-    }
+    // =========================================================
+    // LOAD EXISTING BILL FOR EDIT
+    // =========================================================
 
-    // Add item on Enter
-    $('#qty').on('keypress', function(e) {
-        if (e.which === 13) {
-            addItemToTable();
-        }
-    });
+    function loadBillForEdit(invoiceId) {
 
-    function addItemToTable() {
-        if (!selectedItem) return;
+        if (!invoiceId || invoiceId <= 0) {
 
-        let itemId = selectedItem.itemId;
-        let itemName = selectedItem.itemName;
-        let qty = parseFloat($('#qty').val()) || 0;
-        let rate = parseFloat($('#price').val()) || 0;
-        let stockQty = parseFloat(selectedItem.stockQty) || 0;
-
-        if (qty <= 0) {
-            Swal.fire('Invalid', 'Quantity must be greater than 0', 'warning');
-            return;
-        }
-
-        if (qty > stockQty) {
-            Swal.fire('Stock Limit', `Only ${stockQty} items available!`, 'warning');
-            $('#qty').val(stockQty);
-            return;
-        }
-
-        let found = false;
-
-        $('#posTable tbody tr').each(function() {
-            let rowItemId = $(this).data('id');
-            if (rowItemId == itemId) {
-                let rowRate = parseFloat($(this).find('.rate').text());
-                let oldQty = parseFloat($(this).find('.qty-value').text());
-                let newQty = oldQty + qty;
-
-                if (newQty > stockQty) {
-                    Swal.fire('Stock Limit', `Cannot add more than ${stockQty} items!`, 'warning');
-                    return;
-                }
-
-                $(this).find('.qty-value').text(newQty);
-                $(this).find('.amount').text((newQty * rowRate).toFixed(2));
-                found = true;
-            }
-        });
-
-        if (!found) {
-            // Remove empty message
-            if ($('#posTable tbody tr').length === 1 && $('#posTable tbody tr td').attr('colspan')) {
-                $('#posTable tbody').empty();
-            }
-
-            rowIndex++;
-            let row = `
-                    <tr data-id="${itemId}" data-stock="${stockQty}">
-                    <td>${rowIndex}</td>
-                    <td class="item-name">${itemName}</td>
-                    <td class="rate">${rate.toFixed(2)}</td>
-                    <td>
-                        <div class="qty-controls">
-                            <button class="qty-btn qty-minus" onclick="updateQuantity(this, -1)">-</button>
-                            <span class="qty-value">${qty}</span>
-                            <button class="qty-btn qty-plus" onclick="updateQuantity(this, 1)">+</button>
-                        </div>
-                    </td>
-                    <td class="amount">${(qty * rate).toFixed(2)}</td>
-                    <td>
-                        <button class="delete-btn" onclick="deleteRow(this)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            $('#posTable tbody').append(row);
-        }
-
-        calculateTotal();
-        resetFields();
-    }
-
-    // Update quantity
-    window.updateQuantity = function(btn, delta) {
-
-        let row = $(btn).closest('tr');
-
-        let qtySpan = row.find('.qty-value');
-
-        let currentQty = parseFloat(qtySpan.text());
-
-        let stockQty = parseFloat(row.data('stock'));
-
-        let newQty = currentQty + delta;
-
-        let rate = parseFloat(row.find('.rate').text());
-
-        // Minus button
-        if (newQty <= 0) {
-            deleteRow(btn);
-            return;
-        }
-
-        // Stock Validation
-        if (newQty > stockQty) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Stock Limit',
-                text: `Only ${stockQty} item(s) available in stock.`
-            });
-            return;
-        }
-
-        qtySpan.text(newQty);
-
-        row.find('.amount').text((newQty * rate).toFixed(2));
-
-        calculateTotal();
-    };
-
-    // Delete row
-    window.deleteRow = function(btn) {
-
-        const row = $(btn).closest('tr');
-
-        // Current invoice ID
-        const invoiceId = parseInt($('#invoiceId').val()) || 0;
-
-        // Detail ID jo loadBillForEdit() mein data attribute mein rakhi hai
-        const invoiceDetailId =
-            parseInt(row.attr('data-invoice-detail-id')) || 0;
-
-        const itemName = row.find('.item-name').text().trim();
-        const quantity = parseFloat(row.find('.qty-value').text()) || 0;
-
-        // ==============================
-        // EDIT MODE + EXISTING DETAIL
-        // ==============================
-
-        if (invoiceId > 0 && invoiceDetailId > 0) {
-
-            Swal.fire({
-                title: 'Return Item?',
-                html: `
-                    <b>${itemName}</b><br>
-                    Quantity: <b>${quantity}</b><br><br>
-                    This item will be removed from the invoice
-                    and stock will be returned.
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, Return Item'
-            }).then((result) => {
-
-                if (!result.isConfirmed)
-                    return;
-
-                Swal.fire({
-                    title: 'Processing...',
-                    text: 'Returning item to stock',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                $.ajax({
-                    url: '/POS/DeleteBill',
-                    type: 'POST',
-                    data: {
-                        invoiceId: invoiceId,
-                        invoiceDetailId: invoiceDetailId
-                    },
-
-                    success: function(res) {
-
-                        if (res.success) {
-
-                            // Remove row from UI
-                            row.remove();
-
-                            // Renumber rows
-                            $('#posTable tbody tr').each(function(index) {
-                                $(this).find('td:first').text(index + 1);
-                            });
-
-                            calculateTotal();
-
-                            // Empty cart message
-                            if ($('#posTable tbody tr').length === 0) {
-
-                                $('#posTable tbody').html(`
-                                    <tr class="text-center">
-                                        <td colspan="6" style="padding: 60px 20px;">
-                                            <i class="fas fa-shopping-basket"
-                                               style="font-size: 48px; color: #cbd5e1;">
-                                            </i>
-
-                                            <p style="color: #94a3b8; margin-top: 15px;">
-                                                No items added. Scan a product to begin!
-                                            </p>
-                                        </td>
-                                    </tr>
-                                `);
-                            }
-
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Item Returned',
-                                text: res.message || 'Item removed and stock returned.',
-                                confirmButtonColor: '#10b981'
-                            });
-
-                        } else {
-
-                            Swal.fire(
-                                'Error',
-                                res.message || 'Unable to remove item.',
-                                'error'
-                            );
-                        }
-                    },
-
-                    error: function(xhr) {
-
-                        console.log(
-                            'Delete Item Error:',
-                            xhr.responseText
-                        );
-
-                        Swal.fire(
-                            'Error',
-                            'Unable to return item to stock.',
-                            'error'
-                        );
-                    }
-                });
-
-            });
-
-            return;
-        }
-
-        // ==============================
-        // NEW ITEM / NOT SAVED IN DB
-        // ==============================
-
-        Swal.fire({
-            title: 'Remove Item?',
-            text: 'This item will be removed from cart.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, remove!'
-        }).then((result) => {
-
-            if (result.isConfirmed) {
-
-                row.remove();
-
-                $('#posTable tbody tr').each(function(index) {
-                    $(this).find('td:first').text(index + 1);
-                });
-
-                calculateTotal();
-
-                if ($('#posTable tbody tr').length === 0) {
-
-                    $('#posTable tbody').html(`
-                        <tr class="text-center">
-                            <td colspan="6" style="padding: 60px 20px;">
-                                <i class="fas fa-shopping-basket"
-                                   style="font-size: 48px; color: #cbd5e1;">
-                                </i>
-
-                                <p style="color: #94a3b8; margin-top: 15px;">
-                                    No items added. Scan a product to begin!
-                                </p>
-                            </td>
-                        </tr>
-                    `);
-                }
-            }
-        });
-    };
-
-    // Calculate totals
-    function calculateTotal() {
-        let total = 0;
-
-        $('#posTable tbody tr').each(function() {
-            let amount = parseFloat($(this).find('.amount').text()) || 0;
-            total += amount;
-        });
-
-        $('#total').val(total.toFixed(2));
-        $('#totalDisplay').text(total.toFixed(2));
-        calculateNet();
-    }
-
-    $('#discount').on('keyup change', function() {
-        calculateNet();
-    });
-
-    function calculateNet() {
-        let total = parseFloat($('#total').val()) || 0;
-        let discount = parseFloat($('#discount').val()) || 0;
-
-        if (discount > total) {
-            discount = total;
-            $('#discount').val(discount);
-        }
-
-        let net = total - discount;
-        $('#netAmount').text(net.toFixed(2));
-        calculateChange();
-    }
-
-    $('#paid').on('keyup change', function() {
-        calculateChange();
-    });
-
-    function calculateChange() {
-        let net = parseFloat($('#netAmount').text()) || 0;
-        let paid = parseFloat($('#paid').val()) || 0;
-        let change = paid - net;
-
-        if (change < 0) change = 0;
-        $('#change').text(change.toFixed(2));
-    }
-
-    function resetFields() {
-        selectedItem = null;
-        $('#barcodeInput').val('').focus();
-        $('#itemName').val('');
-        $('#qty').val(1);
-        $('#price').val('');
-    }
-
-    // Save invoice
-    $('#btnSave').click(function() {
-
-        let items = [];
-
-        $('#posTable tbody tr').each(function() {
-
-            // Empty message row skip
-            if ($(this).find('.qty-value').length === 0)
-                return;
-
-            items.push({
-                itemId: $(this).data('id'),
-                rate: parseFloat($(this).find('.rate').text()) || 0,
-                quantity: parseFloat($(this).find('.qty-value').text()) || 0,
-                amount: parseFloat($(this).find('.amount').text()) || 0
-            });
-        });
-
-        if (items.length === 0) {
             Swal.fire(
-                'Empty Cart',
-                'Please add items before saving!',
-                'warning'
-            );
-            return;
-        }
-
-        let netAmount = parseFloat($('#netAmount').text()) || 0;
-        let paid = parseFloat($('#paid').val()) || 0;
-
-        if (paid < netAmount) {
-            Swal.fire(
-                'Insufficient Payment',
-                `Please collect Rs${(netAmount - paid).toFixed(2)} more`,
+                'Error',
+                'Invalid Invoice ID.',
                 'error'
             );
+
             return;
         }
 
-        // Get InvoiceId
-        let invoiceId = parseInt($('#invoiceId').val()) || 0;
 
-        // Model
-        let model = {
-            InvoiceId: invoiceId,
-            InvoiceNo: $('#invoiceNo').val(),
-            InvoiceDate: $('#invoiceDate').val(),
-            CustomerId: parseInt($('#customerId').val()) || 0,
-            // BranchId: parseInt($('#branchId').val()) || 0,
-            // UserId: parseInt($('#userId').val()) || 0,
-            TotalAmount: parseFloat($('#total').val()) || 0,
-            Discount: parseFloat($('#discount').val()) || 0,
-            NetAmount: netAmount,
-            PaymentMode: $('#paymentMode').val(),
-            Items: items
-        };
+        console.log(
+            "Loading Invoice:",
+            invoiceId
+        );
 
-        // Edit or New
-        let isEdit = invoiceId > 0;
 
         Swal.fire({
-            title: 'Processing...',
-            text: isEdit
-                ? 'Updating invoice...'
-                : 'Saving invoice...',
+
+            title: 'Loading Bill...',
+
+            text: 'Please wait',
+
             allowOutsideClick: false,
-            didOpen: () => {
+
+            didOpen: function () {
+
                 Swal.showLoading();
+
             }
+
         });
+
 
         $.ajax({
 
-            url: isEdit
-                ? '/POS/UpdateInvoice'
-                : '/POS/SaveInvoice',
+            url: '/POS/GetBillById',
 
-            type: 'POST',
+            type: 'GET',
 
-            contentType: 'application/json',
+            data: {
+                invoiceId: invoiceId
+            },
 
-            data: JSON.stringify(model),
 
-            success: function(res) {
+            success: function (res) {
 
-                if (res.success) {
+                Swal.close();
 
-                    preparePrint();
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: isEdit
-                            ? 'Updated!'
-                            : 'Success!',
-                        text: isEdit
-                            ? 'Invoice updated successfully!'
-                            : 'Invoice saved successfully!',
-                        confirmButtonColor: '#10b981'
-                    }).then(() => {
+                console.log(
+                    "GetBillById Response:",
+                    res
+                );
 
-                        setTimeout(function() {
-                            window.print();
-                        }, 500);
 
-                    });
+                if (!res) {
 
-                } else {
+                    Swal.fire(
+                        'Error',
+                        'Empty response received.',
+                        'error'
+                    );
+
+                    return;
+                }
+
+
+                if (!res.success) {
 
                     Swal.fire(
                         'Error',
                         res.message ||
-                        (isEdit
-                            ? 'Failed to update invoice'
-                            : 'Failed to save invoice'),
+                        'Unable to load bill.',
                         'error'
                     );
+
+                    return;
                 }
+
+
+                if (!res.invoice) {
+
+                    Swal.fire(
+                        'Error',
+                        'Invoice data not found.',
+                        'error'
+                    );
+
+                    return;
+                }
+
+
+                const invoice =
+                    res.invoice;
+
+                const details =
+                    res.details || [];
+
+
+                console.log(
+                    "Invoice:",
+                    invoice
+                );
+
+                console.log(
+                    "Invoice Details:",
+                    details
+                );
+
+
+                // =================================================
+                // SET EDIT MODE
+                // =================================================
+
+                $('#invoiceId')
+                    .val(invoice.invoiceId);
+
+                $('#isEditMode')
+                    .val('true');
+
+
+                // =================================================
+                // INVOICE NUMBER
+                // =================================================
+
+                $('#invoiceNo')
+                    .val(invoice.invoiceNo || '');
+
+
+                // =================================================
+                // INVOICE DATE
+                // =================================================
+
+                if (invoice.invoiceDate) {
+
+                    const date =
+                        new Date(invoice.invoiceDate);
+
+
+                    if (!isNaN(date.getTime())) {
+
+                        const year =
+                            date.getFullYear();
+
+                        const month =
+                            String(
+                                date.getMonth() + 1
+                            ).padStart(2, '0');
+
+                        const day =
+                            String(
+                                date.getDate()
+                            ).padStart(2, '0');
+
+
+                        $('#invoiceDate').val(
+                            `${year}-${month}-${day}`
+                        );
+
+                    }
+
+                }
+
+
+                // =================================================
+                // CUSTOMER
+                // =================================================
+
+                $('#customerId')
+                    .val(invoice.customerId || 0)
+                    .trigger('change');
+
+
+                // =================================================
+                // PAYMENT MODE
+                // =================================================
+
+                $('#paymentMode')
+                    .val(invoice.paymentMode || 'Cash')
+                    .trigger('change');
+
+
+                // =================================================
+                // PAID AMOUNT
+                // =================================================
+
+                $('#paid').val(
+                    parseFloat(
+                        invoice.paidAmount || 0
+                    ).toFixed(2)
+                );
+
+
+                // =================================================
+                // DISCOUNT
+                // =================================================
+
+                $('#discount').val(
+                    parseFloat(
+                        invoice.discount || 0
+                    ).toFixed(2)
+                );
+
+
+                // =================================================
+                // CLEAR OLD TABLE
+                // =================================================
+
+                $('#posTable tbody').empty();
+
+                rowIndex = 0;
+
+
+                // =================================================
+                // LOAD DETAILS
+                // =================================================
+
+                details.forEach(function (item) {
+
+                    addExistingItemToTable(item);
+
+                });
+
+
+                // =================================================
+                // EMPTY BILL
+                // =================================================
+
+                if (details.length === 0) {
+
+                    $('#posTable tbody').html(`
+
+                        <tr class="text-center">
+
+                            <td colspan="6"
+                                style="padding:60px 20px;">
+
+                                <i class="fas fa-shopping-basket"
+                                   style="
+                                   font-size:48px;
+                                   color:#cbd5e1;">
+                                </i>
+
+                                <p style="
+                                   color:#94a3b8;
+                                   margin-top:15px;">
+
+                                   No items found.
+
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    `);
+
+                }
+
+
+                // =================================================
+                // RECALCULATE TOTALS
+                // =================================================
+
+                calculateTotal();
+
+                // If invoice.discount was an absolute amount (older format),
+                // convert it to percentage so the new percentage-based discount
+                // input reflects the same discount relative to the total.
+                try {
+                    var totalVal = parseFloat($('#total').val()) || 0;
+                    var invDisc = parseFloat(invoice.discount || 0) || 0;
+                    if (invDisc > 0 && totalVal > 0) {
+                        var percent = (invDisc / totalVal) * 100;
+                        $('#discount').val(percent.toFixed(2));
+                    }
+                } catch (e) {
+                    // ignore conversion errors
+                }
+
+                // Recalculate net after possibly updating discount input
+                calculateNet();
+
+
+                // =================================================
+                // CHANGE SAVE BUTTON TO UPDATE
+                // =================================================
+
+                $('#btnSave')
+                    .html(`
+                        <i class="fas fa-edit"></i>
+                        UPDATE INVOICE
+                    `);
+
+
+                // =================================================
+                // FOCUS BARCODE
+                // =================================================
+
+                $('#barcodeInput')
+                    .focus();
+
+
+                console.log(
+                    "Bill loaded successfully."
+                );
+
             },
 
-            error: function(xhr) {
 
-                console.log("Update/Save Error:", xhr.responseText);
+            error: function (xhr) {
+
+                Swal.close();
+
+
+                console.log(
+                    "GetBillById Error:",
+                    xhr.status,
+                    xhr.responseText
+                );
+
+
+                let message =
+                    'Unable to load bill.';
+
+
+                try {
+
+                    const response =
+                        JSON.parse(
+                            xhr.responseText
+                        );
+
+                    if (response.message) {
+
+                        message =
+                            response.message;
+
+                    }
+
+                }
+                catch (e) {
+
+                    if (xhr.responseText) {
+
+                        message =
+                            xhr.responseText;
+
+                    }
+
+                }
+
 
                 Swal.fire(
                     'Error',
-                    xhr.responseText ||
-                    (isEdit
-                        ? 'An error occurred while updating'
-                        : 'An error occurred while saving'),
+                    message,
                     'error'
                 );
+
             }
-        });
-    });
 
-        function preparePrint() {
-        $('#pInvoiceNo').text($('#invoiceNo').val());
-        $('#pDate').text($('#invoiceDate').val());
-        $('#pTotal').text(parseFloat($('#total').val()).toFixed(2));
-        $('#pDiscount').text(parseFloat($('#discount').val()).toFixed(2));
-        $('#pNet').text($('#netAmount').text());
-
-        let rows = '';
-        let index = 1;
-
-        $('#posTable tbody tr').each(function() {
-            let item = $(this).find('.item-name').text();
-            let rate = parseFloat($(this).find('.rate').text()).toFixed(2);
-            let qty = $(this).find('.qty-value').text();
-            let amount = $(this).find('.amount').text();
-
-            rows += `
-                <tr>
-                    <td>${index++}</td>
-                    <td>${item}</td>
-                    <td style="text-align:right;">${rate}</td>
-                    <td style="text-align:center;">${qty}</td>
-                    <td style="text-align:right;">${amount}</td>
-                </tr>
-            `;
         });
 
-        $('#printItems').html(rows);
-
-        // Make print area visible for printing
-        $('#printArea').show();
     }
 
-        // After printing, hide the print area again
-       // Hide print area after printing
-    window.onafterprint = function() {
-        $('#printArea').hide();
-    };
 
-    // Also hide on window focus after print dialog closes
-    $(window).on('focus', function() {
-        $('#printArea').hide();
-    });
+    // =========================================================
+    // ADD EXISTING ITEM FROM DATABASE
+    // =========================================================
 
-   function loadBillForEdit(invoiceId) {
+    function addExistingItemToTable(item) {
+
+    rowIndex++;
+
+    const itemId =
+        parseInt(item.itemId) || 0;
+
+    const itemName =
+        item.itemName || 'Unknown';
+
+    // =============================================
+    // DATABASE QUANTITY
+    // Example:
+    // Quantity = 5
+    // ReturnQty = 2
+    // Effective Qty = 3
+    // =============================================
+
+    const databaseQuantity =
+        parseFloat(item.quantity) || 0;
+
+    const returnQty =
+        parseFloat(item.returnQty) || 0;
+
+    const quantity =
+        Math.max(
+            databaseQuantity - returnQty,
+            0
+        );
+
+    const rate =
+        parseFloat(item.rate) || 0;
+
+    const amount =
+        quantity * rate;
+
+    const invoiceDetailId =
+        parseInt(item.invoiceDetailId) || 0;
+
+
+    // =============================================
+    // PHARMACY BATCH
+    // =============================================
+
+    const batchNo =
+        item.batchNo || '';
+
+    const manufacturingDate =
+        formatDateValue(
+            item.manufacturingDate
+        );
+
+    const expiryDate =
+        formatDateValue(
+            item.expiryDate
+        );
+
+
+    const row = `
+
+        <tr
+
+            data-id="${itemId}"
+
+            data-stock="999999"
+
+            data-invoice-detail-id="${invoiceDetailId}"
+
+            data-return-qty="${returnQty}"
+
+            data-original-quantity="${databaseQuantity}"
+
+            data-batch-no="${escapeHtml(batchNo)}"
+
+            data-mfg-date="${manufacturingDate}"
+
+            data-expiry-date="${expiryDate}"
+
+        >
+
+            <td>
+                ${rowIndex}
+            </td>
+
+            <td class="item-name">
+                ${escapeHtml(itemName)}
+            </td>
+
+            <td class="rate">
+                ${rate.toFixed(2)}
+            </td>
+
+            <td>
+
+                <div class="qty-controls">
+
+                    <button
+                        type="button"
+                        class="qty-btn qty-minus"
+                        onclick="updateQuantity(this, -1)">
+                        -
+                    </button>
+
+                    <span class="qty-value">
+                        ${quantity}
+                    </span>
+
+                    <button
+                        type="button"
+                        class="qty-btn qty-plus"
+                        onclick="updateQuantity(this, 1)">
+                        +
+                    </button>
+
+                </div>
+
+            </td>
+
+            <td class="amount">
+                ${amount.toFixed(2)}
+            </td>
+
+            <td>
+
+                <button
+                    type="button"
+                    class="delete-btn"
+                    onclick="deleteRow(this)">
+
+                    <i class="fas fa-trash"></i>
+
+                </button>
+
+            </td>
+
+        </tr>
+
+    `;
+
+    $('#posTable tbody')
+        .append(row);
+}
+
+
+    // =========================================================
+    // FORMAT DATABASE DATE
+    // =========================================================
+
+    function formatDateValue(value) {
+
+        if (!value) {
+            return '';
+        }
+
+
+        const date =
+            new Date(value);
+
+
+        if (isNaN(date.getTime())) {
+            return '';
+        }
+
+
+        const year =
+            date.getFullYear();
+
+
+        const month =
+            String(
+                date.getMonth() + 1
+            ).padStart(2, '0');
+
+
+        const day =
+            String(
+                date.getDate()
+            ).padStart(2, '0');
+
+
+        return `${year}-${month}-${day}`;
+
+    }
+
+
+    // =========================================================
+    // BARCODE SEARCH
+    // =========================================================
+
+    $('#barcodeInput').on(
+        'keydown',
+        function (e) {
+
+            if (e.key !== 'Enter') {
+                return;
+            }
+
+
+            e.preventDefault();
+
+
+            if (isSearching) {
+                return;
+            }
+
+
+            const code =
+                $.trim(
+                    $(this).val()
+                );
+
+
+            if (code === '') {
+
+                $(this).focus();
+
+                return;
+            }
+
+
+            isSearching = true;
+
+
+            $.ajax({
+
+                url:
+                    '/POS/GetItemByBarcode',
+
+                type:
+                    'GET',
+
+                data: {
+                    barcode: code
+                },
+
+
+                beforeSend:
+                    function () {
+
+                        $('#barcodeInput')
+                            .prop(
+                                'disabled',
+                                true
+                            );
+
+                    },
+
+
+                success:
+                    function (res) {
+
+
+                        console.log(
+                            "Barcode Response:",
+                            res
+                        );
+
+
+                        if (
+                            !res ||
+                            !res.itemId
+                        ) {
+
+                            Swal.fire(
+                                'Not Found',
+                                'Item not found.',
+                                'error'
+                            );
+
+                            clearBarcode();
+
+                            return;
+                        }
+
+
+                        if (
+                            parseFloat(
+                                res.stockQty
+                            ) <= 0
+                        ) {
+
+                            Swal.fire(
+                                'Out of Stock',
+                                'This item is out of stock.',
+                                'warning'
+                            );
+
+                            clearBarcode();
+
+                            return;
+                        }
+
+
+                        selectedItem =
+                            res;
+
+
+                        $('#itemName')
+                            .val(
+                                res.itemName
+                            );
+
+
+                        $('#price').val(
+                            parseFloat(
+                                res.rate || 0
+                            ).toFixed(2)
+                        );
+
+
+                        $('#qty')
+                            .val(1);
+
+
+                        calculateAmount();
+
+
+                        $('#barcodeInput')
+                            .val('');
+
+
+                        $('#qty')
+                            .focus()
+                            .select();
+
+                    },
+
+
+                error:
+                    function (xhr) {
+
+
+                        console.log(
+                            "Barcode Error:",
+                            xhr.responseText
+                        );
+
+
+                        Swal.fire(
+                            'Error',
+                            'Unable to retrieve item.',
+                            'error'
+                        );
+
+
+                        clearBarcode();
+
+                    },
+
+
+                complete:
+                    function () {
+
+                        isSearching =
+                            false;
+
+
+                        $('#barcodeInput')
+                            .prop(
+                                'disabled',
+                                false
+                            );
+
+                    }
+
+            });
+
+        }
+    );
+
+
+    // =========================================================
+    // CLEAR BARCODE
+    // =========================================================
+
+    function clearBarcode() {
+
+        selectedItem =
+            null;
+
+
+        $('#barcodeInput')
+            .val('')
+            .prop(
+                'disabled',
+                false
+            )
+            .focus();
+
+
+        $('#itemName')
+            .val('');
+
+
+        $('#price')
+            .val('');
+
+
+        $('#qty')
+            .val(1);
+
+    }
+
+
+    // =========================================================
+    // QTY CALCULATION
+    // =========================================================
+
+    $('#qty').on(
+        'keyup change',
+        function () {
+
+            calculateAmount();
+
+        }
+    );
+
+
+    function calculateAmount() {
+
+        const qty =
+            parseFloat(
+                $('#qty').val()
+            ) || 0;
+
+
+        const price =
+            parseFloat(
+                $('#price').val()
+            ) || 0;
+
+
+        const amount =
+            qty * price;
+
+
+        // amount field doesn't exist in current UI
+        // so no need to set #amount
+
+    }
+
+
+    // =========================================================
+    // ADD ITEM ON ENTER
+    // =========================================================
+
+    $('#qty').on(
+        'keypress',
+        function (e) {
+
+            if (e.which === 13) {
+
+                e.preventDefault();
+
+                addItemToTable();
+
+            }
+
+        }
+    );
+
+
+    // =========================================================
+    // ADD NEW ITEM
+    // =========================================================
+
+    function addItemToTable() {
+
+        if (!selectedItem) {
+
+            Swal.fire(
+                'Select Item',
+                'Please scan/select an item first.',
+                'warning'
+            );
+
+            return;
+        }
+
+
+        const itemId =
+            parseInt(
+                selectedItem.itemId
+            ) || 0;
+
+
+        const itemName =
+            selectedItem.itemName || '';
+
+
+        const qty =
+            parseFloat(
+                $('#qty').val()
+            ) || 0;
+
+
+        const rate =
+            parseFloat(
+                $('#price').val()
+            ) || 0;
+
+
+        const stockQty =
+            parseFloat(
+                selectedItem.stockQty
+            ) || 0;
+
+
+        // =====================================================
+        // PHARMACY BATCH
+        // =====================================================
+
+        const batchNo =
+            selectedItem.batchNo || '';
+
+
+        const manufacturingDate =
+            formatDateValue(
+                selectedItem.manufacturingDate
+            );
+
+
+        const expiryDate =
+            formatDateValue(
+                selectedItem.expiryDate
+            );
+
+
+        // =====================================================
+        // VALIDATION
+        // =====================================================
+
+        if (qty <= 0) {
+
+            Swal.fire(
+                'Invalid',
+                'Quantity must be greater than 0.',
+                'warning'
+            );
+
+            return;
+        }
+
+
+        if (qty > stockQty) {
+
+            Swal.fire(
+                'Stock Limit',
+                `Only ${stockQty} item(s) available.`,
+                'warning'
+            );
+
+            $('#qty')
+                .val(stockQty);
+
+            return;
+        }
+
+
+        let found = false;
+
+
+        // =====================================================
+        // CHECK EXISTING ROW
+        // =====================================================
+
+        $('#posTable tbody tr')
+            .each(function () {
+
+                if (
+                    $(this)
+                        .find('.qty-value')
+                        .length === 0
+                ) {
+                    return;
+                }
+
+
+                const rowItemId =
+                    parseInt(
+                        $(this).data('id')
+                    ) || 0;
+
+
+                const rowBatchNo =
+                    $(this)
+                        .attr('data-batch-no') ||
+                    '';
+
+
+                if (
+                    rowItemId === itemId &&
+                    rowBatchNo === batchNo
+                ) {
+
+                    const rowRate =
+                        parseFloat(
+                            $(this)
+                                .find('.rate')
+                                .text()
+                        ) || 0;
+
+
+                    const oldQty =
+                        parseFloat(
+                            $(this)
+                                .find('.qty-value')
+                                .text()
+                        ) || 0;
+
+
+                    const newQty =
+                        oldQty + qty;
+
+
+                    if (newQty > stockQty) {
+
+                        Swal.fire(
+                            'Stock Limit',
+                            `Cannot add more than ${stockQty} items.`,
+                            'warning'
+                        );
+
+                        return false;
+                    }
+
+
+                    $(this)
+                        .find('.qty-value')
+                        .text(newQty);
+
+
+                    $(this)
+                        .find('.amount')
+                        .text(
+                            (
+                                newQty *
+                                rowRate
+                            ).toFixed(2)
+                        );
+
+
+                    found = true;
+
+                    return false;
+
+                }
+
+            });
+
+
+        // =====================================================
+        // ADD NEW ROW
+        // =====================================================
+
+        if (!found) {
+
+
+            if (
+                $('#posTable tbody tr')
+                    .length === 1 &&
+                $('#posTable tbody tr td')
+                    .attr('colspan')
+            ) {
+
+                $('#posTable tbody')
+                    .empty();
+
+            }
+
+
+            rowIndex++;
+
+
+            const row = `
+
+                <tr
+
+                    data-id="${itemId}"
+
+                    data-stock="${stockQty}"
+
+                    data-invoice-detail-id="0"
+
+                    data-batch-no="${escapeHtml(batchNo)}"
+
+                    data-mfg-date="${manufacturingDate}"
+
+                    data-expiry-date="${expiryDate}"
+
+                >
+
+                    <td>
+                        ${rowIndex}
+                    </td>
+
+
+                    <td class="item-name">
+
+                        ${escapeHtml(itemName)}
+
+                    </td>
+
+
+                    <td class="rate">
+
+                        ${rate.toFixed(2)}
+
+                    </td>
+
+
+                    <td>
+
+                        <div class="qty-controls">
+
+
+                            <button
+
+                                type="button"
+
+                                class="qty-btn qty-minus"
+
+                                onclick="
+                                    updateQuantity(this, -1)
+                                ">
+
+                                -
+
+                            </button>
+
+
+                            <span class="qty-value">
+
+                                ${qty}
+
+                            </span>
+
+
+                            <button
+
+                                type="button"
+
+                                class="qty-btn qty-plus"
+
+                                onclick="
+                                    updateQuantity(this, 1)
+                                ">
+
+                                +
+
+                            </button>
+
+
+                        </div>
+
+                    </td>
+
+
+                    <td class="amount">
+
+                        ${(qty * rate).toFixed(2)}
+
+                    </td>
+
+
+                    <td>
+
+                        <button
+
+                            type="button"
+
+                            class="delete-btn"
+
+                            onclick="
+                                deleteRow(this)
+                            ">
+
+                            <i class="fas fa-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            $('#posTable tbody')
+                .append(row);
+
+        }
+
+
+        calculateTotal();
+
+        resetFields();
+
+    }
+
+
+    // =========================================================
+    // UPDATE QUANTITY
+    // =========================================================
+
+    window.updateQuantity = function (btn, delta) {
+
+    const row =
+        $(btn).closest('tr');
+
+    const qtySpan =
+        row.find('.qty-value');
+
+    const currentQty =
+        parseFloat(
+            qtySpan.text()
+        ) || 0;
+
+    const stockQty =
+        parseFloat(
+            row.data('stock')
+        ) || 999999;
+
+    const newQty =
+        currentQty + delta;
+
+    const rate =
+        parseFloat(
+            row.find('.rate').text()
+        ) || 0;
+
+
+    if (newQty <= 0) {
+
+        deleteRow(btn);
+
+        return;
+    }
+
+
+    // Only relevant for newly added items
+    // Existing edit rows are validated in SQL.
+
+    const invoiceDetailId =
+        parseInt(
+            row.attr('data-invoice-detail-id')
+        ) || 0;
+
+
+    if (
+        invoiceDetailId === 0 &&
+        newQty > stockQty
+    ) {
+
+        Swal.fire(
+            'Stock Limit',
+            `Only ${stockQty} item(s) available.`,
+            'warning'
+        );
+
+        return;
+    }
+
+
+    qtySpan.text(newQty);
+
+
+    row.find('.amount')
+        .text(
+            (
+                newQty * rate
+            ).toFixed(2)
+        );
+
+
+    calculateTotal();
+
+};
+
+
+    // =========================================================
+    // DELETE ROW
+    // =========================================================
+
+   
+window.deleteRow = function (btn) {
+
+    const row = $(btn).closest('tr');
+
+    const invoiceDetailId =
+        parseInt(row.attr('data-invoice-detail-id')) || 0;
+
+    const itemName =
+        row.find('.item-name')
+            .text()
+            .trim();
+
+    const quantity =
+        parseFloat(
+            row.find('.qty-value').text()
+        ) || 0;
+
+    // =========================================
+    // CHECK EDIT MODE
+    // =========================================
+
+    const isEditMode =
+        $('#isEditMode').val() === 'true';
+
+    // Existing database item
+    const isExistingItem =
+        invoiceDetailId > 0;
+
+
+    // =========================================
+    // CONFIRMATION
+    // =========================================
 
     Swal.fire({
-        title: 'Loading Bill...',
-        text: 'Please wait',
-        allowOutsideClick: false,
-        didOpen: function () {
-            Swal.showLoading();
+
+        title:
+            isExistingItem && isEditMode
+                ? 'Delete Item?'
+                : 'Remove Item?',
+
+        html:
+            isExistingItem && isEditMode
+
+                ? `
+                    <b>${escapeHtml(itemName)}</b>
+                    <br>
+                    Quantity:
+                    <b>${quantity}</b>
+                    <br><br>
+                    This item will be deleted from
+                    the invoice and its stock will be restored.
+                  `
+
+                : `
+                    <b>${escapeHtml(itemName)}</b>
+                    <br>
+                    Quantity:
+                    <b>${quantity}</b>
+                    <br><br>
+                    This item will be removed
+                    from the invoice.
+                  `,
+
+        icon: 'warning',
+
+        showCancelButton: true,
+
+        confirmButtonColor: '#ef4444',
+
+        cancelButtonColor: '#6c757d',
+
+        confirmButtonText:
+            isExistingItem && isEditMode
+                ? 'Yes, Delete'
+                : 'Yes, Remove'
+
+    })
+    .then(function (result) {
+
+        if (!result.isConfirmed) {
+            return;
         }
+
+
+        // =========================================
+        // EXISTING ITEM + EDIT MODE
+        // DELETE FROM DATABASE
+        // =========================================
+
+        if (isEditMode && isExistingItem) {
+
+            // Disable button to prevent double click
+            $(btn).prop('disabled', true);
+
+            Swal.fire({
+                title: 'Deleting item...',
+                text: 'Please wait.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: function () {
+                    Swal.showLoading();
+                }
+            });
+
+
+            $.ajax({
+
+                url: '/POS/DeleteInvoiceDetail',
+
+                type: 'POST',
+
+                data: {
+                    invoiceDetailId: invoiceDetailId
+                },
+
+                success: function (response) {
+
+                    Swal.close();
+
+
+                    if (response.success) {
+
+                        // Remove from UI only after
+                        // database deletion succeeds
+                        row.remove();
+
+                        renumberRows();
+
+                        calculateTotal();
+
+                        showEmptyCart();
+
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: response.message,
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                    }
+                    else {
+
+                        $(btn).prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unable to Delete',
+                            text: response.message
+                        });
+
+                    }
+
+                },
+
+                error: function (xhr) {
+
+                    Swal.close();
+
+                    $(btn).prop('disabled', false);
+
+                    let message =
+                        'Something went wrong while deleting the item.';
+
+                    if (xhr.responseJSON &&
+                        xhr.responseJSON.message) {
+
+                        message =
+                            xhr.responseJSON.message;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: message
+                    });
+
+                }
+
+            });
+
+            return;
+        }
+
+
+        // =========================================
+        // NEW ITEM / NEW SALE
+        // ONLY REMOVE FROM UI
+        // =========================================
+
+        row.remove();
+
+        renumberRows();
+
+        calculateTotal();
+
+        showEmptyCart();
+
     });
 
-    $.ajax({
-        url: '/POS/GetBillById',
-        type: 'GET',
-        data: {
-            invoiceId: invoiceId
-        },
+};
 
-        success: function (res) {
 
-            Swal.close();
 
-            console.log("Edit Bill Response:", res);
+    // =========================================================
+    // RENUMBER ROWS
+    // =========================================================
 
-            if (!res.success || !res.invoice) {
+    function renumberRows() {
+
+        let counter = 1;
+
+
+        $('#posTable tbody tr')
+            .each(function () {
+
+                if (
+                    $(this)
+                        .find('.qty-value')
+                        .length === 0
+                ) {
+                    return;
+                }
+
+
+                $(this)
+                    .find('td:first')
+                    .text(counter++);
+
+            });
+
+
+        rowIndex =
+            counter - 1;
+
+    }
+
+
+    // =========================================================
+    // EMPTY CART
+    // =========================================================
+
+    function showEmptyCart() {
+
+        const realRows =
+            $('#posTable tbody tr')
+                .filter(function () {
+
+                    return $(this)
+                        .find('.qty-value')
+                        .length > 0;
+
+                });
+
+
+        if (realRows.length === 0) {
+
+            $('#posTable tbody').html(`
+
+                <tr class="text-center">
+
+                    <td colspan="6"
+                        style="padding:60px 20px;">
+
+                        <i class="fas fa-shopping-basket"
+                           style="
+                           font-size:48px;
+                           color:#cbd5e1;">
+                        </i>
+
+                        <p style="
+                           color:#94a3b8;
+                           margin-top:15px;">
+
+                           No items added.
+                           Scan a product to begin!
+
+                        </p>
+
+                    </td>
+
+                </tr>
+
+            `);
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CALCULATE TOTAL
+    // =========================================================
+
+    function calculateTotal() {
+
+        let total = 0;
+
+
+        $('#posTable tbody tr')
+            .each(function () {
+
+                if (
+                    $(this)
+                        .find('.qty-value')
+                        .length === 0
+                ) {
+                    return;
+                }
+
+
+                const amount =
+                    parseFloat(
+                        $(this)
+                            .find('.amount')
+                            .text()
+                    ) || 0;
+
+
+                total += amount;
+
+            });
+
+
+        $('#total')
+            .val(
+                total.toFixed(2)
+            );
+
+
+        $('#totalDisplay')
+            .text(
+                total.toFixed(2)
+            );
+
+
+        calculateNet();
+
+    }
+
+
+    // =========================================================
+    // DISCOUNT
+    // =========================================================
+
+    $('#discount').on(
+        'keyup change',
+        function () {
+
+            calculateNet();
+
+        }
+    );
+
+
+    function calculateNet() {
+
+        let total =
+            parseFloat(
+                $('#total').val()
+            ) || 0;
+
+
+        // Treat discount input as percentage
+        let discountPercent = parseFloat($('#discount').val()) || 0;
+
+        if (discountPercent < 0) {
+            discountPercent = 0;
+            $('#discount').val(0);
+        }
+
+        if (discountPercent > 100) {
+            discountPercent = 100;
+            $('#discount').val(discountPercent);
+        }
+
+        const discountAmount = (total * discountPercent) / 100;
+
+        const net = total - discountAmount;
+
+        // Show discount amount in UI (if there's a cell for it)
+        if ($('#pDiscount').length) {
+            $('#pDiscount').text(discountAmount.toFixed(2));
+        }
+
+        $('#netAmount').text(net.toFixed(2));
+
+
+        calculateChange();
+
+    }
+
+
+    // =========================================================
+    // PAID AMOUNT
+    // =========================================================
+
+    $('#paid').on(
+        'keyup change',
+        function () {
+
+            calculateChange();
+
+        }
+    );
+
+
+    function calculateChange() {
+
+        const net =
+            parseFloat(
+                $('#netAmount').text()
+            ) || 0;
+
+
+        const paid =
+            parseFloat(
+                $('#paid').val()
+            ) || 0;
+
+
+        let change =
+            paid - net;
+
+
+        if (change < 0) {
+            change = 0;
+        }
+
+
+        $('#change')
+            .text(
+                change.toFixed(2)
+            );
+
+    }
+
+
+    // =========================================================
+    // RESET SEARCH FIELDS
+    // =========================================================
+
+    function resetFields() {
+
+        selectedItem =
+            null;
+
+
+        $('#barcodeInput')
+            .val('')
+            .focus();
+
+
+        $('#itemName')
+            .val('');
+
+
+        $('#qty')
+            .val(1);
+
+
+        $('#price')
+            .val('');
+
+    }
+
+
+    // =========================================================
+    // SAVE / UPDATE INVOICE
+    // =========================================================
+
+    $('#btnSave').click(
+        function () {
+
+
+            const items = [];
+
+
+            $('#posTable tbody tr')
+                .each(function () {
+
+                    if (
+                        $(this)
+                            .find('.qty-value')
+                            .length === 0
+                    ) {
+                        return;
+                    }
+
+
+                    const row =
+                        $(this);
+
+
+                    items.push({
+
+    invoiceDetailId:
+        parseInt(
+            row.attr('data-invoice-detail-id')
+        ) || 0,
+
+    itemId:
+        parseInt(
+            row.data('id')
+        ) || 0,
+
+    rate:
+        parseFloat(
+            row.find('.rate').text()
+        ) || 0,
+
+    quantity:
+        parseFloat(
+            row.find('.qty-value').text()
+        ) || 0,
+
+    amount:
+        parseFloat(
+            row.find('.amount').text()
+        ) || 0,
+
+    batchNo:
+        row.attr('data-batch-no') || null,
+
+    manufacturingDate:
+        row.attr('data-mfg-date') || null,
+
+    expiryDate:
+        row.attr('data-expiry-date') || null
+
+});
+
+                });
+
+
+            // =================================================
+            // VALIDATE CART
+            // =================================================
+
+            if (items.length === 0) {
 
                 Swal.fire(
-                    'Error',
-                    res.message || 'Bill not found.',
+                    'Empty Cart',
+                    'Please add items before saving.',
+                    'warning'
+                );
+
+                return;
+            }
+
+
+            // =================================================
+            // TOTALS
+            // =================================================
+
+            const totalAmount =
+                parseFloat(
+                    $('#total').val()
+                ) || 0;
+
+
+            const discount =
+                parseFloat(
+                    $('#discount').val()
+                ) || 0;
+
+
+            const netAmount =
+                parseFloat(
+                    $('#netAmount').text()
+                ) || 0;
+
+
+            const paidAmount =
+                parseFloat(
+                    $('#paid').val()
+                ) || 0;
+
+
+            const paymentMode =
+                $('#paymentMode').val()
+                || 'Cash';
+
+
+            // =================================================
+            // PAYMENT VALIDATION
+            // =================================================
+
+            if (paidAmount < netAmount) {
+
+                Swal.fire(
+                    'Insufficient Payment',
+                    `Please collect Rs ${(netAmount - paidAmount).toFixed(2)} more.`,
                     'error'
                 );
 
                 return;
             }
 
-            // ==================================
-            // HEADER
-            // ==================================
 
-            const invoice = res.invoice;
-            const details = res.details || [];
+            // =================================================
+            // INVOICE ID
+            // =================================================
 
-            $('#invoiceId').val(invoice.invoiceId);
+            const invoiceId =
+                parseInt(
+                    $('#invoiceId').val()
+                ) || 0;
 
-            $('#invoiceNo').val(invoice.invoiceNo || '');
 
-            if (invoice.invoiceDate) {
+            const isEdit =
+                invoiceId > 0;
 
-                const date = new Date(invoice.invoiceDate);
 
-                $('#invoiceDate').val(
-                    date.toISOString().split('T')[0]
-                );
-            }
+            // =================================================
+            // MODEL
+            // =================================================
 
-            // Customer
-            if (invoice.customerId) {
+            const model = {
 
-                $('#customerId')
-                    .val(invoice.customerId)
-                    .trigger('change');
-            }
+                InvoiceId:
+                    invoiceId,
 
-            // Branch
-            $('#branchId').val(invoice.branchId || '');
+                InvoiceNo:
+                    $('#invoiceNo').val(),
 
-            // Discount
-            $('#discount').val(
-                parseFloat(invoice.discount || 0).toFixed(2)
+                InvoiceDate:
+                    $('#invoiceDate').val(),
+
+                CustomerId:
+                    parseInt(
+                        $('#customerId').val()
+                    ) || 0,
+
+                TotalAmount:
+                    totalAmount,
+
+                Discount:
+                    discount,
+
+                NetAmount:
+                    netAmount,
+
+                PaymentMode:
+                    paymentMode,
+
+                PaidAmount:
+                    paidAmount,
+
+                Items:
+                    items
+
+            };
+
+
+            console.log(
+                isEdit
+                    ? "UPDATE MODEL:"
+                    : "SAVE MODEL:",
+                model
             );
 
 
-            // ==================================
-            // CLEAR EXISTING POS ITEMS
-            // ==================================
+            // =================================================
+            // CONFIRM
+            // =================================================
 
-            $('#posTable tbody').empty();
+            Swal.fire({
 
-            rowIndex = 0;
+                title:
+                    isEdit
+                        ? 'Update Invoice?'
+                        : 'Save Invoice?',
+
+                text:
+                    isEdit
+                        ? 'The existing invoice will be updated.'
+                        : 'This invoice will be saved.',
+
+                icon:
+                    'question',
+
+                showCancelButton:
+                    true,
+
+                confirmButtonColor:
+                    '#10b981',
+
+                cancelButtonColor:
+                    '#6c757d',
+
+                confirmButtonText:
+                    isEdit
+                        ? 'Yes, Update'
+                        : 'Yes, Save'
+
+            })
+            .then(function (result) {
 
 
-            // ==================================
-            // LOAD ITEMS
-            // ==================================
+                if (!result.isConfirmed) {
+                    return;
+                }
 
-            details.forEach(function (item) {
 
-                rowIndex++;
+                Swal.fire({
 
-                const quantity =
-                    parseFloat(item.quantity || 0);
+                    title:
+                        'Processing...',
+
+                    text:
+                        isEdit
+                            ? 'Updating invoice...'
+                            : 'Saving invoice...',
+
+                    allowOutsideClick:
+                        false,
+
+                    didOpen:
+                        function () {
+
+                            Swal.showLoading();
+
+                        }
+
+                });
+
+
+                // =================================================
+                // AJAX SAVE / UPDATE
+                // =================================================
+
+                $.ajax({
+
+                    url:
+                        isEdit
+                            ? '/POS/UpdateInvoice'
+                            : '/POS/SaveInvoice',
+
+                    type:
+                        'POST',
+
+                    contentType:
+                        'application/json; charset=utf-8',
+
+                    data:
+                        JSON.stringify(model),
+
+
+                    success:
+                        function (res) {
+
+
+                            console.log(
+                                "Save/Update Response:",
+                                res
+                            );
+
+
+                            if (res.success) {
+
+
+                                preparePrint();
+
+
+                                Swal.fire({
+
+                                    icon:
+                                        'success',
+
+                                    title:
+                                        isEdit
+                                            ? 'Invoice Updated!'
+                                            : 'Invoice Saved!',
+
+                                    text:
+                                        isEdit
+                                            ? 'Invoice updated successfully.'
+                                            : 'Invoice saved successfully.',
+
+                                    confirmButtonColor:
+                                        '#10b981'
+
+                                })
+                                .then(function () {
+
+
+                                    setTimeout(
+                                        function () {
+
+                                            window.print();
+
+                                        },
+                                        500
+                                    );
+
+                                });
+
+                            }
+
+                            else {
+
+                                Swal.fire(
+                                    'Error',
+                                    res.message ||
+                                    'Operation failed.',
+                                    'error'
+                                );
+
+                            }
+
+                        },
+
+
+                    error:
+                        function (xhr) {
+
+
+                            console.log(
+                                "Save/Update Error:",
+                                xhr.responseText
+                            );
+
+
+                            let message =
+                                'An error occurred.';
+
+
+                            try {
+
+                                const response =
+                                    JSON.parse(
+                                        xhr.responseText
+                                    );
+
+
+                                if (response.message) {
+
+                                    message =
+                                        response.message;
+
+                                }
+
+                            }
+                            catch (e) {
+
+                                if (xhr.responseText) {
+
+                                    message =
+                                        xhr.responseText;
+
+                                }
+
+                            }
+
+
+                            Swal.fire(
+                                'Error',
+                                message,
+                                'error'
+                            );
+
+                        }
+
+                });
+
+            });
+
+        }
+    );
+
+
+    // =========================================================
+    // PRINT
+    // =========================================================
+
+    function preparePrint() {
+
+        $('#pInvoiceNo')
+            .text(
+                $('#invoiceNo').val()
+            );
+
+
+        $('#pDate')
+            .text(
+                $('#invoiceDate').val()
+            );
+
+
+        $('#pTotal')
+            .text(
+                parseFloat(
+                    $('#total').val()
+                ).toFixed(2)
+            );
+
+
+        $('#pDiscount')
+            .text(
+                parseFloat(
+                    $('#discount').val()
+                ).toFixed(2)
+            );
+
+
+        $('#pNet')
+            .text(
+                $('#netAmount').text()
+            );
+
+
+        let rows = '';
+
+        let index = 1;
+
+
+        $('#posTable tbody tr')
+            .each(function () {
+
+                if (
+                    $(this)
+                        .find('.qty-value')
+                        .length === 0
+                ) {
+                    return;
+                }
+
+
+                const item =
+                    $(this)
+                        .find('.item-name')
+                        .text()
+                        .trim();
+
 
                 const rate =
-                    parseFloat(item.rate || 0);
+                    parseFloat(
+                        $(this)
+                            .find('.rate')
+                            .text()
+                    ).toFixed(2);
+
+
+                const qty =
+                    $(this)
+                        .find('.qty-value')
+                        .text();
+
 
                 const amount =
-                    parseFloat(item.amount || 0);
+                    $(this)
+                        .find('.amount')
+                        .text();
 
-                let row = `
-                    <tr data-id="${item.itemId}"
-                        data-stock="999999"
-                        data-invoice-detail-id="${item.invoiceDetailId || 0}"
-                        data-batch-no="${item.batchNo || ''}"
-                        data-mfg-date="${item.manufacturingDate || ''}"
-                        data-expiry-date="${item.expiryDate || ''}">
 
-                        <td>${rowIndex}</td>
+                rows += `
 
-                        <td class="item-name">
-                            ${item.itemName || 'Unknown'}
-                        </td>
+                    <tr>
 
-                        <td class="rate">
-                            ${rate.toFixed(2)}
+                        <td>
+                            ${index++}
                         </td>
 
                         <td>
-                            <div class="qty-controls">
-
-                                <button
-                                    class="qty-btn qty-minus"
-                                    onclick="updateQuantity(this, -1)">
-                                    -
-                                </button>
-
-                                <span class="qty-value">
-                                    ${quantity}
-                                </span>
-
-                                <button
-                                    class="qty-btn qty-plus"
-                                    onclick="updateQuantity(this, 1)">
-                                    +
-                                </button>
-
-                            </div>
+                            ${escapeHtml(item)}
                         </td>
 
-                        <td class="amount">
-                            ${amount.toFixed(2)}
+                        <td style="text-align:right;">
+                            ${rate}
                         </td>
 
-                        <td>
-                            <button
-                                class="delete-btn"
-                                onclick="deleteRow(this)">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <td style="text-align:center;">
+                            ${qty}
+                        </td>
+
+                        <td style="text-align:right;">
+                            ${amount}
                         </td>
 
                     </tr>
+
                 `;
 
-                $('#posTable tbody').append(row);
             });
 
 
-            // ==================================
-            // EMPTY BILL CHECK
-            // ==================================
-
-            if (details.length === 0) {
-
-                $('#posTable tbody').html(`
-                    <tr class="text-center">
-                        <td colspan="6"
-                            style="padding: 60px 20px;">
-
-                            <i class="fas fa-shopping-basket"
-                               style="font-size:48px;color:#cbd5e1;">
-                            </i>
-
-                            <p style="color:#94a3b8;margin-top:15px;">
-                                No items found.
-                            </p>
-
-                        </td>
-                    </tr>
-                `);
-            }
+        $('#printItems')
+            .html(rows);
 
 
-            // ==================================
-            // CALCULATE TOTALS
-            // ==================================
+        $('#printArea')
+            .show();
 
-            calculateTotal();
-
-
-            // ==================================
-            // CHANGE BUTTON TO UPDATE
-            // ==================================
-
-            $('#btnSave').html(`
-                <i class="fas fa-save"></i>
-                Update Invoice
-            `);
-
-            $('#btnSave').data('edit-mode', true);
+    }
 
 
-            // ==================================
-            // FOCUS
-            // ==================================
+    // =========================================================
+    // AFTER PRINT
+    // =========================================================
 
-            $('#barcodeInput').focus();
+    window.onafterprint =
+        function () {
+
+            $('#printArea')
+                .hide();
+
+        };
 
 
-            console.log("Bill loaded successfully.");
+    $(window).on(
+        'focus',
+        function () {
 
-        },
+            $('#printArea')
+                .hide();
 
-        error: function (xhr) {
-
-            Swal.close();
-
-            console.log(
-                "GetBillById Error:",
-                xhr.responseText
-            );
-
-            Swal.fire(
-                'Error',
-                'Unable to load bill.',
-                'error'
-            );
         }
-    });
-}
+    );
+
+
+    // =========================================================
+    // ESCAPE HTML
+    // =========================================================
+
+    function escapeHtml(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+            return '';
+        }
+
+
+        return $('<div>')
+            .text(value)
+            .html();
+
+    }
 
 </script>

@@ -23,9 +23,13 @@ namespace POSSystem.Controllers
             var Company = await _repo.GetAllAsync();
             return Json(Company);
         }
-        public IActionResult AddCompany()
+        public async Task<IActionResult> AddCompany()
         {
-            return View();
+            var model = new Company();
+
+            model.BusinessTypelist = await _repo.GetBusinessTypeDropdownAsync();
+
+            return View(model);
         }
         [HttpPost]
         public async Task<IActionResult> AddCompany(Company company, IFormFile LogoFile)

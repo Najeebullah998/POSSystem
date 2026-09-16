@@ -1,4 +1,4 @@
-﻿
+﻿@model POSSystem.Entities.Company
 <style>
     #logoPreview {
         cursor: pointer;
@@ -69,6 +69,15 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Owner Name</label>
                         <input type="text" class="form-control" id="OwnerName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Business Type</label>
+
+                        <select asp-for="BusinessTypeId"
+                                asp-items="Model.BusinessTypelist"
+                                class="form-select">
+                            <option value="">-- Select Business Type --</option>
+                        </select>
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -160,9 +169,17 @@
 <script>
         
     var companyModal;
-    $(document).ready(function () {
-        companyModal = new bootstrap.Modal(document.getElementById('companyModal'));
+    $(document).ready(function() {
+
+        console.log("Document Ready");
+
         loadCompanies();
+
+        var modalElement = document.getElementById('companyModal');
+
+        if (modalElement) {
+            companyModal = new bootstrap.Modal(modalElement);
+        }
     });
 
         $('#LogoPath').on('change', function () {
@@ -175,6 +192,7 @@
 
     // 🔹 Load Companies
     function loadCompanies() {
+        console.log("loadCompanies called");
         $.ajax({
             url: '/Company/GetAllCompany',
             type: 'GET',
@@ -214,6 +232,7 @@
         $('#CompanyId').val(0);
         $('#CompanyName').val('');
         $('#OwnerName').val('');
+        $('#BusinessTypeId').val('');
         $('#Phone').val('');
         $('#Email').val('');
         $('#Website').val('');
@@ -245,6 +264,7 @@
         formData.append("TaxNumber", $('#TaxNumber').val());
         formData.append("RegistrationNumber", $('#RegistrationNumber').val());
         formData.append("IsActive", $('#IsActive').is(':checked'));
+        formData.append("BusinessTypeId", $('#BusinessTypeId').val());
 
         // 🔥 file add karo
         var file = $('#LogoPath')[0].files[0];
@@ -306,6 +326,7 @@
                 $('#Country').val(data.country);
                 $('#TaxNumber').val(data.taxNumber);
                 $('#RegistrationNumber').val(data.registrationNumber);
+                $('#BusinessTypeId').val(data.businessTypeId);
 
                 // ❌ remove this
                 // $('#LogoPath').val(data.logoPath);

@@ -2,6 +2,12 @@
 
 @{
     ViewBag.Title = "Purchase Order";
+
+    bool isEdit = Model != null && Model.PurchaseOrderId > 0;
+
+    DateTime poDate = Model != null && Model.PODate != default(DateTime)
+        ? Model.PODate
+        : DateTime.Now;
 }
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -78,7 +84,8 @@
         transition: all 0.3s;
     }
 
-        .form-control:focus, .select2-container--focus .select2-selection {
+        .form-control:focus,
+        .select2-container--focus .select2-selection {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
         }
@@ -134,7 +141,8 @@
             vertical-align: middle;
         }
 
-    .qty-input, .rate-input {
+    .qty-input,
+    .rate-input {
         width: 100px;
         text-align: center;
         border-radius: 6px;
@@ -243,78 +251,153 @@
     .table tbody tr {
         animation: slideIn 0.3s ease-out;
     }
+
+    .received-badge {
+        background: #dbeafe;
+        color: #1d4ed8;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 4px;
+    }
 </style>
 
 <div class="po-container">
+
     <!-- Header Section -->
     <div class="po-header-section">
+
         <h1 class="po-title">
-            <i class="fas fa-file-invoice-dollar"></i> Purchase Order
+            <i class="fas fa-file-invoice-dollar"></i>
+            @(isEdit ? "Edit Purchase Order" : "Purchase Order")
         </h1>
-        <p class="po-subtitle">Create and manage purchase orders efficiently</p>
+
+        <p class="po-subtitle">
+            @(isEdit
+                ? "Edit and update your purchase order"
+                : "Create and manage purchase orders efficiently")
+        </p>
+
     </div>
 
     <div class="po-content">
+
         <!-- Order Information Card -->
         <div class="form-card">
+
             <div class="row">
+
                 <div class="col-md-3">
+
                     <label class="form-label">
                         <i class="fas fa-hashtag"></i> PO Number
                     </label>
-                    <input type="text" class="form-control" id="PONumber" value="@Model.PONumber" readonly style="background: #f3f4f6;" />
+
+                    <input type="hidden"
+                           id="PurchaseOrderId"
+                           value="@Model.PurchaseOrderId" />
+
+                    <input type="text"
+                           class="form-control"
+                           id="PONumber"
+                           value="@Model.PONumber"
+                           readonly
+                           style="background: #f3f4f6;" />
+
                 </div>
+
                 <div class="col-md-3">
+
                     <label class="form-label">
                         <i class="far fa-calendar-alt"></i> PO Date
                     </label>
-                    <input type="date" class="form-control" id="PODate" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+
+                    <input type="date"
+                           class="form-control"
+                           id="PODate"
+                           value="@poDate.ToString("yyyy-MM-dd")" />
+
                 </div>
+
                 <div class="col-md-3">
+
                     <label class="form-label">
                         <i class="fas fa-truck"></i> Supplier
                     </label>
+
                     <select asp-for="SupplierId"
                             asp-items="Model.SupplierList"
                             class="form-control select2">
+
                         <option value="">Select Supplier</option>
+
                     </select>
+
                 </div>
 
                 <div class="col-md-3">
+
                     <label class="form-label">
                         <i class="fas fa-warehouse"></i> Warehouse
                     </label>
+
                     <select asp-for="WarehouseId"
                             asp-items="Model.WarehouseList"
                             class="form-control select2">
+
                         <option value="">Select Warehouse</option>
+
                     </select>
+
                 </div>
+
             </div>
+
         </div>
+
 
         <!-- Scan Section -->
         <div class="scan-section">
+
             <div class="row align-items-center">
+
                 <div class="col-md-10">
+
                     <label class="form-label" style="color: #92400e;">
-                        <i class="fas fa-qrcode"></i> Scan Barcode / Search Item
+                        <i class="fas fa-qrcode"></i>
+                        Scan Barcode / Search Item
                     </label>
-                    <input type="text" id="barcode" class="form-control scan-input"
+
+                    <input type="text"
+                           id="barcode"
+                           class="form-control scan-input"
                            placeholder="📱 Scan barcode or type item name and press Enter..." />
+
                 </div>
+
                 <div class="col-md-2 text-center">
-                    <i class="fas fa-barcode" style="font-size: 48px; color: #d97706;"></i>
+
+                    <i class="fas fa-barcode"
+                       style="font-size: 48px; color: #d97706;"></i>
+
                 </div>
+
             </div>
+
         </div>
+
 
         <!-- Items Table -->
         <div class="table-container">
+
             <table class="table" id="tblItems">
+
                 <thead class="bg-dark">
+
                     <tr>
+
                         <th width="15%">Barcode</th>
                         <th width="25%">Item Name</th>
                         <th width="10%">Stock</th>
@@ -322,66 +405,237 @@
                         <th width="10%">Quantity</th>
                         <th width="15%">Amount (Rs)</th>
                         <th width="10%">Action</th>
+
                     </tr>
+
                 </thead>
+
                 <tbody>
-                    <tr class="text-center">
-                        <td colspan="7" style="padding: 40px;">
-                            <i class="fas fa-box-open" style="font-size: 48px; color: #cbd5e1;"></i>
-                            <p style="color: #94a3b8; margin-top: 10px;">No items added yet. Scan a barcode to start!</p>
-                        </td>
-                    </tr>
+
+                    @if (isEdit && Model.Details != null && Model.Details.Count > 0)
+                    {
+                        foreach (var item in Model.Details)
+                        {
+                            <tr data-itemid="@item.ItemId">
+
+                                <td>
+                                    <strong>@item.Barcode</strong>
+                                </td>
+
+                                <td>
+                                    @item.ItemName
+                                </td>
+
+                                <td>
+
+                                    <span class="badge-stock">
+
+                                        <i class="fas fa-boxes"></i>
+
+                                        @item.CurrentStock
+
+                                    </span>
+
+                                    @if (item.ReceivedQty > 0)
+                                    {
+                                        <br />
+
+                                        <span class="received-badge">
+                                            Received: @item.ReceivedQty
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           class="rate-input rate"
+                                           value="@item.Rate"
+                                           step="0.01" />
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           class="qty-input qty"
+                                           value="@item.Quantity"
+                                           min="@((item.ReceivedQty > 0) ? item.ReceivedQty : 1)"
+                                           data-receivedqty="@item.ReceivedQty" />
+
+                                </td>
+
+                                <td class="amount"
+                                    style="font-weight: 600; color: var(--primary-color);">
+
+                                    Rs @item.Amount.ToString("0.00")
+
+                                </td>
+
+                                <td>
+
+                                    <button type="button"
+                                            class="delete-btn"
+                                            onclick="removeRow(this)">
+
+                                        <i class="fas fa-trash"></i>
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr class="text-center">
+
+                            <td colspan="7" style="padding: 40px;">
+
+                                <i class="fas fa-box-open"
+                                   style="font-size: 48px; color: #cbd5e1;"></i>
+
+                                <p style="color: #94a3b8; margin-top: 10px;">
+                                    No items added yet. Scan a barcode to start!
+                                </p>
+
+                            </td>
+
+                        </tr>
+                    }
+
                 </tbody>
+
             </table>
+
         </div>
+
     </div>
+
 </div>
+
 
 <!-- Footer Summary -->
 <div class="footer-card">
+
     <div class="row align-items-center">
+
         <div class="col-md-2">
+
             <div class="summary-box">
-                <div class="summary-label">Total Quantity</div>
-                <div class="summary-value" id="totalQty">0</div>
+
+                <div class="summary-label">
+                    Total Quantity
+                </div>
+
+                <div class="summary-value" id="totalQty">
+                    0
+                </div>
+
             </div>
+
         </div>
+
+
         <div class="col-md-3">
+
             <div class="summary-box">
-                <div class="summary-label">Sub Total</div>
-                <div class="summary-value">Rs <span id="totalAmount">0</span></div>
+
+                <div class="summary-label">
+                    Sub Total
+                </div>
+
+                <div class="summary-value">
+                    Rs <span id="totalAmount">0</span>
+                </div>
+
             </div>
+
         </div>
+
+
         <div class="col-md-2">
-            <label class="form-label" style="margin-bottom: 5px;">Discount (Rs)</label>
-            <input type="number" id="discount" class="form-control" placeholder="Enter discount" style="border: 2px solid var(--primary-color);" />
+
+            <label class="form-label"
+                   style="margin-bottom: 5px;">
+
+                Discount (Rs)
+
+            </label>
+
+            <input type="number"
+                   id="discount"
+                   class="form-control"
+                   placeholder="Enter discount"
+                   value="@(isEdit ? Model.Discount.ToString("0.00") : "")"
+                   style="border: 2px solid var(--primary-color);" />
+
         </div>
+
+
         <div class="col-md-3">
-            <div class="summary-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                <div class="summary-label">Net Amount</div>
-                <div class="summary-value">Rs <span id="netAmount">0</span></div>
+
+            <div class="summary-box"
+                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+
+                <div class="summary-label">
+                    Net Amount
+                </div>
+
+                <div class="summary-value">
+                    Rs <span id="netAmount">0</span>
+                </div>
+
             </div>
+
         </div>
+
+
         <div class="col-md-2 text-end">
-            <button class="btn btn-primary-custom" onclick="savePO()">
-                <i class="fas fa-save"></i> Save PO
+
+            <button class="btn btn-primary-custom"
+                    onclick="savePO()">
+
+                <i class="fas fa-save"></i>
+
+                @(isEdit ? "Update PO" : "Save PO")
+
             </button>
-            <button class="btn btn-secondary-custom" onclick="clearAll()">
-                <i class="fas fa-trash-alt"></i> Clear
+
+            <button class="btn btn-secondary-custom"
+                    onclick="clearAll()">
+
+                <i class="fas fa-trash-alt"></i>
+                Clear
+
             </button>
+
         </div>
+
     </div>
+
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
 
+
 <script>
-    let items = [];
+
+    // ==========================================
+    // EDIT MODE
+    // ==========================================
+
+    const isEditMode = @isEdit.ToString().ToLower();
+
 
     $(document).ready(function() {
+
         // Initialize Select2
         $('.select2').select2({
             placeholder: 'Select option',
@@ -389,269 +643,806 @@
             width: '100%'
         });
 
-        // Load suppliers and warehouses
-        loadSuppliers();
-        loadWarehouses();
+        // Calculate existing values
+        calculate();
+
+        // Focus barcode
+        $("#barcode").focus();
+
     });
 
-    function loadSuppliers() {
-        $.get("/PurchaseOrder/GetSuppliers", function(data) {
-            let supplierSelect = $('#SupplierId');
-            supplierSelect.empty().append('<option value="">Select Supplier</option>');
-            $.each(data, function(i, item) {
-                supplierSelect.append(`<option value="${item.Value}">${item.Text}</option>`);
-            });
-        });
-    }
 
-    function loadWarehouses() {
-        $.get("/PurchaseOrder/GetWarehouses", function(data) {
-            let warehouseSelect = $('#WarehouseId');
-            warehouseSelect.empty().append('<option value="">Select Warehouse</option>');
-            $.each(data, function(i, item) {
-                warehouseSelect.append(`<option value="${item.Value}">${item.Text}</option>`);
-            });
-        });
-    }
+    // ==========================================
+    // ENTER BARCODE
+    // ==========================================
 
-    // Enter barcode
     $("#barcode").on("keypress", function(e) {
-        if (e.which === 13) {
-            let barcode = $(this).val().trim();
-            if (barcode === "") {
-                Swal.fire('Warning', 'Please enter a barcode or item name', 'warning');
-                return;
-            }
 
-            // Show loading
-            $(this).prop('disabled', true);
+        if (e.which !== 13) {
+            return;
+        }
 
-            $.get("/PurchaseOrder/GetItemByBarcode", { barcode: barcode }, function(res) {
+        e.preventDefault();
+
+        let barcode = $(this).val().trim();
+
+        if (barcode === "") {
+
+            Swal.fire(
+                'Warning',
+                'Please enter a barcode or item name',
+                'warning'
+            );
+
+            return;
+        }
+
+
+        // Loading
+        $(this).prop('disabled', true);
+
+
+        $.get(
+            "/PurchaseOrder/GetItemByBarcode",
+            {
+                barcode: barcode
+            },
+
+            function(res) {
+
                 $("#barcode").prop('disabled', false);
 
-                if (!res || res.error) {
-                    Swal.fire('Not Found', 'Item not found! Please check the barcode.', 'error');
-                    $("#barcode").val('');
+
+                if (!res || res.error || !res.itemId) {
+
+                    Swal.fire(
+                        'Not Found',
+                        'Item not found! Please check the barcode.',
+                        'error'
+                    );
+
+                    $("#barcode")
+                        .val('')
+                        .focus();
+
                     return;
                 }
 
-                addRow(res);
-                $("#barcode").val('').focus();
-            }).fail(function() {
-                $("#barcode").prop('disabled', false);
-                Swal.fire('Error', 'Failed to fetch item details', 'error');
-            });
-        }
-    });
 
-    // Add Row
-    function addRow(item) {
-        // Check if item already exists
-        let existing = false;
-        $("#tblItems tbody tr").each(function() {
-            if ($(this).find("td:eq(0)").text() === item.barcode) {
-                let qtyInput = $(this).find(".qty");
-                qtyInput.val(parseFloat(qtyInput.val()) + 1);
-                calculate();
-                existing = true;
-                return false;
+                addRow(res);
+
+
+                $("#barcode")
+                    .val('')
+                    .focus();
+
             }
+
+        ).fail(function() {
+
+            $("#barcode").prop('disabled', false);
+
+            Swal.fire(
+                'Error',
+                'Failed to fetch item details',
+                'error'
+            );
+
         });
 
-        if (existing) return;
+    });
 
-        // Remove empty row message if exists
-        if ($("#tblItems tbody tr").length === 1 && $("#tblItems tbody tr td").attr('colspan')) {
-            $("#tblItems tbody").empty();
+
+    // ==========================================
+    // ADD ROW
+    // ==========================================
+
+    function addRow(item) {
+
+        let existing = false;
+
+
+        $("#tblItems tbody tr").each(function() {
+
+            if ($(this).find("td:eq(0)").text().trim() === item.barcode) {
+
+                let qtyInput = $(this).find(".qty");
+
+                let currentQty =
+                    parseFloat(qtyInput.val()) || 0;
+
+                qtyInput.val(currentQty + 1);
+
+                calculate();
+
+                existing = true;
+
+                return false;
+            }
+
+        });
+
+
+        if (existing) {
+            return;
         }
 
-            let row = $(`
-        <tr data-itemid="${item.itemId}">
-            <td><strong>${item.barcode}</strong></td>
-            <td>${item.itemName}</td>
-            <td><span class="badge-stock"><i class="fas fa-boxes"></i> ${item.currentStock || 0}</span></td>
-            <td><input type="number" class="rate-input rate" value="${item.lastPurchaseRate || 0}" step="0.01" /></td>
-            <td><input type="number" class="qty-input qty" value="1" min="1" /></td>
-            <td class="amount" style="font-weight: 600; color: var(--primary-color);">Rs 0.00</td>
-            <td><button class="delete-btn" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
-        </tr>
-    `);
+
+        // Remove empty row
+        if (
+            $("#tblItems tbody tr").length === 1 &&
+            $("#tblItems tbody tr td").attr('colspan')
+        ) {
+
+            $("#tblItems tbody").empty();
+
+        }
+
+
+        let row = $(`
+                <tr data-itemid="${item.itemId}">
+
+                    <td>
+                        <strong>${item.barcode || ''}</strong>
+                    </td>
+
+                    <td>
+                        ${item.itemName || ''}
+                    </td>
+
+                    <td>
+
+                        <span class="badge-stock">
+
+                            <i class="fas fa-boxes"></i>
+
+                            ${item.currentStock || 0}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <input type="number"
+                               class="rate-input rate"
+                               value="${item.lastPurchaseRate || 0}"
+                               step="0.01" />
+
+                    </td>
+
+                    <td>
+
+                        <input type="number"
+                               class="qty-input qty"
+                               value="1"
+                               min="1"
+                               data-receivedqty="0" />
+
+                    </td>
+
+                    <td class="amount"
+                        style="font-weight: 600; color: var(--primary-color);">
+
+                        Rs 0.00
+
+                    </td>
+
+                    <td>
+
+                        <button type="button"
+                                class="delete-btn"
+                                onclick="removeRow(this)">
+
+                            <i class="fas fa-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+            `);
+
 
         $("#tblItems tbody").append(row);
+
         calculate();
 
-        // Animate scroll to new row
+
+        // Scroll to new row
         $('html, body').animate({
             scrollTop: $(document).height()
         }, 500);
+
     }
 
-    // Remove Row
+
+    // ==========================================
+    // REMOVE ROW
+    // ==========================================
+
     function removeRow(btn) {
+
+        let row = $(btn).closest("tr");
+
+        let receivedQty =
+            parseFloat(row.find(".qty").data("receivedqty")) || 0;
+
+
+        // Don't allow removing received item
+        if (receivedQty > 0) {
+
+            Swal.fire(
+                'Cannot Remove',
+                'This item has already been received. You cannot remove it from the Purchase Order.',
+                'error'
+            );
+
+            return;
+        }
+
+
         Swal.fire({
+
             title: 'Remove Item?',
+
             text: "This item will be removed from the order",
+
             icon: 'warning',
+
             showCancelButton: true,
+
             confirmButtonColor: '#ef4444',
+
             cancelButtonColor: '#6c757d',
+
             confirmButtonText: 'Yes, remove it!'
+
         }).then((result) => {
-            if (result.isConfirmed) {
-                $(btn).closest("tr").remove();
 
-                // Show empty message if no rows
-                if ($("#tblItems tbody tr").length === 0) {
-                    $("#tblItems tbody").html(`
-                        <tr class="text-center">
-                            <td colspan="7" style="padding: 40px;">
-                                <i class="fas fa-box-open" style="font-size: 48px; color: #cbd5e1;"></i>
-                                <p style="color: #94a3b8; margin-top: 10px;">No items added yet. Scan a barcode to start!</p>
-                            </td>
-                        </tr>
-                    `);
-                }
-
-                calculate();
-                Swal.fire('Removed!', 'Item has been removed.', 'success');
+            if (!result.isConfirmed) {
+                return;
             }
+
+
+            row.remove();
+
+
+            if ($("#tblItems tbody tr").length === 0) {
+
+                showEmptyRow();
+
+            }
+
+
+            calculate();
+
+
+            Swal.fire(
+                'Removed!',
+                'Item has been removed.',
+                'success'
+            );
+
         });
+
     }
 
-    // Calculate totals
-    $(document).on("input", ".qty, .rate", function() {
-        calculate();
-    });
 
-    $("#discount").on("input", function() {
-        calculate();
-    });
+    // ==========================================
+    // EMPTY TABLE
+    // ==========================================
+
+    function showEmptyRow() {
+
+        $("#tblItems tbody").html(`
+
+                <tr class="text-center">
+
+                    <td colspan="7" style="padding: 40px;">
+
+                        <i class="fas fa-box-open"
+                           style="font-size: 48px; color: #cbd5e1;"></i>
+
+                        <p style="color: #94a3b8; margin-top: 10px;">
+                            No items added yet. Scan a barcode to start!
+                        </p>
+
+                    </td>
+
+                </tr>
+
+            `);
+
+    }
+
+
+    // ==========================================
+    // QUANTITY / RATE CHANGE
+    // ==========================================
+
+    $(document).on(
+        "input",
+        ".qty, .rate",
+        function() {
+
+            calculate();
+
+        }
+    );
+
+
+    // ==========================================
+    // DISCOUNT
+    // ==========================================
+
+    $("#discount").on(
+        "input",
+        function() {
+
+            calculate();
+
+        }
+    );
+
+
+    // ==========================================
+    // CALCULATE TOTALS
+    // ==========================================
 
     function calculate() {
+
         let totalQty = 0;
+
         let total = 0;
 
+
         $("#tblItems tbody tr").each(function() {
-            let qty = parseFloat($(this).find(".qty").val()) || 0;
-            let rate = parseFloat($(this).find(".rate").val()) || 0;
+
+            if ($(this).find("td").attr("colspan")) {
+                return;
+            }
+
+
+            let qty =
+                parseFloat($(this).find(".qty").val()) || 0;
+
+            let rate =
+                parseFloat($(this).find(".rate").val()) || 0;
+
+
             let amount = qty * rate;
 
-            $(this).find(".amount").text(`Rs ${amount.toFixed(2)}`);
+
+            $(this)
+                .find(".amount")
+                .text(`Rs ${amount.toFixed(2)}`);
+
 
             totalQty += qty;
+
             total += amount;
+
         });
 
-        let discount = parseFloat($("#discount").val()) || 0;
+
+        let discount =
+            parseFloat($("#discount").val()) || 0;
+
+
         let net = total - discount;
 
-        $("#totalQty").text(totalQty);
-        $("#totalAmount").text(total.toFixed(2));
-        $("#netAmount").text(net.toFixed(2));
+
+        if (net < 0) {
+            net = 0;
+        }
+
+
+        $("#totalQty")
+            .text(totalQty);
+
+
+        $("#totalAmount")
+            .text(total.toFixed(2));
+
+
+        $("#netAmount")
+            .text(net.toFixed(2));
+
     }
 
-    // Clear all
+
+    // ==========================================
+    // CLEAR ALL
+    // ==========================================
+
     function clearAll() {
+
         Swal.fire({
+
             title: 'Clear All Items?',
+
             text: "This will remove all items from the order",
+
             icon: 'warning',
+
             showCancelButton: true,
+
             confirmButtonColor: '#ef4444',
+
             cancelButtonColor: '#6c757d',
+
             confirmButtonText: 'Yes, clear all!'
+
         }).then((result) => {
-            if (result.isConfirmed) {
-                $("#tblItems tbody").html(`
-                    <tr class="text-center">
-                        <td colspan="7" style="padding: 40px;">
-                            <i class="fas fa-box-open" style="font-size: 48px; color: #cbd5e1;"></i>
-                            <p style="color: #94a3b8; margin-top: 10px;">No items added yet. Scan a barcode to start!</p>
-                        </td>
-                    </tr>
-                `);
-                $("#discount").val('');
-                calculate();
-                Swal.fire('Cleared!', 'All items have been cleared.', 'success');
+
+            if (!result.isConfirmed) {
+                return;
             }
+
+
+            // Check received items
+            let hasReceivedItems = false;
+
+
+            $("#tblItems tbody tr").each(function() {
+
+                let receivedQty =
+                    parseFloat(
+                        $(this)
+                            .find(".qty")
+                            .data("receivedqty")
+                    ) || 0;
+
+
+                if (receivedQty > 0) {
+
+                    hasReceivedItems = true;
+
+                    return false;
+
+                }
+
+            });
+
+
+            if (hasReceivedItems) {
+
+                Swal.fire(
+                    'Cannot Clear',
+                    'This Purchase Order contains items that have already been received.',
+                    'error'
+                );
+
+                return;
+
+            }
+
+
+            showEmptyRow();
+
+            $("#discount").val('');
+
+            calculate();
+
+
+            Swal.fire(
+                'Cleared!',
+                'All items have been cleared.',
+                'success'
+            );
+
         });
+
     }
 
-    // Save PO
+
+    // ==========================================
+    // SAVE / UPDATE PO
+    // ==========================================
+
     function savePO() {
-        // Validation
+
+        // Supplier validation
         if (!$("#SupplierId").val()) {
-            Swal.fire('Validation Error', 'Please select a supplier', 'error');
+
+            Swal.fire(
+                'Validation Error',
+                'Please select a supplier',
+                'error'
+            );
+
             return;
+
         }
 
+
+        // Warehouse validation
         if (!$("#WarehouseId").val()) {
-            Swal.fire('Validation Error', 'Please select a warehouse', 'error');
+
+            Swal.fire(
+                'Validation Error',
+                'Please select a warehouse',
+                'error'
+            );
+
             return;
+
         }
 
-        if ($("#tblItems tbody tr").length === 0 || $("#tblItems tbody tr td").attr('colspan')) {
-            Swal.fire('Validation Error', 'Please add at least one item', 'error');
+
+        // Items validation
+        if (
+            $("#tblItems tbody tr").length === 0 ||
+            $("#tblItems tbody tr td").attr('colspan')
+        ) {
+
+            Swal.fire(
+                'Validation Error',
+                'Please add at least one item',
+                'error'
+            );
+
             return;
+
         }
 
-          let details = [];
 
-    $("#tblItems tbody tr").each(function () {
+        // ======================================
+        // VALIDATE RECEIVED QUANTITY
+        // ======================================
 
-        details.push({
-            ItemId: $(this).data("itemid"),
-            Barcode: $(this).find("td:eq(0)").text().trim(),
-            ItemName: $(this).find("td:eq(1)").text().trim(),
-            Quantity: $(this).find(".qty").val(),
-            Rate: $(this).find(".rate").val(),
-            Amount: parseFloat($(this).find(".amount").text().replace("Rs ", ""))
+        let invalidQty = false;
+
+
+        $("#tblItems tbody tr").each(function() {
+
+            let qty =
+                parseFloat($(this).find(".qty").val()) || 0;
+
+            let receivedQty =
+                parseFloat(
+                    $(this)
+                        .find(".qty")
+                        .data("receivedqty")
+                ) || 0;
+
+
+            if (qty < receivedQty) {
+
+                invalidQty = true;
+
+                return false;
+
+            }
+
         });
 
-    });
+
+        if (invalidQty) {
+
+            Swal.fire(
+                'Invalid Quantity',
+                'Quantity cannot be less than already received quantity.',
+                'error'
+            );
+
+            return;
+
+        }
+
+
+        // ======================================
+        // BUILD DETAILS
+        // ======================================
+
+        let details = [];
+
+
+        $("#tblItems tbody tr").each(function() {
+
+            if ($(this).find("td").attr("colspan")) {
+                return;
+            }
+
+
+            let qty =
+                parseFloat($(this).find(".qty").val()) || 0;
+
+            let rate =
+                parseFloat($(this).find(".rate").val()) || 0;
+
+
+            let amount = qty * rate;
+
+
+            details.push({
+
+                ItemId:
+                    parseInt($(this).data("itemid")),
+
+                Barcode:
+                    $(this)
+                        .find("td:eq(0)")
+                        .text()
+                        .trim(),
+
+                ItemName:
+                    $(this)
+                        .find("td:eq(1)")
+                        .text()
+                        .trim(),
+
+                Quantity:
+                    qty,
+
+                Rate:
+                    rate,
+
+                Amount:
+                    amount
+
+            });
+
+        });
+
+
+        // ======================================
+        // BUILD MODEL
+        // ======================================
 
         let model = {
-            PONumber: $("#PONumber").val(),
-            PODate: $("#PODate").val(),
-            SupplierId: $("#SupplierId").val(),
-            WarehouseId: $("#WarehouseId").val(),
-            TotalAmount: $("#totalAmount").text(),
-            Discount: $("#discount").val() || 0,
-            NetAmount: $("#netAmount").text(),
-            Details: details
+
+            PurchaseOrderId:
+                parseInt($("#PurchaseOrderId").val()) || 0,
+
+            PONumber:
+                $("#PONumber").val(),
+
+            PODate:
+                $("#PODate").val(),
+
+            SupplierId:
+                parseInt($("#SupplierId").val()),
+
+            WarehouseId:
+                parseInt($("#WarehouseId").val()),
+
+            TotalAmount:
+                parseFloat($("#totalAmount").text()) || 0,
+
+            Discount:
+                parseFloat($("#discount").val()) || 0,
+
+            NetAmount:
+                parseFloat($("#netAmount").text()) || 0,
+
+            Details:
+                details
+
         };
 
-        // Show loading
+
+        // ======================================
+        // SAVE OR UPDATE URL
+        // ======================================
+
+        let url = isEditMode
+            ? "/PurchaseOrder/Update"
+            : "/PurchaseOrder/Save";
+
+
+        let loadingText = isEditMode
+            ? "Updating Purchase Order..."
+            : "Saving Purchase Order...";
+
+
         Swal.fire({
-            title: 'Saving...',
-            text: 'Please wait while we save your purchase order',
+
+            title: loadingText,
+
+            text: "Please wait while we process your purchase order",
+
             allowOutsideClick: false,
+
             didOpen: () => {
+
                 Swal.showLoading();
+
             }
+
         });
 
+
+        // ======================================
+        // AJAX
+        // ======================================
+
         $.ajax({
-            url: "/PurchaseOrder/Save",
+
+            url: url,
+
             type: "POST",
+
             data: model,
+
             success: function(res) {
+
                 if (res.success) {
+
                     Swal.fire({
+
                         icon: 'success',
+
                         title: 'Success!',
-                        text: 'Purchase Order saved successfully',
+
+                        text: isEditMode
+                            ? 'Purchase Order updated successfully'
+                            : 'Purchase Order saved successfully',
+
                         confirmButtonColor: '#10b981'
+
                     }).then(() => {
-                        location.reload();
+
+                        window.location.href =
+                            "/PurchaseOrder/Index";
+
                     });
-                } else {
-                    Swal.fire('Error', res.message || 'Failed to save purchase order', 'error');
+
                 }
+                else {
+
+                    Swal.fire(
+                        'Error',
+                        res.message ||
+                        (isEditMode
+                            ? 'Failed to update purchase order'
+                            : 'Failed to save purchase order'),
+                        'error'
+                    );
+
+                }
+
             },
-            error: function() {
-                Swal.fire('Error', 'An error occurred while saving', 'error');
+
+            error: function(xhr) {
+
+                console.log(xhr.responseText);
+
+
+                let message =
+                    isEditMode
+                        ? 'An error occurred while updating'
+                        : 'An error occurred while saving';
+
+
+                // Try to read server error
+                try {
+
+                    let response =
+                        JSON.parse(xhr.responseText);
+
+                    if (response.message) {
+                        message = response.message;
+                    }
+
+                }
+                catch (e) {
+                    // Ignore JSON parse error
+                }
+
+
+                Swal.fire(
+                    'Error',
+                    message,
+                    'error'
+                );
+
             }
+
         });
+
     }
+
 </script>
+

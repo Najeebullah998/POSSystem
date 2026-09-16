@@ -24,14 +24,26 @@ namespace POSSystem.Controllers
             return View();
         }
 
-        public async Task<IActionResult> CreateSale()
+        public async Task<IActionResult> CreateSale(int? invoiceId)
         {
-            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
-            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+            int companyId =
+                HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+            int branchId =
+                HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            if (companyId <= 0 || branchId <= 0)
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
             var model = new PosInvoiceVm();
 
-            model.Customerslist = await _repo.GetDropdownAsync(companyId, branchId);
+            model.Customerslist =
+                await _repo.GetDropdownAsync(companyId, branchId);
+
+            ViewBag.InvoiceId =
+                invoiceId ?? 0;
 
             return View(model);
         }
@@ -80,22 +92,64 @@ namespace POSSystem.Controllers
         }
         public JsonResult GetItemByBarcode(string barcode)
         {
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
             using (var db = _context.CreateConnection())
             {
                 string query = @"
-                SELECT 
-                    i.ItemId AS itemId,
-                    i.ItemName AS itemName,
-                    i.SalePrice AS salePrice,
-                    ISNULL(s.Quantity,0) AS stockQty
-                FROM Items i
-                LEFT JOIN Stock s ON i.ItemId = s.ItemId
-                WHERE (i.Barcode = @Barcode 
-                       OR i.ItemName LIKE '%' + @Barcode + '%')
-                AND ISNULL(i.IsDeleted,0) = 0
-            ";
+            SELECT 
+                i.ItemId AS itemId,
+                i.ItemName AS itemName,
 
-                var item = db.QueryFirstOrDefault(query, new { Barcode = barcode });
+                i.SalePrice AS salePrice,
+                i.SaleQuantity AS saleQuantity,
+
+                CASE 
+                    WHEN ISNULL(i.SaleQuantity, 0) > 0
+                    THEN i.SalePrice / i.SaleQuantity
+                    ELSE 0
+                END AS rate,
+
+                ISNULL(SUM(s.Quantity), 0) AS stockQty
+
+            FROM Items i
+
+            LEFT JOIN Stock s 
+                ON i.ItemId = s.ItemId
+                AND s.CompanyId = @CompanyId
+                AND s.BranchId = @BranchId
+                AND ISNULL(s.IsDeleted, 0) = 0
+                AND ISNULL(s.IsActive, 1) = 1
+
+            WHERE 
+                (
+                    i.Barcode = @Barcode
+                    OR i.ItemName LIKE '%' + @Barcode + '%'
+                )
+
+                AND ISNULL(i.IsDeleted, 0) = 0
+                AND ISNULL(i.IsActive, 1) = 1
+
+                AND i.CompanyId = @CompanyId
+                AND i.BranchId = @BranchId
+
+            GROUP BY
+                i.ItemId,
+                i.ItemName,
+                i.SalePrice,
+                i.SaleQuantity
+        ";
+
+                var item = db.QueryFirstOrDefault(
+                    query,
+                    new
+                    {
+                        Barcode = barcode,
+                        CompanyId = companyId,
+                        BranchId = branchId
+                    }
+                );
 
                 return Json(item);
             }
@@ -197,50 +251,115 @@ namespace POSSystem.Controllers
             }
         }
         [HttpPost]
-        public IActionResult UpdateInvoice([FromBody] PosInvoiceVm model)
+        public async Task<IActionResult> UpdateInvoice([FromBody] PosInvoiceVm model)
         {
-            if (model == null || model.InvoiceId <= 0)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "Invalid Invoice ID!"
-                });
-            }
-
-            if (model.Items == null || model.Items.Count == 0)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "No items found!"
-                });
-            }
-
             try
             {
-                var userId = HttpContext.Session.GetInt32("UserId");
-
-                if (!userId.HasValue)
+                if (model == null)
                 {
                     return Json(new
                     {
                         success = false,
-                        message = "User session expired. Please login again."
+                        message = "Invalid request."
                     });
                 }
 
-                model.UserId = userId.Value;
 
-                var result = _repo.UpdateInvoice(model);
+                if (model.InvoiceId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Invalid Invoice ID."
+                    });
+                }
+
+
+                if (model.Items == null ||
+                    model.Items.Count == 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "No items found!"
+                    });
+                }
+
+
+                // ==========================================
+                // SESSION
+                // ==========================================
+
+                int companyId =
+                    HttpContext.Session.GetInt32("CompanyId") ?? 0;
+
+                int branchId =
+                    HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+                int userId =
+                    HttpContext.Session.GetInt32("UserId") ?? 0;
+
+
+                // ==========================================
+                // SESSION VALIDATION
+                // ==========================================
+
+                if (companyId <= 0 ||
+                    branchId <= 0 ||
+                    userId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message =
+                            "Session expired. Please login again."
+                    });
+                }
+
+
+                // ==========================================
+                // SECURITY VALUES
+                // ==========================================
+
+                model.CompanyId =
+                    companyId;
+
+                model.BranchId =
+                    branchId;
+
+                model.UserId =
+                    userId;
+
+                model.ModifiedBy =
+                    userId;
+
+
+                // ==========================================
+                // UPDATE
+                // ==========================================
+
+                bool result =
+                    await _repo.UpdatePosInvoiceAsync(
+                        companyId,
+                        branchId,
+                        model.InvoiceId,
+                        model,
+                        model.Items,
+                        userId
+                    );
+
 
                 return Json(new
                 {
                     success = result,
-                    invoiceId = model.InvoiceId,
-                    message = result
-                        ? "Invoice updated successfully!"
-                        : "Invoice could not be updated."
+
+                    invoiceId =
+                        model.InvoiceId,
+
+                    message =
+                        result
+                            ? "Invoice updated successfully!"
+                            : "Invoice could not be updated."
                 });
             }
             catch (Exception ex)
@@ -254,20 +373,20 @@ namespace POSSystem.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteBill(int invoiceId)
+        public IActionResult DeleteInvoiceDetail(int invoiceDetailId)
         {
-            if (invoiceId <= 0)
+            if (invoiceDetailId <= 0)
             {
                 return Json(new
                 {
                     success = false,
-                    message = "Invalid Invoice ID!"
+                    message = "Invalid Invoice Detail ID!"
                 });
             }
 
             try
             {
-                // Get logged-in user from session
+                // Get logged-in user
                 var userId = HttpContext.Session.GetInt32("UserId");
 
                 if (!userId.HasValue)
@@ -279,22 +398,40 @@ namespace POSSystem.Controllers
                     });
                 }
 
-                // Delete invoice and restore stock
-                var result = _repo.DeleteInvoice(invoiceId, userId.Value);
+                // Get Company and Branch from session
+                var companyId = HttpContext.Session.GetInt32("CompanyId");
+                var branchId = HttpContext.Session.GetInt32("BranchId");
+
+                if (!companyId.HasValue || !branchId.HasValue)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Company or Branch session expired. Please login again."
+                    });
+                }
+
+                // Delete invoice detail and restore stock
+                var result = _repo.DeleteInvoiceDetail(
+                    invoiceDetailId,
+                    companyId.Value,
+                    branchId.Value,
+                    userId.Value
+                );
 
                 if (result)
                 {
                     return Json(new
                     {
                         success = true,
-                        message = "Bill deleted successfully!"
+                        message = "Item deleted successfully and stock restored."
                     });
                 }
 
                 return Json(new
                 {
                     success = false,
-                    message = "Bill could not be deleted."
+                    message = "Item could not be deleted."
                 });
             }
             catch (Exception ex)
@@ -363,15 +500,39 @@ namespace POSSystem.Controllers
         }
 
 
-
         [HttpGet]
         public async Task<IActionResult> GetBillById(int invoiceId)
         {
             try
             {
-                var result = await _repo.GetBillByIdAsync(invoiceId);
+                int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+                int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
 
-                if (result.Invoice == null)
+                if (companyId <= 0 || branchId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Company or Branch session expired. Please login again."
+                    });
+                }
+
+                if (invoiceId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Invalid Invoice ID."
+                    });
+                }
+
+                var result = await _repo.GetBillByIdAsync(
+                    companyId,
+                    branchId,
+                    invoiceId
+                );
+
+                if (result.Header == null)
                 {
                     return Json(new
                     {
@@ -383,7 +544,7 @@ namespace POSSystem.Controllers
                 return Json(new
                 {
                     success = true,
-                    invoice = result.Invoice,
+                    invoice = result.Header,
                     details = result.Details
                 });
             }
