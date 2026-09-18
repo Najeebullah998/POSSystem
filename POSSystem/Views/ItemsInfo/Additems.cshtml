@@ -1,4 +1,5 @@
-﻿@{
+﻿@model POSSystem.Entities.Item;
+@{
     ViewData["Title"] = "ItemsList";
 }
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -138,17 +139,14 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label for="unitId" class="form-label">
+                        <label for="UnitId" class="form-label">
                             Unit
                         </label>
 
-                        <select class="form-select"
-                                id="unitId">
-
-                            <option value="">
-                                Select unit
-                            </option>
-
+                        <select asp-for="UnitId"
+                                asp-items="Model.UnitList"
+                                class="form-select" id="unitId">
+                            <option value="">Select unit</option>
                         </select>
                     </div>
 
@@ -218,8 +216,7 @@
                                min="0"
                                class="form-control"
                                id="salePrice"
-                               placeholder="Auto calculated"
-                               readonly />
+                               placeholder="Auto calculated"/>
                     </div>
 
                 </div>
@@ -238,7 +235,7 @@
                                min="0"
                                class="form-control"
                                id="costPrice"
-                               placeholder="Cost price" />
+                               placeholder="Cost price" readonly />
                     </div>
 
                     <div class="col-md-6 mb-3 d-flex align-items-center">
@@ -307,7 +304,7 @@
     }
     function loadUnits(selectedId = null) {
         $.ajax({
-            url: '/Units/GetAllUnits',
+            url: '/Unit/GetAllUnits',
             type: 'GET',
             success: function (data) {
 
@@ -443,6 +440,8 @@
             CategoryId: $('#categoryId').val() ? parseInt($('#categoryId').val()) : null,
             UnitId: $('#unitId').val() ? parseInt($('#unitId').val()) : null,
             SaleQuantity: parseFloat($('#saleQuantity').val()) || 0,
+            RetailPrice: parseFloat($('#retailPrice').val()) || 0,
+            SupplierDiscount: parseFloat($('#supplierDiscount').val()) || 0,
             SalePrice: parseFloat($('#salePrice').val()) || 0,
             CostPrice: parseFloat($('#costPrice').val()) || 0,
             IsActive: $('#isActive').is(':checked')
@@ -492,6 +491,8 @@
                 $('#barcode').val(data.barcode);
                 $('#categoryId').val(data.categoryId);
                 $('#unitId').val(data.unitId);
+                $('#retailPrice').val(data.retailPrice);
+                $('#supplierDiscount').val(data.supplierDiscount);
                 $('#saleQuantity').val(data.saleQuantity);
                 $('#salePrice').val(data.salePrice);
                 $('#costPrice').val(data.costPrice);
@@ -540,7 +541,7 @@
         });
     }
 
-    function calculateSalePrice() {
+    function calculatePrices() {
 
         let retailPrice =
             parseFloat($('#retailPrice').val()) || 0;
@@ -556,21 +557,30 @@
             supplierDiscount = 100;
         }
 
+        // Sale Price = Retail Price
+        let salePrice = retailPrice;
+
+        // Discount Amount
         let discountAmount =
             retailPrice * supplierDiscount / 100;
 
-        let salePrice =
+        // Cost Price = Retail Price - Discount
+        let costPrice =
             retailPrice - discountAmount;
 
         $('#salePrice').val(
             salePrice.toFixed(2)
+        );
+
+        $('#costPrice').val(
+            costPrice.toFixed(2)
         );
     }
 
 
     $('#retailPrice, #supplierDiscount').on('input', function() {
 
-        calculateSalePrice();
+        calculatePrices();
 
     });
 

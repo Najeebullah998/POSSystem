@@ -30,8 +30,10 @@ namespace POSSystem.Repositories
             ItemName,
             CategoryId,
             UnitId,
+            RetailPrice,
             SalePrice,
             SaleQuantity,
+            SupplierDiscount,
             CostPrice,
             IsActive,
             IsDeleted,
@@ -47,8 +49,10 @@ namespace POSSystem.Repositories
             @ItemName,
             @CategoryId,
             @UnitId,
+            @RetailPrice,
             @SalePrice,
             @SaleQuantity,
+            @SupplierDiscount,
             @CostPrice,
             @IsActive,
             0,
@@ -69,8 +73,10 @@ namespace POSSystem.Repositories
                 item.ItemName,
                 item.CategoryId,
                 item.UnitId,
+                item.RetailPrice,
                 item.SalePrice,
                 item.SaleQuantity,
+                item.SupplierDiscount,
                 item.CostPrice,
                 item.IsActive,
                 item.CreatedBy
@@ -175,6 +181,29 @@ namespace POSSystem.Repositories
                 });
         }
 
+        public async Task<List<UnitViewModel>> GetUnitAsync(int companyId, int branchId)
+        {
+            var query = @"
+        SELECT
+            UnitId AS Value,
+            UnitName AS Text
+        FROM Units
+        WHERE CompanyId = @CompanyId
+          AND BranchId = @BranchId
+          AND ISNULL(IsDeleted, 0) = 0
+          AND ISNULL(IsActive, 1) = 1
+        ORDER BY UnitName";
+
+            using var con = _context.CreateConnection();
+
+            var result = await con.QueryAsync<UnitViewModel>(query, new
+            {
+                CompanyId = companyId,
+                BranchId = branchId
+            });
+
+            return result.ToList();
+        }
 
         public async Task UpdateAsync(Item item, int companyId, int branchId)
         {
@@ -185,8 +214,10 @@ namespace POSSystem.Repositories
             ItemName = @ItemName,
             CategoryId = @CategoryId,
             UnitId = @UnitId,
+            RetailPrice = @RetailPrice,
             SalePrice = @SalePrice,
             SaleQuantity = @SaleQuantity,
+            SupplierDiscount = @SupplierDiscount,
             CostPrice = @CostPrice,
             IsActive = @IsActive,
             ModifiedOn = GETDATE(),
@@ -205,8 +236,10 @@ namespace POSSystem.Repositories
                 item.ItemName,
                 item.CategoryId,
                 item.UnitId,
+                item.RetailPrice,
                 item.SalePrice,
                 item.SaleQuantity,
+                item.SupplierDiscount,
                 item.CostPrice,
                 item.IsActive,
                 item.ModifiedBy,

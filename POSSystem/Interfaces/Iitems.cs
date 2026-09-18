@@ -13,5 +13,6 @@ namespace POSSystem.Interfaces
         Task<Item?> GetByIdAsync(int id, int companyId, int branchId);
 
         Task<IEnumerable<Item>> GetAllAsync(int companyId, int branchId);
+        Task<List<UnitViewModel>> GetUnitAsync(int companyId, int branchId);
     }
 }

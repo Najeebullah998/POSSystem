@@ -23,6 +23,7 @@ builder.Services.AddScoped<ISaleReturnRepository, SaleReturnRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IReportsRepo, ReportsRepo>();
+builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddHttpContextAccessor();
 var app = builder.Build();

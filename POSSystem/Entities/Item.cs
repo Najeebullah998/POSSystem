@@ -1,4 +1,6 @@
-﻿namespace POSSystem.Entities
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace POSSystem.Entities
 {
     public class Item
     {
@@ -12,6 +14,8 @@
         public int? UnitId { get; set; }
         public string? UnitName { get; set; } = string.Empty;
         public decimal? SaleQuantity { get; set; }
+        public decimal? SupplierDiscount { get; set; }
+        public decimal? RetailPrice { get; set; }
         public decimal? SalePrice { get; set; }
         public decimal? CostPrice { get; set; }
         public bool? IsActive { get; set; }
@@ -20,5 +24,6 @@
         public int? CreatedBy { get; set; }
         public DateTime? ModifiedOn { get; set; }
         public int? ModifiedBy { get; set; }
+        public List<SelectListItem> UnitList { get; set; }
     }
 }

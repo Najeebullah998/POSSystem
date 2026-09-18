@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using POSSystem.Entities;
 using POSSystem.Interfaces;
 using POSSystem.Repositories;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 
 namespace POSSystem.Controllers
 {
@@ -30,9 +33,22 @@ namespace POSSystem.Controllers
 
 
         [HttpGet]
-        public IActionResult Additems()
+        public async Task<IActionResult> Additems()
         {
-            return View();
+            var model = new Item();
+
+            int companyId = HttpContext.Session.GetInt32("CompanyId") ?? 0;
+            int branchId = HttpContext.Session.GetInt32("BranchId") ?? 0;
+
+            var units = await _repo.GetUnitAsync(companyId, branchId);
+
+            model.UnitList = units.Select(x => new SelectListItem
+            {
+                Value = x.Value.ToString(),
+                Text = x.Text
+            }).ToList();
+
+            return View(model);
         }
 
 
