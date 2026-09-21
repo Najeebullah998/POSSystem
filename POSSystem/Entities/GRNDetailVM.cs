@@ -27,6 +27,11 @@
                 return ReceivedQty * Rate;
             }
         }
+        public decimal? RetailRate { get; set; }
+
+        public decimal? SupplierDiscount { get; set; }
+
+        public decimal? CostRate { get; set; }
 
         public string BatchNo { get; set; }
 

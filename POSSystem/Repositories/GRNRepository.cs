@@ -88,7 +88,7 @@ namespace POSSystem.Repositories
 
 
         private DataTable GetGRNDetailTable(
-            List<GRNDetailVM> details)
+    List<GRNDetailVM> details)
         {
             DataTable dt = new DataTable();
 
@@ -114,7 +114,10 @@ namespace POSSystem.Repositories
                 typeof(decimal)
             );
 
-            // Pharmacy fields
+            //===========================
+            // Pharmacy Fields
+            //===========================
+
             dt.Columns.Add(
                 "BatchNo",
                 typeof(string)
@@ -130,6 +133,21 @@ namespace POSSystem.Repositories
                 typeof(DateTime)
             );
 
+            dt.Columns.Add(
+                "RetailRate",
+                typeof(decimal)
+            );
+
+            dt.Columns.Add(
+                "SupplierDiscount",
+                typeof(decimal)
+            );
+
+            dt.Columns.Add(
+                "CostRate",
+                typeof(decimal)
+            );
+
 
             //===========================
             // Add Details
@@ -139,13 +157,17 @@ namespace POSSystem.Repositories
             {
                 DataRow row = dt.NewRow();
 
-                row["ItemId"] = item.ItemId;
+                row["ItemId"] =
+                    item.ItemId;
 
-                row["ReceivedQty"] = item.ReceivedQty;
+                row["ReceivedQty"] =
+                    item.ReceivedQty;
 
-                row["Rate"] = item.Rate;
+                row["Rate"] =
+                    item.Rate;
 
-                row["Amount"] = item.Amount;
+                row["Amount"] =
+                    item.Amount;
 
 
                 //===========================
@@ -167,6 +189,24 @@ namespace POSSystem.Repositories
                 row["ExpiryDate"] =
                     item.ExpiryDate.HasValue
                         ? item.ExpiryDate.Value
+                        : DBNull.Value;
+
+
+                row["RetailRate"] =
+                    item.RetailRate.HasValue
+                        ? item.RetailRate.Value
+                        : DBNull.Value;
+
+
+                row["SupplierDiscount"] =
+                    item.SupplierDiscount.HasValue
+                        ? item.SupplierDiscount.Value
+                        : DBNull.Value;
+
+
+                row["CostRate"] =
+                    item.CostRate.HasValue
+                        ? item.CostRate.Value
                         : DBNull.Value;
 
 
